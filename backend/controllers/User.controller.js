@@ -192,10 +192,13 @@ export const updateProfilePicture = async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    user.profilePicture = req.file.path; // Save new profile picture
+    user.profilePicture = req.file.path; // Cloudinary URL
     await user.save();
 
-    res.status(200).json({ message: "Profile picture updated", profilePicture: user.profilePicture });
+    res.status(200).json({
+      message: "Profile picture updated successfully",
+      profilePicture: user.profilePicture,
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
