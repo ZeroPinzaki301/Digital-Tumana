@@ -1,7 +1,8 @@
 import User from "../models/User.model.js";
 import jwt from "jsonwebtoken";
-import { sendVerificationEmail } from "../utils/emailSender.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../utils/emailSender.js";
 import bcrypt from "bcryptjs";
+import { uploadToCloudinary, deleteFromCloudinary } from "../config/cloudinary.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -51,14 +52,14 @@ export const registerUser = async (req, res) => {
 
 export const verifyEmail = async (req, res) => {
   try {
-    const { email, code } = req.body;
+    const { email, verificationCode } = req.body;
 
     const user = await User.findOne({ email });
 
     if (!user) return res.status(404).json({ message: "User not found" });
     if (user.isVerified) return res.status(400).json({ message: "User is already verified" });
 
-    if (user.verificationCode !== code) {
+    if (user.verificationCode !== verificationCode) {
       return res.status(400).json({ message: "Invalid verification code" });
     }
 
@@ -75,24 +76,24 @@ export const verifyEmail = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Check if user is verified
-    if (!user.isVerified) {
-      return res.status(403).json({
-        message: "Account not verified. Redirecting to verification page...",
-        redirect: "/verify-email",
-      });
-    }
-
-    // Validate password
+    // Validate password FIRST
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    // Generate JWT Token
+    // THEN check verification status
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Account not verified",
+        requiresVerification: true,  // New flag
+        email: user.email            // Include email
+      });
+    }
+
+    // Generate token for verified users
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     res.status(200).json({
@@ -130,18 +131,36 @@ export const getUserAccount = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    console.log("🔍 Forgot password request received for:", email);
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.warn("❌ No user found with email:", email);
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const passChangeCode = Math.floor(100000 + Math.random() * 900000).toString();
     user.passChangeCode = passChangeCode;
-    await user.save();
 
-    await sendPasswordResetEmail(email, passChangeCode);
+    try {
+      await user.save();
+      console.log("✅ Code saved to user:", passChangeCode);
+    } catch (saveErr) {
+      console.error("⚠️ Failed to save user:", saveErr);
+      return res.status(500).json({ message: "Error saving reset code", error: saveErr.message });
+    }
+
+    try {
+      await sendPasswordResetEmail(email, passChangeCode);
+      console.log("📬 Email sent successfully to", email);
+    } catch (emailErr) {
+      console.error("📡 Email failed to send:", emailErr);
+      return res.status(500).json({ message: "Failed to send reset email", error: emailErr.message });
+    }
 
     res.status(200).json({ message: "Password reset code sent to email" });
   } catch (err) {
+    console.error("🔥 Unexpected forgotPassword error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
@@ -157,10 +176,8 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid reset code" });
     }
 
-    // Update password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
-    user.passChangeCode = null; // Clear reset code
+    user.password = newPassword; // ← Let the schema handle hashing
+    user.passChangeCode = null;
     await user.save();
 
     res.status(200).json({ message: "Password reset successful" });
@@ -190,9 +207,33 @@ export const updateProfile = async (req, res) => {
 export const updateProfilePicture = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    user.profilePicture = req.file.path; // Cloudinary URL
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    // Delete old profile picture if exists
+    if (user.profilePicturePublicId) {
+      try {
+        await deleteFromCloudinary(user.profilePicturePublicId);
+      } catch (error) {
+        console.error('Error deleting old profile picture:', error);
+      }
+    }
+
+    // Upload new profile picture
+    const result = await uploadToCloudinary(
+      req.file.path,
+      'profile_pictures',
+      `user_${user._id}_profile`
+    );
+
+    // Update user with new profile picture
+    user.profilePicture = result.secure_url;
+    user.profilePicturePublicId = result.public_id;
     await user.save();
 
     res.status(200).json({
@@ -200,14 +241,10 @@ export const updateProfilePicture = async (req, res) => {
       profilePicture: user.profilePicture,
     });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("Error updating profile picture:", err);
+    res.status(500).json({ 
+      message: "Failed to update profile picture",
+      error: err.message 
+    });
   }
 };
-
-
-
-
-
-
-
-

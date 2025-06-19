@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import { verificationEmailTemplate, passwordResetEmailTemplate } from "./emailTemplates.js";
+import { verificationEmailTemplate, passwordResetEmailTemplate, adminPasswordResetEmailTemplate, adminVerificationEmailTemplate } from "./emailTemplates.js";
 
 dotenv.config();
 
@@ -33,6 +33,31 @@ export const sendPasswordResetEmail = async (to, code) => {
 
   await transporter.sendMail(mailOptions);
 };
+
+export const sendAdminVerificationEmail = async (to, name, code) => {
+  const mailOptions = {
+    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: "Admin Login Verification Code",
+    html: adminVerificationEmailTemplate(name, code),
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+// Send Admin Password Reset Email
+export const sendAdminResetEmail = async (to, code) => {
+  const mailOptions = {
+    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: "Reset Your Admin Password",
+    html: adminPasswordResetEmailTemplate(code),
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+
 
 
 

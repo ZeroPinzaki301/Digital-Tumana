@@ -1,6 +1,7 @@
 import express from "express";
-import protect from "../middleware/authMiddleware.js";
-import upload from "../middleware/uploadMiddleware.js";
+import protect from "../middlewares/authMiddleware.js";
+import upload from "../middlewares/uploadMiddleware.js";
+
 import { 
     registerUser, 
     verifyEmail, 

@@ -1,18 +1,34 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../config/cloudinary.js";
+import path from "path";
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: (req) => req.body.folder || "general-uploads", // Default folder
-    format: async (req, file) => {
-      const allowedFormats = ["jpeg", "png", "jpg", "webp"];
-      const fileFormat = file.mimetype.split("/")[1]; // Extract format from MIME type
-      return allowedFormats.includes(fileFormat) ? fileFormat : "jpeg"; // Default to JPEG if unsupported
-    },
-    public_id: (req, file) => `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`,
+// Configure storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
   },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
 });
 
-export const upload = multer({ storage });
+// File filter to only allow images
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WEBP are allowed.'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+export default upload;
