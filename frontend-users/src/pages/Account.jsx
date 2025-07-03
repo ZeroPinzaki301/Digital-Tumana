@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { FaUserCircle, FaEdit, FaUser } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { FaEdit, FaUser } from "react-icons/fa";
 import axiosInstance from "../utils/axiosInstance";
 
 const Account = () => {
@@ -10,6 +10,7 @@ const Account = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ firstName: "", lastName: "" });
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -64,13 +65,12 @@ const Account = () => {
         }
       );
 
-      setUser({ ...user, profilePicture: response.data.profilePicture });
+      setUser((prev) => ({
+        ...prev,
+        profilePicture: response.data.profilePicture,
+      }));
     } catch (error) {
-      console.error("Upload error:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        config: error.config,
-      });
+      console.error("Upload error:", error);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -111,9 +111,12 @@ const Account = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-emerald-100 text-center px-4">
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-          <h2 className="text-2xl font-bold text-lime-700 mb-4">You're not logged in</h2>
+          <h2 className="text-2xl font-bold text-lime-700 mb-4">
+            You're not logged in
+          </h2>
           <p className="text-gray-700 mb-6">
-            To access your account and update your profile, please sign in or create an account.
+            To access your account and update your profile, please sign in or
+            create an account.
           </p>
           <div className="flex flex-col space-y-3">
             <Link
@@ -134,9 +137,9 @@ const Account = () => {
     );
   }
 
-  // Check if profile picture should be replaced with icon
-  const showProfileIcon = !user?.profilePicture || 
-                         user.profilePicture.includes("default-profile.png");
+  const showProfileIcon =
+    !user?.profilePicture ||
+    user.profilePicture.includes("default-profile.png");
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-emerald-100 px-4">
@@ -229,6 +232,22 @@ const Account = () => {
             </button>
           </>
         )}
+
+        {/* Become Affiliate Button */}
+        <button
+          onClick={() => navigate("/affiliate-registration")}
+          className="mt-6 py-2 w-full bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
+        >
+          Become an Affiliate
+        </button>
+
+        {/* View Affiliate Dashboards */}
+        <button
+          onClick={() => navigate("/affiliate-dashboards")}
+          className="mt-3 py-2 w-full bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
+        >
+          Go to Affiliate Dashboards
+        </button>
       </div>
     </div>
   );

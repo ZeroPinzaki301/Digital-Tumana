@@ -4,6 +4,8 @@ import cors from "cors";
 import connectDB from "./config/db.js"; 
 import userRoutes from "./routes/User.route.js";
 import adminRoutes from "./routes/Admin.route.js"
+import sellerRoutes from "./routes/Seller.route.js"
+import adminApprovalRoutes from "./routes/AdminApproval.route.js"
 
 
 dotenv.config();
@@ -18,6 +20,9 @@ connectDB();
 
 app.use("/api/users", userRoutes);
 app.use("/api/admins", adminRoutes);
+app.use("/api/sellers", sellerRoutes)
+app.use("/api/admin-approval", adminApprovalRoutes)
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

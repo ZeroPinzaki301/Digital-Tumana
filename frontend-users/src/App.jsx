@@ -9,6 +9,11 @@ import Account from "./pages/Account";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyReset from "./pages/VerifyReset";
 import ResetPassword from "./pages/ResetPassword";
+import SellerRegister from "./pages/SellerRegister";
+import PendingSellerNotice from "./pages/PendingSellerNotice";
+import AffiliateRegistrationOptions from "./pages/AffiliateRegistrationOptions";
+import AffiliateDashboards from "./pages/AffiliateDashboards";
+import SellerDashboard from "./pages/SellerDashboard";
 
 import "./App.css";
 
@@ -25,6 +30,11 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-reset" element={<VerifyReset />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/seller-registration" element={<SellerRegister />} />
+        <Route path="/pending-seller-notice" element={<PendingSellerNotice />} />
+        <Route path="/affiliate-registration" element={<AffiliateRegistrationOptions />} />
+        <Route path="/affiliate-dashboards" element={<AffiliateDashboards />} />
+        <Route path="/seller-dashboard" element={<SellerDashboard />} />
       </Routes>
     </Router>
   );
