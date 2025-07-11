@@ -14,6 +14,9 @@ import PendingSellerNotice from "./pages/PendingSellerNotice";
 import AffiliateRegistrationOptions from "./pages/AffiliateRegistrationOptions";
 import AffiliateDashboards from "./pages/AffiliateDashboards";
 import SellerDashboard from "./pages/SellerDashboard";
+import SellerAddressPage from "./pages/SellerAddressPage";
+import WorkerRegister from "./pages/WorkerRegsiter";
+import EmployerRegister from "./pages/EmployerRegister"
 
 import "./App.css";
 
@@ -31,10 +34,13 @@ function App() {
         <Route path="/verify-reset" element={<VerifyReset />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/seller-registration" element={<SellerRegister />} />
+        <Route path="/worker-registration" element={<WorkerRegister />} />
+        <Route path="/employer-registration" element={<EmployerRegister />} />
         <Route path="/pending-seller-notice" element={<PendingSellerNotice />} />
         <Route path="/affiliate-registration" element={<AffiliateRegistrationOptions />} />
         <Route path="/affiliate-dashboards" element={<AffiliateDashboards />} />
         <Route path="/seller-dashboard" element={<SellerDashboard />} />
+        <Route path="/seller-address" element={<SellerAddressPage />} />
       </Routes>
     </Router>
   );

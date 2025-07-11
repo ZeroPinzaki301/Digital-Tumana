@@ -61,7 +61,6 @@ export const getVerifiedSellerByUser = async (req, res) => {
   try {
     const [seller] = await Seller.find({
       userId: req.user._id,
-      status: { $ne: "deleted" }, // ✅ filter out deleted
     })
       .sort({ createdAt: -1 })
       .limit(1);
@@ -82,53 +81,6 @@ export const getVerifiedSellerByUser = async (req, res) => {
   } catch (err) {
     console.error("Error in getVerifiedSellerByUser:", err.message);
     res.status(500).json({ message: "Server error", error: err.message });
-  }
-};
-
-export const addSellerAddress = async (req, res) => {
-  try {
-    const { id: sellerId } = req.params;
-    const {
-      region,
-      province,
-      cityOrMunicipality,
-      barangay,
-      street,
-      postalCode,
-      latitude,
-      longitude,
-    } = req.body;
-
-    // Confirm seller exists and is verified
-    const seller = await Seller.findById(sellerId);
-    if (!seller) return res.status(404).json({ message: "Seller not found" });
-    if (seller.status !== "verified") {
-      return res.status(403).json({ message: "Seller is not verified" });
-    }
-
-    // Check if address already exists
-    if (seller.sellerAddress) {
-      return res.status(400).json({ message: "Seller address already exists. Use PUT to update." });
-    }
-
-    const newAddress = await SellerAddress.create({
-      sellerId,
-      region,
-      province,
-      cityOrMunicipality,
-      barangay,
-      street,
-      postalCode,
-      latitude,
-      longitude,
-    });
-
-    seller.sellerAddress = newAddress._id;
-    await seller.save();
-
-    res.status(201).json({ message: "Seller address added", address: newAddress });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to add seller address", error: err.message });
   }
 };
 
@@ -157,12 +109,79 @@ export const getPendingSellerByUser = async (req, res) => {
   }
 };
 
-export const updateSellerAddress = async (req, res) => {
+export const deleteSellerByUser = async (req, res) => {
   try {
-    const { id: sellerId } = req.params;
+    const userId = req.user._id;
+
+    // Get the most recent seller record for the user
+    const [seller] = await Seller.find({ userId }).sort({ createdAt: -1 }).limit(1);
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller record not found" });
+    }
+
+    // Delete associated address if it exists
+    if (seller.sellerAddress) {
+      await SellerAddress.findOneAndDelete({ _id: seller.sellerAddress });
+    }
+
+    // Delete the seller document itself
+    await Seller.findByIdAndDelete(seller._id);
+
+    res.status(200).json({ message: "Seller record deleted successfully" });
+  } catch (err) {
+    console.error("Error in deleteSellerByUser:", err.message);
+    res.status(500).json({ message: "Failed to delete seller", error: err.message });
+  }
+};
+
+export const addSellerAddressByUser = async (req, res) => {
+  try {
+    const {
+      region,
+      province,
+      cityOrMunicipality,
+      barangay,
+      street,
+      postalCode,
+      latitude,
+      longitude,
+    } = req.body;
+
+    const [seller] = await Seller.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
+    if (seller.status !== "verified") return res.status(403).json({ message: "Seller is not verified" });
+
+    if (seller.sellerAddress) {
+      return res.status(400).json({ message: "Seller address already exists. Use PUT to update." });
+    }
+
+    const newAddress = await SellerAddress.create({
+      sellerId: seller._id,
+      region,
+      province,
+      cityOrMunicipality,
+      barangay,
+      street,
+      postalCode,
+      latitude,
+      longitude,
+    });
+
+    seller.sellerAddress = newAddress._id;
+    await seller.save();
+
+    res.status(201).json({ message: "Seller address added", address: newAddress });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to add seller address", error: err.message });
+  }
+};
+
+export const updateSellerAddressByUser = async (req, res) => {
+  try {
     const updateData = req.body;
 
-    const seller = await Seller.findById(sellerId);
+    const [seller] = await Seller.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);
     if (!seller || seller.status !== "verified") {
       return res.status(403).json({ message: "Seller not verified or does not exist" });
     }
@@ -183,11 +202,12 @@ export const updateSellerAddress = async (req, res) => {
   }
 };
 
-export const getSellerAddress = async (req, res) => {
+export const getSellerAddressByUser = async (req, res) => {
   try {
-    const { id: sellerId } = req.params;
+    const [seller] = await Seller.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
 
-    const address = await SellerAddress.findOne({ sellerId });
+    const address = await SellerAddress.findOne({ sellerId: seller._id });
     if (!address) return res.status(404).json({ message: "Seller address not found" });
 
     res.status(200).json({ address });
@@ -196,17 +216,19 @@ export const getSellerAddress = async (req, res) => {
   }
 };
 
-export const deleteSellerAddress = async (req, res) => {
+export const deleteSellerAddressByUser = async (req, res) => {
   try {
-    const { id: sellerId } = req.params;
+    const [seller] = await Seller.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);
+    if (!seller || seller.status !== "verified") {
+      return res.status(403).json({ message: "Seller not verified or does not exist" });
+    }
 
-    const deletedAddress = await SellerAddress.findOneAndDelete({ sellerId });
+    const deletedAddress = await SellerAddress.findOneAndDelete({ sellerId: seller._id });
     if (!deletedAddress) {
       return res.status(404).json({ message: "Seller address not found or already deleted" });
     }
 
-    // Unlink from Seller model
-    await Seller.findByIdAndUpdate(sellerId, { $unset: { sellerAddress: "" } });
+    await Seller.findByIdAndUpdate(seller._id, { $unset: { sellerAddress: "" } });
 
     res.status(200).json({ message: "Seller address deleted successfully" });
   } catch (err) {

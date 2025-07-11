@@ -4,11 +4,12 @@ import upload from "../middlewares/uploadMiddleware.js";
 import { 
   registerSeller,
   getVerifiedSellerByUser,
-  addSellerAddress,
-  updateSellerAddress,
-  getSellerAddress,
-  deleteSellerAddress,
-  getPendingSellerByUser
+  addSellerAddressByUser,
+  updateSellerAddressByUser,
+  getSellerAddressByUser,
+  deleteSellerAddressByUser,
+  getPendingSellerByUser,
+  deleteSellerByUser
  } from "../controllers/Seller.controller.js";
 
 const router = express.Router();
@@ -22,10 +23,11 @@ const sellerUploads = upload.fields([
 router.post("/register", protect, sellerUploads, registerSeller);
 router.get("/user", protect, getPendingSellerByUser);
 router.get("/dashboard", protect, getVerifiedSellerByUser);
-router.post("/:id/address", protect, addSellerAddress);
-router.put("/:id/address", protect, updateSellerAddress);
-router.get("/:id/address", protect, getSellerAddress);
-router.delete("/:id/address", protect, deleteSellerAddress);
+router.delete("/me", protect, deleteSellerByUser)
+router.post("/address", protect, addSellerAddressByUser);
+router.put("/address", protect, updateSellerAddressByUser);
+router.get("/address", protect, getSellerAddressByUser);
+router.delete("/address", protect, deleteSellerAddressByUser);
 
 
 

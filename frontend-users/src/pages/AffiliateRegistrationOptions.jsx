@@ -31,6 +31,54 @@ const AffiliateRegistrationOptions = () => {
     }
   };
 
+  const handleWorkerClick = async () => {
+  setChecking(true);
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axiosInstance.get("/api/workers/user", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.data?.worker?.status === "pending") {
+      setShowPendingModal(true);
+    } else {
+      navigate("/worker-registration");
+    }
+  } catch (err) {
+    if (err.response?.status === 404) {
+      navigate("/worker-registration"); // No record = proceed
+    } else {
+      console.error("Error checking worker status:", err);
+    }
+  } finally {
+    setChecking(false);
+  }
+};
+
+const handleEmployerClick = async () => {
+  setChecking(true);
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axiosInstance.get("/api/employers/user", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.data?.employer?.status === "pending") {
+      setShowPendingModal(true);
+    } else {
+      navigate("/employer-registration");
+    }
+  } catch (err) {
+    if (err.response?.status === 404) {
+      navigate("/employer-registration"); // No record = proceed
+    } else {
+      console.error("Error checking employer status:", err);
+    }
+  } finally {
+    setChecking(false);
+  }
+};
+
   return (
     <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4">
       <div className="bg-white rounded-lg p-6 shadow-lg w-full max-w-sm text-center border border-lime-700">
@@ -48,17 +96,23 @@ const AffiliateRegistrationOptions = () => {
           </button>
 
           <button
-            disabled
-            className="w-full py-2 bg-gray-200 text-gray-500 border border-gray-300 rounded-lg cursor-not-allowed"
+            onClick={handleWorkerClick}
+            disabled={checking}
+            className={`w-full py-2 ${
+              checking ? "bg-gray-300 text-gray-600" : "bg-emerald-100 text-sky-900 hover:bg-emerald-200"
+            } border border-sky-900 rounded-lg transition`}
           >
-            Register as Worker
+            {checking ? "Checking..." : "Register as Worker"}
           </button>
 
           <button
-            disabled
-            className="w-full py-2 bg-gray-200 text-gray-500 border border-gray-300 rounded-lg cursor-not-allowed"
+            onClick={handleEmployerClick}
+            disabled={checking}
+            className={`w-full py-2 ${
+              checking ? "bg-gray-300 text-gray-600" : "bg-emerald-100 text-sky-900 hover:bg-emerald-200"
+            } border border-sky-900 rounded-lg transition`}
           >
-            Register as Employer
+            {checking ? "Checking..." : "Register as Employer"}
           </button>
         </div>
       </div>
