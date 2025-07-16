@@ -93,7 +93,7 @@ const Navbar = () => {
             </button>
 
             {showModal && (
-              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg p-4">
+              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg p-4 z-100">
                 <div className="flex flex-col items-center">
                   {!showProfileIcon ? (
                     <img

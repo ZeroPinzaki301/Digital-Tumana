@@ -9,7 +9,8 @@ import {
   addEmployerAddressByUser,
   updateEmployerAddressByUser,
   getEmployerAddressByUser,
-  deleteEmployerAddressByUser
+  deleteEmployerAddressByUser,
+  updateEmployerProfilePicture
 } from "../controllers/Employer.controller.js";
 
 const router = express.Router();
@@ -17,17 +18,20 @@ const router = express.Router();
 const employerUploads = upload.fields([
   { name: "validId", maxCount: 1 },
   { name: "dtiCert", maxCount: 1 },
-  { name: "birCert", maxCount: 1 }
+  { name: "birCert", maxCount: 1 },
+  { name: "profilePicture", maxCount: 1 }
 ]);
 
 router.post("/register", protect, employerUploads, registerEmployer);
 router.get("/user", protect, getPendingEmployerByUser);
 router.get("/dashboard", protect, getVerifiedEmployerByUser);
 router.delete("/me", protect, deleteEmployerByUser);
+router.put("/picture", protect, upload.single("profilePicture"), updateEmployerProfilePicture);
 
 router.post("/address", protect, addEmployerAddressByUser);
 router.put("/address", protect, updateEmployerAddressByUser);
 router.get("/address", protect, getEmployerAddressByUser);
 router.delete("/address", protect, deleteEmployerAddressByUser);
+
 
 export default router;

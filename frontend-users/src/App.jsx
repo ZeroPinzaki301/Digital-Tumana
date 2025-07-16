@@ -17,6 +17,15 @@ import SellerDashboard from "./pages/SellerDashboard";
 import SellerAddressPage from "./pages/SellerAddressPage";
 import WorkerRegister from "./pages/WorkerRegsiter";
 import EmployerRegister from "./pages/EmployerRegister"
+import WorkerDashboard from "./pages/WorkerDashboard";
+import EmployerDashboard from "./pages/EmployerDashboard";
+import EmployerAddressPage from "./pages/EmployerAddressPage";
+import WorkerAddressPage from "./pages/WorkerAddressPage";
+import SellerProducts from "./pages/SellerProducts";
+import SellerAddProduct from "./pages/SellerAddProduct";
+import SellerProductDetail from "./pages/SellerProductDetail";
+import SellerEditProduct from "./pages/SellerEditProduct";
+import Marketplace from "./pages/Marketplace";
 
 import "./App.css";
 
@@ -40,7 +49,16 @@ function App() {
         <Route path="/affiliate-registration" element={<AffiliateRegistrationOptions />} />
         <Route path="/affiliate-dashboards" element={<AffiliateDashboards />} />
         <Route path="/seller-dashboard" element={<SellerDashboard />} />
+        <Route path="/worker-dashboard" element={<WorkerDashboard />} />
+        <Route path="/employer-dashboard" element={<EmployerDashboard />} />
         <Route path="/seller-address" element={<SellerAddressPage />} />
+        <Route path="/employer-address" element={<EmployerAddressPage />} />
+        <Route path="/worker-address" element={<WorkerAddressPage />} />
+        <Route path="/seller-products" element={<SellerProducts />} />
+        <Route path="/seller-product/:productId" element={<SellerProductDetail />} />
+        <Route path="/seller-add-product" element={<SellerAddProduct />} />
+        <Route path="/seller-edit-product/:productId" element={<SellerEditProduct />} />
+        <Route path="/marketplace" element={<Marketplace />} />
       </Routes>
     </Router>
   );

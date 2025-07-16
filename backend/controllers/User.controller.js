@@ -215,6 +215,12 @@ export const updateProfilePicture = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
+    // Limit file size to 10MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (req.file.size > MAX_FILE_SIZE) {
+      return res.status(413).json({ message: "File too large. Maximum allowed size is 10MB." });
+    }
+
     // Delete old profile picture if exists
     if (user.profilePicturePublicId) {
       try {

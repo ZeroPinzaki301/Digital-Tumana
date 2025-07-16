@@ -9,14 +9,16 @@ import {
   addWorkerAddressByUser,
   updateWorkerAddressByUser,
   getWorkerAddressByUser,
-  deleteWorkerAddressByUser
+  deleteWorkerAddressByUser,
+  updateWorkerProfilePicture
 } from "../controllers/Worker.controller.js";
 
 const router = express.Router();
 
 const workerUploads = upload.fields([
   { name: "validId", maxCount: 1 },
-  { name: "resumeFile", maxCount: 1 }
+  { name: "resumeFile", maxCount: 1 },
+  { name: "profilePicture", maxCount: 1 }
 ]);
 
 router.post("/register", protect, workerUploads, registerWorker);
@@ -28,5 +30,6 @@ router.post("/address", protect, addWorkerAddressByUser);
 router.put("/address", protect, updateWorkerAddressByUser);
 router.get("/address", protect, getWorkerAddressByUser);
 router.delete("/address", protect, deleteWorkerAddressByUser);
+router.put("/picture", protect, upload.single("profilePicture"), updateWorkerProfilePicture);
 
 export default router;

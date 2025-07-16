@@ -135,6 +135,50 @@ export const deleteSellerByUser = async (req, res) => {
   }
 };
 
+export const updateStorePicture = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const [seller] = await Seller.find({ userId }).sort({ createdAt: -1 }).limit(1);
+    if (!seller) return res.status(404).json({ message: "Seller record not found" });
+    if (!req.file) return res.status(400).json({ message: "No image file uploaded" });
+
+    const result = await uploadToCloudinary(req.file.path, "store_images");
+
+    seller.storePicture = result.secure_url;
+    await seller.save();
+
+    res.status(200).json({ message: "Store picture updated", storePicture: seller.storePicture });
+  } catch (err) {
+    console.error("Error updating store picture:", err.message);
+    res.status(500).json({ message: "Failed to upload picture", error: err.message });
+  }
+};
+
+export const updateStoreName = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { storeName } = req.body;
+
+    if (!storeName || typeof storeName !== 'string' || storeName.trim().length === 0) {
+      return res.status(400).json({ message: "Invalid store name provided." });
+    }
+
+    const [seller] = await Seller.find({ userId }).sort({ createdAt: -1 }).limit(1);
+    if (!seller) {
+      return res.status(404).json({ message: "Seller record not found." });
+    }
+
+    seller.storeName = storeName.trim();
+    await seller.save();
+
+    res.status(200).json({ message: "Store name updated successfully.", storeName: seller.storeName });
+  } catch (err) {
+    console.error("Error updating store name:", err.message);
+    res.status(500).json({ message: "Failed to update store name", error: err.message });
+  }
+};
+
 export const addSellerAddressByUser = async (req, res) => {
   try {
     const {

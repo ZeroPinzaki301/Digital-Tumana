@@ -9,7 +9,9 @@ import {
   getSellerAddressByUser,
   deleteSellerAddressByUser,
   getPendingSellerByUser,
-  deleteSellerByUser
+  deleteSellerByUser,
+  updateStorePicture,
+  updateStoreName
  } from "../controllers/Seller.controller.js";
 
 const router = express.Router();
@@ -17,7 +19,8 @@ const router = express.Router();
 const sellerUploads = upload.fields([
   { name: "validId", maxCount: 1 },
   { name: "dtiCert", maxCount: 1 },
-  { name: "birCert", maxCount: 1 }
+  { name: "birCert", maxCount: 1 },
+  { name: "storePicture", maxCount: 1 }
 ]);
 
 router.post("/register", protect, sellerUploads, registerSeller);
@@ -28,6 +31,8 @@ router.post("/address", protect, addSellerAddressByUser);
 router.put("/address", protect, updateSellerAddressByUser);
 router.get("/address", protect, getSellerAddressByUser);
 router.delete("/address", protect, deleteSellerAddressByUser);
+router.put('/store-name', protect, updateStoreName);
+router.put("/picture", protect, upload.single("storePicture"), updateStorePicture);
 
 
 

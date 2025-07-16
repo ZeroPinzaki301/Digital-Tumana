@@ -6,6 +6,8 @@ import AdminRegister from "./pages/AdminRegister";
 import AdminLayout from "./AdminLayout";
 import AdminAffiliationRequests from "./pages/AdminAffiliationRequests";
 import AdminSellerRequests from "./pages/AdminSellerRequests";
+import AdminEmployerRequests from "./pages/AdminEmployerRequests";
+import AdminWorkerRequests from "./pages/AdminWorkerRequests";
 
 import "./App.css";
 
@@ -20,6 +22,8 @@ const AppRoutes = () => {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin-affiliation-requests" element={<AdminAffiliationRequests />} />
         <Route path="/admin-seller-requests" element={<AdminSellerRequests />} />
+        <Route path="/admin-worker-requests" element={<AdminWorkerRequests />} />
+        <Route path="/admin-employer-requests" element={<AdminEmployerRequests />} />
       </Routes>
     </AdminLayout>
   ) : (

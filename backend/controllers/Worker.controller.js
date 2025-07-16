@@ -106,6 +106,25 @@ export const deleteWorkerByUser = async (req, res) => {
   }
 };
 
+export const updateWorkerProfilePicture = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const [worker] = await Worker.find({ userId }).sort({ createdAt: -1 }).limit(1);
+    if (!worker) return res.status(404).json({ message: "Worker record not found" });
+    if (!req.file) return res.status(400).json({ message: "No image file uploaded" });
+
+    const result = await uploadToCloudinary(req.file.path, "profile_images");
+    worker.profilePicture = result.secure_url;
+    await worker.save();
+
+    res.status(200).json({ message: "Profile picture updated", profilePicture: worker.profilePicture });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to upload profile picture", error: err.message });
+  }
+};
+
+
 export const addWorkerAddressByUser = async (req, res) => {
   try {
     const {
