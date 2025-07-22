@@ -9,7 +9,8 @@ const SellerDashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [newStoreName, setNewStoreName] = useState("");
-  const [uploadStatus, setUploadStatus] = useState(null); // 'success', 'error', or null
+  const [uploadStatus, setUploadStatus] = useState(null);
+  const [hasPendingOrders, setHasPendingOrders] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -35,6 +36,19 @@ const SellerDashboard = () => {
       }
     };
     fetchSeller();
+
+    const checkPendingOrders = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axiosInstance.get("/api/orders/seller/pending", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setHasPendingOrders(res.data.orders.length > 0);
+      } catch (err) {
+        console.error("Failed to check pending orders:", err.message);
+      }
+    };
+    checkPendingOrders();
   }, []);
 
   const handleProfileClick = () => {
@@ -48,7 +62,7 @@ const SellerDashboard = () => {
     if (!file) return;
 
     setUploading(true);
-    setUploadStatus(null); // Reset status
+    setUploadStatus(null);
     try {
       const formData = new FormData();
       formData.append("storePicture", file);
@@ -72,7 +86,6 @@ const SellerDashboard = () => {
       setUploadStatus("error");
     } finally {
       setUploading(false);
-      // Clear the status after 3 seconds
       setTimeout(() => setUploadStatus(null), 3000);
     }
   };
@@ -283,16 +296,31 @@ const SellerDashboard = () => {
         <div className="md:w-[40%] w-full bg-emerald-50 p-4 rounded-lg border border-emerald-300">
           <h3 className="text-xl font-semibold text-sky-900 mb-4 text-center">Quick Access</h3>
           <div className="grid grid-cols-2 gap-4">
-            <button onClick={() => navigate("/seller-products")} className="py-2 px-2 bg-emerald-100 text-emerald-800 border border-emerald-700 rounded-lg hover:bg-emerald-200 transition">
+            <button 
+              onClick={() => navigate("/seller-products")} 
+              className="py-2 px-2 bg-emerald-100 text-emerald-800 border border-emerald-700 rounded-lg hover:bg-emerald-200 transition"
+            >
               Products
             </button>
-            <button onClick={() => navigate("/seller-address")} className="py-2 px-2 bg-yellow-100 text-yellow-900 border border-yellow-600 rounded-lg hover:bg-yellow-200 transition">
+            <button 
+              onClick={() => navigate("/seller-address")} 
+              className="py-2 px-2 bg-yellow-100 text-yellow-900 border border-yellow-600 rounded-lg hover:bg-yellow-200 transition"
+            >
               My Address
             </button>
-            <button onClick={() => navigate("/seller-orders")} className="py-2 px-2 bg-indigo-100 text-indigo-900 border border-indigo-600 rounded-lg hover:bg-indigo-200 transition">
+            <button 
+              onClick={() => navigate("/order-requests")} 
+              className="relative py-2 px-2 bg-indigo-100 text-indigo-900 border border-indigo-600 rounded-lg hover:bg-indigo-200 transition"
+            >
               Orders
+              {hasPendingOrders && (
+                <span className="absolute top-0 right-0 h-2.5 w-2.5 bg-red-500 rounded-full"></span>
+              )}
             </button>
-            <button onClick={() => navigate("/seller-contacts")} className="py-2 px-2 bg-pink-100 text-pink-900 border border-pink-600 rounded-lg hover:bg-pink-200 transition">
+            <button 
+              onClick={() => navigate("/seller-contacts")} 
+              className="py-2 px-2 bg-pink-100 text-pink-900 border border-pink-600 rounded-lg hover:bg-pink-200 transition"
+            >
               Contacts
             </button>
           </div>

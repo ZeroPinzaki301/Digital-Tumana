@@ -8,6 +8,7 @@ import AdminAffiliationRequests from "./pages/AdminAffiliationRequests";
 import AdminSellerRequests from "./pages/AdminSellerRequests";
 import AdminEmployerRequests from "./pages/AdminEmployerRequests";
 import AdminWorkerRequests from "./pages/AdminWorkerRequests";
+import AdminCustomerRequests from "./pages/AdminCustomerRequests";
 
 import "./App.css";
 
@@ -24,6 +25,7 @@ const AppRoutes = () => {
         <Route path="/admin-seller-requests" element={<AdminSellerRequests />} />
         <Route path="/admin-worker-requests" element={<AdminWorkerRequests />} />
         <Route path="/admin-employer-requests" element={<AdminEmployerRequests />} />
+        <Route path="/admin-customer-verifications" element={<AdminCustomerRequests />} />
       </Routes>
     </AdminLayout>
   ) : (

@@ -15,6 +15,8 @@ const workerAddressSchema = new mongoose.Schema(
     postalCode: { type: String, required: true },
     latitude: { type: Number },
     longitude: { type: Number },
+    email: { type: String, required: true },
+    telephone: { type: String, required: true }
   },
   { timestamps: true }
 );

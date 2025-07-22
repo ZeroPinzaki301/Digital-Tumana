@@ -9,6 +9,10 @@ import {
   // Employer approvals
   getPendingEmployerApplications,
   approveOrRejectEmployer,
+  // Customer approvals
+  getPendingCustomerApplications,
+  approveCustomer,
+  rejectCustomer
 } from "../controllers/AdminApproval.controller.js";
 
 import { protectSuperAdmin } from "../middlewares/authMiddleware.js";
@@ -26,5 +30,10 @@ router.patch("/workers/:workerId/status", protectSuperAdmin, approveOrRejectWork
 // 🧑‍💼 Employer routes
 router.get("/employers/pending", protectSuperAdmin, getPendingEmployerApplications);
 router.patch("/employers/:employerId/status", protectSuperAdmin, approveOrRejectEmployer);
+
+// 🧾 Customer routes
+router.get("/customers/pending", protectSuperAdmin, getPendingCustomerApplications);
+router.patch("/customers/:customerId/approve", protectSuperAdmin, approveCustomer);
+router.delete("/customers/:customerId/reject", protectSuperAdmin, rejectCustomer);
 
 export default router;

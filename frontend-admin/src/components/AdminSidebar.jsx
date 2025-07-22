@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import digitalIcon from "../assets/digital-tumana-icon.png";
-import { FaBars, FaChevronLeft, FaTachometerAlt, FaUser, FaSignOutAlt } from "react-icons/fa";
+import { FaTachometerAlt, FaUser, FaSignOutAlt } from "react-icons/fa";
 
-const AdminSidebar = ({ expanded, setExpanded }) => {
+const AdminSidebar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -11,58 +11,40 @@ const AdminSidebar = ({ expanded, setExpanded }) => {
   };
 
   return (
-    <div
-      className={`bg-teal-200 h-screen shadow-md fixed top-0 left-0 z-30 transition-all duration-300 ${
-        expanded ? "w-64" : "w-16"
-      }`}
-    >
-      <div className="flex items-center justify-between px-3 py-4 border-b border-gray-200">
-        {expanded ? (
-          <>
-            <img
-              src={digitalIcon}
-              alt="Digital Tumana"
-              className="h-8 w-auto cursor-pointer"
-              onClick={() => navigate("/admin-dashboard")}
-            />
-            <button
-              onClick={() => setExpanded(false)}
-              className="text-sky-900 text-xl font-bold"
-            >
-              <FaChevronLeft />
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={() => setExpanded(true)}
-            className="text-sky-900 text-2xl mx-auto"
-          >
-            <FaBars />
-          </button>
-        )}
+    <div className="bg-teal-200 h-screen w-[7.5%] fixed top-0 left-0 z-30 shadow-md">
+      <div className="flex flex-col items-center py-4 border-b border-gray-200">
+        <img
+          src={digitalIcon}
+          alt="Digital Tumana"
+          className="h-8 w-auto cursor-pointer mb-4"
+          onClick={() => navigate("/admin-dashboard")}
+        />
       </div>
 
-      <div className="mt-4 flex flex-col items-center md:items-stretch space-y-1">
+      <div className="mt-4 flex flex-col items-center space-y-4">
         <button
           onClick={() => navigate("/admin-dashboard")}
-          className="flex items-center gap-3 px-4 py-2 hover:bg-teal-100 text-sky-900 font-medium w-full justify-start"
+          className="flex flex-col items-center p-2 hover:bg-teal-100 text-sky-900 font-medium w-full"
+          title="Dashboard"
         >
           <FaTachometerAlt className="text-lg" />
-          {expanded && "Dashboard"}
+          <span className="text-xs mt-1">Dashboard</span>
         </button>
         <button
           onClick={() => navigate("/admin-account")}
-          className="flex items-center gap-3 px-4 py-2 hover:bg-teal-100 text-sky-900 font-medium w-full justify-start"
+          className="flex flex-col items-center p-2 hover:bg-teal-100 text-sky-900 font-medium w-full"
+          title="Account"
         >
           <FaUser className="text-lg" />
-          {expanded && "Account"}
+          <span className="text-xs mt-1">Account</span>
         </button>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-2 hover:bg-teal-100 text-red-600 font-medium w-full justify-start"
+          className="flex flex-col items-center p-2 hover:bg-teal-100 text-red-600 font-medium w-full"
+          title="Logout"
         >
           <FaSignOutAlt className="text-lg" />
-          {expanded && "Logout"}
+          <span className="text-xs mt-1">Logout</span>
         </button>
       </div>
     </div>

@@ -10,6 +10,9 @@ import employerRoutes from "./routes/Employer.route.js"
 import adminApprovalRoutes from "./routes/AdminApproval.route.js"
 import sellerProductRoutes from "./routes/SellerProduct.route.js"
 import productRoutes from "./routes/Product.route.js"
+import customerRoutes from "./routes/Customer.route.js"
+import orderRoutes from "./routes/Order.route.js"
+import cartRoutes from "./routes/Cart.route.js"
 
 
 dotenv.config();
@@ -30,6 +33,10 @@ app.use("/api/employers", employerRoutes)
 app.use("/api/admin-approval", adminApprovalRoutes)
 app.use("/api/products", sellerProductRoutes)
 app.use("/api/products", productRoutes)
+app.use("/api/customers", customerRoutes)
+app.use("/api/orders", orderRoutes)
+app.use("/api/carts", cartRoutes)
+
 
 
 const PORT = process.env.PORT || 5000;

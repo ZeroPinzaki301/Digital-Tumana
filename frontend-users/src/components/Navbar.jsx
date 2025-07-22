@@ -37,7 +37,6 @@ const Navbar = () => {
   useEffect(() => {
     fetchUserData();
 
-    // Listen for storage events (like when login updates the token)
     const handleStorageChange = () => {
       fetchUserData();
     };
@@ -59,7 +58,7 @@ const Navbar = () => {
                          user.profilePicture.includes("default-profile.png");
 
   return (
-    <nav className="bg-linear-to-b from-lime-600/75 to-emerald-100 shadow-md px-6 py-4 flex items-center justify-between border-b-2 border-lime-200/25">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-linear-to-b from-lime-600 to-emerald-100 shadow-md px-6 py-4 flex items-center justify-between border-b-2 border-lime-200/25">
       {/* Logo */}
       <Link to="/" className="flex items-center">
         <img src={digitalTumanaIcon} alt="Digital Tumana" className="w-12 h-12" />
@@ -93,7 +92,7 @@ const Navbar = () => {
             </button>
 
             {showModal && (
-              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg p-4 z-100">
+              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg p-4 z-50">
                 <div className="flex flex-col items-center">
                   {!showProfileIcon ? (
                     <img
@@ -125,7 +124,7 @@ const Navbar = () => {
             to="/login"
             className="w-12 h-12 flex items-center justify-center text-white bg-lime-700 rounded-full hover:bg-lime-800 transition"
           >
-            <IoMdLogIn className="text-2xl" />
+            <h1>Login</h1>
           </Link>
         )}
       </div>

@@ -51,9 +51,7 @@ const SellerAddressPage = () => {
   return (
     <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4">
       <div className="bg-white w-full max-w-lg rounded-lg p-6 shadow-md border border-lime-700">
-        <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">
-          Seller Address
-        </h2>
+        <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">Seller Address</h2>
 
         {/* Display if address exists and not editing */}
         {address && !isEditing ? (
@@ -64,6 +62,9 @@ const SellerAddressPage = () => {
             <p><strong>Barangay:</strong> {address.barangay}</p>
             <p><strong>Street:</strong> {address.street}</p>
             <p><strong>Postal Code:</strong> {address.postalCode}</p>
+            <p><strong>Email:</strong> {address.email}</p>
+            <p><strong>Telephone:</strong> {address.telephone}</p>
+
             <button
               onClick={() => setIsEditing(true)}
               className="mt-4 w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
@@ -80,6 +81,8 @@ const SellerAddressPage = () => {
             <input type="text" name="barangay" value={formData.barangay || ""} onChange={handleChange} placeholder="Barangay" required className="input" />
             <input type="text" name="street" value={formData.street || ""} onChange={handleChange} placeholder="Street" required className="input" />
             <input type="text" name="postalCode" value={formData.postalCode || ""} onChange={handleChange} placeholder="Postal Code" required className="input" />
+            <input type="email" name="email" value={formData.email || ""} onChange={handleChange} placeholder="Email" required className="input" />
+            <input type="tel" name="telephone" value={formData.telephone || ""} onChange={handleChange} placeholder="Telephone" required className="input" />
 
             <button
               type="button"
@@ -106,10 +109,11 @@ const SellerAddressPage = () => {
             >
               Use My Location
             </button>
-            
+
             <button type="submit" className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition">
               {address ? "Update Address" : "Add Address"}
             </button>
+
             {address && (
               <button
                 type="button"

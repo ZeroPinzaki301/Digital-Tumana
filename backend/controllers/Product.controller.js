@@ -23,6 +23,9 @@ export const getProductDetails = async (req, res) => {
       _id: productId,
       durationEnd: false,
       stock: { $gt: 0 }
+    }).populate({
+      path: "sellerId",
+      select: "storeName storePicture"
     });
 
     if (!product) {

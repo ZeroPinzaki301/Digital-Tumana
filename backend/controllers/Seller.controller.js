@@ -179,17 +179,12 @@ export const updateStoreName = async (req, res) => {
   }
 };
 
+// 📍 Add seller address
 export const addSellerAddressByUser = async (req, res) => {
   try {
     const {
-      region,
-      province,
-      cityOrMunicipality,
-      barangay,
-      street,
-      postalCode,
-      latitude,
-      longitude,
+      region, province, cityOrMunicipality, barangay, street, postalCode,
+      latitude, longitude, email, telephone
     } = req.body;
 
     const [seller] = await Seller.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);
@@ -202,14 +197,8 @@ export const addSellerAddressByUser = async (req, res) => {
 
     const newAddress = await SellerAddress.create({
       sellerId: seller._id,
-      region,
-      province,
-      cityOrMunicipality,
-      barangay,
-      street,
-      postalCode,
-      latitude,
-      longitude,
+      region, province, cityOrMunicipality, barangay, street, postalCode,
+      latitude, longitude, email, telephone
     });
 
     seller.sellerAddress = newAddress._id;
@@ -221,9 +210,13 @@ export const addSellerAddressByUser = async (req, res) => {
   }
 };
 
+// ✏️ Update seller address
 export const updateSellerAddressByUser = async (req, res) => {
   try {
-    const updateData = req.body;
+    const {
+      region, province, cityOrMunicipality, barangay, street, postalCode,
+      latitude, longitude, email, telephone
+    } = req.body;
 
     const [seller] = await Seller.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);
     if (!seller || seller.status !== "verified") {
@@ -236,7 +229,10 @@ export const updateSellerAddressByUser = async (req, res) => {
 
     const updatedAddress = await SellerAddress.findByIdAndUpdate(
       seller.sellerAddress,
-      updateData,
+      {
+        region, province, cityOrMunicipality, barangay, street, postalCode,
+        latitude, longitude, email, telephone
+      },
       { new: true }
     );
 
@@ -246,6 +242,7 @@ export const updateSellerAddressByUser = async (req, res) => {
   }
 };
 
+// 📦 Get seller address
 export const getSellerAddressByUser = async (req, res) => {
   try {
     const [seller] = await Seller.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);
@@ -260,6 +257,7 @@ export const getSellerAddressByUser = async (req, res) => {
   }
 };
 
+// ❌ Delete seller address
 export const deleteSellerAddressByUser = async (req, res) => {
   try {
     const [seller] = await Seller.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);

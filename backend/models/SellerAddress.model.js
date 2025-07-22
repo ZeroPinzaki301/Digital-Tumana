@@ -15,6 +15,8 @@ const sellerAddressSchema = new mongoose.Schema(
     postalCode: { type: String, required: true },
     latitude: { type: Number, required: false },
     longitude: { type: Number, required: false },
+    email: { type: String, required: true },
+    telephone: { type: String, required: true }
   },
   { timestamps: true }
 );

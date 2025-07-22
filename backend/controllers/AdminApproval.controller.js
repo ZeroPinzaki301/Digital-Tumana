@@ -1,6 +1,7 @@
 import Seller from "../models/Seller.model.js";
 import Worker from "../models/Worker.model.js";
 import Employer from "../models/Employer.model.js";
+import Customer from "../models/Customer.model.js"
 
 // Get all sellers pending approval
 export const getPendingSellerApplications = async (req, res) => {
@@ -112,6 +113,60 @@ export const approveOrRejectEmployer = async (req, res) => {
     res.status(500).json({
       message: "Failed to update employer approval status",
       error: err.message,
+    });
+  }
+};
+
+// 📌 Get all customers pending approval
+export const getPendingCustomerApplications = async (req, res) => {
+  try {
+    const pendingCustomers = await Customer.find({ isVerified: false }).populate("userId", "email");
+    res.status(200).json({ customers: pendingCustomers });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch pending customer applications",
+      error: err.message
+    });
+  }
+};
+
+// Approve customer (mark as verified)
+export const approveCustomer = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    customer.isVerified = true;
+    await customer.save();
+
+    res.status(200).json({ message: "Customer has been verified", customer });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to verify customer",
+      error: err.message
+    });
+  }
+};
+
+// Reject customer (delete record)
+export const rejectCustomer = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+
+    const customer = await Customer.findByIdAndDelete(customerId);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.status(200).json({ message: "Customer verification has been rejected" });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to reject customer",
+      error: err.message
     });
   }
 };
