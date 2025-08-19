@@ -110,14 +110,14 @@ const SellerDashboard = () => {
     }
   };
 
+  const buttonBase = "py-2 px-2 bg-lime-600 text-white rounded-lg hover:bg-lime-600/75 hover:text-sky-900 transition cursor-pointer";
+
   if (statusCode === 410) {
     return (
       <div className="min-h-screen bg-red-100 flex items-center justify-center px-4">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center border border-red-400">
+        <div className="bg-white p-6 shadow-emerald-900 max-w-sm text-center">
           <h2 className="text-xl font-bold text-red-700 mb-2">Registration Declined</h2>
-          <p className="text-gray-700">
-            Your seller registration has been declined. Please review and reapply.
-          </p>
+          <p className="text-gray-700">Your seller registration has been declined. Please review and reapply.</p>
           <button
             onClick={async () => {
               try {
@@ -130,7 +130,7 @@ const SellerDashboard = () => {
                 navigate("/seller-registration");
               }
             }}
-            className="mt-4 w-full py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition"
+            className={buttonBase + " mt-4 w-full"}
           >
             Re-register as Seller
           </button>
@@ -142,14 +142,12 @@ const SellerDashboard = () => {
   if (statusCode === 404) {
     return (
       <div className="min-h-screen bg-orange-100 flex items-center justify-center px-4">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center border border-orange-400">
+        <div className="bg-white p-6 shadow-lg max-w-sm text-center">
           <h2 className="text-xl font-bold text-orange-700 mb-2">Seller Profile Not Found</h2>
-          <p className="text-gray-700">
-            You haven't registered as a seller yet.
-          </p>
+          <p className="text-gray-700">You haven't registered as a seller yet.</p>
           <button
             onClick={() => navigate("/seller-registration")}
-            className="mt-4 w-full py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition"
+            className={buttonBase + " mt-4 w-full"}
           >
             Go to Registration
           </button>
@@ -161,14 +159,12 @@ const SellerDashboard = () => {
   if (statusCode === 403) {
     return (
       <div className="min-h-screen bg-yellow-100 flex items-center justify-center px-4">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center border border-yellow-400">
+        <div className="bg-white p-6 shadow-lg max-w-sm text-center">
           <h2 className="text-xl font-bold text-yellow-700 mb-2">Awaiting Verification</h2>
-          <p className="text-gray-700">
-            Your seller application is still under review.
-          </p>
+          <p className="text-gray-700">Your seller application is still under review.</p>
           <button
             onClick={() => navigate("/account")}
-            className="mt-4 w-full py-2 bg-yellow-700 text-white rounded-lg hover:bg-yellow-800 transition"
+            className={buttonBase + " mt-4 w-full"}
           >
             Back to Account
           </button>
@@ -192,7 +188,7 @@ const SellerDashboard = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
             <h3 className="text-xl font-bold text-sky-900 mb-4">Edit Profile</h3>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 mb-2">Change Store Name</label>
               <input
@@ -202,20 +198,14 @@ const SellerDashboard = () => {
                 className="w-full p-2 border border-gray-300 rounded-lg"
                 placeholder="Enter new store name"
               />
-              <button
-                onClick={handleNameUpdate}
-                className="mt-2 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
+              <button onClick={handleNameUpdate} className={buttonBase + " mt-2 w-full"}>
                 Update Name
               </button>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 mb-2">Change Profile Picture</label>
-              <button
-                onClick={handleProfileClick}
-                className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
+              <button onClick={handleProfileClick} className={buttonBase + " w-full"}>
                 Change Picture
               </button>
               <input
@@ -225,11 +215,9 @@ const SellerDashboard = () => {
                 className="hidden"
                 accept="image/*"
               />
-              {uploading && (
-                <p className="text-sm text-gray-500 mt-2 text-center">Uploading picture...</p>
-              )}
+              {uploading && <p className="text-sm text-gray-500 mt-2 text-center">Uploading picture...</p>}
               {uploadStatus === "success" && (
-                <div className="flex items-center justify-center mt-2 text-green-600">
+                <div className="flex items-center justify-center mt-2 text-lime-600">
                   <FaCheck className="mr-1" /> Picture uploaded successfully!
                 </div>
               )}
@@ -239,24 +227,18 @@ const SellerDashboard = () => {
                 </div>
               )}
             </div>
-            
-            <button
-              onClick={() => setShowEditModal(false)}
-              className="w-full py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
-            >
+
+            <button onClick={() => setShowEditModal(false)} className="w-full py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition cursor-pointer">
               Close
             </button>
           </div>
         </div>
       )}
 
-      <div className="bg-white max-w-5xl w-full p-6 rounded-lg shadow-md border border-sky-900 flex flex-col md:flex-row gap-6">
+      <div className="bg-white max-w-5xl w-full p-6 shadow-xl flex flex-col md:flex-row gap-6">
         {/* Seller Profile Section */}
-        <div className="md:w-[60%] w-full text-center bg-sky-50 p-4 rounded-lg border border-sky-200 relative">
-          <button
-            onClick={() => setShowEditModal(true)}
-            className="absolute top-4 right-4 bg-lime-600 text-white px-3 py-1 rounded-lg hover:bg-lime-700 transition"
-          >
+        <div className="md:w-[60%] w-full text-center bg-sky-50 p-4 relative">
+          <button onClick={() => setShowEditModal(true)} className={buttonBase + " absolute top-4 right-4 px-3 py-1"}>
             Edit
           </button>
 
@@ -284,57 +266,34 @@ const SellerDashboard = () => {
             <p><strong>Status:</strong> {seller.status}</p>
           </div>
 
-          <button
-            onClick={() => navigate("/affiliate-dashboards")}
-            className="mt-6 w-full py-2 bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
-          >
+          <button onClick={() => navigate("/affiliate-dashboards")} className={buttonBase + " mt-6 w-full"}>
             Back to Affiliate Dashboards
           </button>
         </div>
 
         {/* Quick Access Section */}
-        <div className="md:w-[40%] w-full bg-emerald-50 p-4 rounded-lg border border-emerald-300">
+        <div className="md:w-[40%] w-full bg-emerald-50 p-4">
           <h3 className="text-xl font-semibold text-sky-900 mb-4 text-center">Quick Access</h3>
           <div className="grid grid-cols-2 gap-4">
-            <button 
-              onClick={() => navigate("/seller-products")} 
-              className="py-2 px-2 bg-emerald-100 text-emerald-800 border border-emerald-700 rounded-lg hover:bg-emerald-200 transition"
-            >
-              Products
-            </button>
-            <button 
-              onClick={() => navigate("/seller-address")} 
-              className="py-2 px-2 bg-yellow-100 text-yellow-900 border border-yellow-600 rounded-lg hover:bg-yellow-200 transition"
-            >
-              My Address
-            </button>
-            <button 
-              onClick={() => navigate("/order-requests")} 
-              className="relative py-2 px-2 bg-indigo-100 text-indigo-900 border border-indigo-600 rounded-lg hover:bg-indigo-200 transition"
-            >
-              Orders
-              {hasPendingOrders && (
-                <span className="absolute top-0 right-0 h-2.5 w-2.5 bg-red-500 rounded-full"></span>
-              )}
-            </button>
-            <button 
-              onClick={() => navigate("/seller-contacts")} 
-              className="py-2 px-2 bg-pink-100 text-pink-900 border border-pink-600 rounded-lg hover:bg-pink-200 transition"
-            >
-              Contacts
-            </button>
-            <button 
-              onClick={() => navigate("/seller-ongoing-orders")} 
-              className="py-2 px-2 bg-cyan-100 text-cyan-900 border border-cyan-600 rounded-lg hover:bg-cyan-200 transition"
-            >
-              Ongoing Orders
-            </button>
-            <button 
-              onClick={() => navigate("/seller-balance")} 
-              className="py-2 px-2 bg-cyan-100 text-cyan-900 border border-cyan-600 rounded-lg hover:bg-cyan-200 transition"
-            >
-              Seller Balance
-            </button>
+            {[
+              { label: "Products", path: "/seller-products" },
+              { label: "My Address", path: "/seller-address" },
+              { label: "Orders", path: "/order-requests", badge: hasPendingOrders },
+              { label: "Contacts", path: "/seller-contacts" },
+              { label: "Ongoing Orders", path: "/seller-ongoing-orders" },
+              { label: "Seller Balance", path: "/seller-balance" },
+            ].map(({ label, path, badge }) => (
+              <button
+                key={label}
+                onClick={() => navigate(path)}
+                className={buttonBase + " relative"}
+              >
+                {label}
+                {badge && (
+                  <span className="absolute top-1 right-1 h-2.5 w-2.5 bg-red-500 rounded-full"></span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </div>

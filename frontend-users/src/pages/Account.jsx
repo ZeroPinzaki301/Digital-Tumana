@@ -109,26 +109,17 @@ const Account = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-emerald-100 text-center px-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-          <h2 className="text-2xl font-bold text-lime-700 mb-4">
-            You're not logged in
-          </h2>
+      <div className="min-h-screen flex items-center justify-center bg-emerald-100 px-4">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold text-lime-700 mb-4">You're not logged in</h2>
           <p className="text-gray-700 mb-6">
-            To access your account and update your profile, please sign in or
-            create an account.
+            To access your account and update your profile, please sign in or create an account.
           </p>
           <div className="flex flex-col space-y-3">
-            <Link
-              to="/login"
-              className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
-            >
+            <Link to="/login" className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition">
               Sign In
             </Link>
-            <Link
-              to="/register"
-              className="w-full py-2 bg-white border border-lime-700 text-lime-700 rounded-lg hover:bg-lime-100 transition"
-            >
+            <Link to="/register" className="w-full py-2 bg-white border border-lime-700 text-lime-700 rounded-lg hover:bg-lime-100 transition">
               Create Account
             </Link>
           </div>
@@ -138,27 +129,25 @@ const Account = () => {
   }
 
   const showProfileIcon =
-    !user?.profilePicture ||
-    user.profilePicture.includes("default-profile.png");
+    !user?.profilePicture || user.profilePicture.includes("default-profile.png");
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-emerald-100 px-4">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg text-center">
-        {/* Profile Picture */}
-        <div className="relative w-32 h-32 mx-auto mb-4 group">
-          {!showProfileIcon ? (
-            <img
-              src={user.profilePicture}
-              alt="Profile"
-              className="w-32 h-32 rounded-full object-cover border-2 border-lime-700 group-hover:opacity-80 transition-opacity"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <FaUser className="text-8xl text-lime-700 group-hover:opacity-80 transition-opacity" />
-            </div>
-          )}
-
-          <div className="absolute inset-0 flex items-center justify-center">
+    <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4 py-10">
+      <div className="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg border border-lime-700">
+        {/* Profile Section */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="relative w-32 h-32 group mb-4">
+            {!showProfileIcon ? (
+              <img
+                src={user.profilePicture}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover border-2 border-lime-700 group-hover:opacity-80 transition-opacity"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <FaUser className="text-8xl text-lime-700 group-hover:opacity-80 transition-opacity" />
+              </div>
+            )}
             <input
               type="file"
               accept="image/*"
@@ -174,80 +163,89 @@ const Account = () => {
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
-                <span className="text-xs text-gray-600">
-                  {uploadProgress}% uploaded
-                </span>
+                <span className="text-xs text-gray-600">{uploadProgress}% uploaded</span>
               </div>
             )}
           </div>
+
+          {isEditing ? (
+            <form onSubmit={handleProfileUpdate} className="w-full space-y-3">
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                placeholder="First Name"
+                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+                required
+              />
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                placeholder="Last Name"
+                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+                required
+              />
+              <button
+                type="submit"
+                className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
+              >
+                Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="w-full py-2 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-lime-700">
+                {user?.firstName} {user?.lastName}
+              </h2>
+              <p className="text-gray-700">{user?.email}</p>
+              <button
+                onClick={handleEditToggle}
+                className="w-full mt-4 cursor-pointer py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition flex items-center justify-center space-x-2"
+              >
+                <FaEdit />
+                <span>Edit Account</span>
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Profile Form */}
-        {isEditing ? (
-          <form onSubmit={handleProfileUpdate} className="space-y-3">
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              placeholder="First Name"
-              className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
-              required
-            />
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              placeholder="Last Name"
-              className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
-              required
-            />
-            <button
-              type="submit"
-              className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
-            >
-              Save Changes
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsEditing(false)}
-              className="w-full py-2 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition"
-            >
-              Cancel
-            </button>
-          </form>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold text-lime-700">
-              {user?.firstName} {user?.lastName}
-            </h2>
-            <p className="text-gray-700">{user?.email}</p>
-            <button
-              onClick={handleEditToggle}
-              className="w-full mt-4 py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition flex items-center justify-center space-x-2"
-            >
-              <FaEdit />
-              <span>Edit Account</span>
-            </button>
-          </>
-        )}
-
-        {/* Become Affiliate Button */}
-        <button
-          onClick={() => navigate("/affiliate-registration")}
-          className="mt-6 py-2 w-full bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
-        >
-          Become an Affiliate
-        </button>
-
-        {/* View Affiliate Dashboards */}
-        <button
-          onClick={() => navigate("/affiliate-dashboards")}
-          className="mt-3 py-2 w-full bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
-        >
-          Go to Affiliate Dashboards
-        </button>
+        {/* Dashboard Buttons */}
+        <div className="space-y-4 mt-6">
+          <button
+            onClick={() => navigate("/seller-dashboard")}
+            className="w-full py-2 bg-lime-600 text-white border border-sky-900 rounded-lg hover:bg-lime-500/50 hover:text-sky-900 transition cursor-pointer"
+          >
+            Seller Dashboard
+          </button>
+          <button
+            onClick={() => navigate("/worker-dashboard")}
+            className="w-full py-2 bg-lime-600 text-white border border-sky-900 rounded-lg hover:bg-lime-500/50 hover:text-sky-900 transition cursor-pointer"
+          >
+            Worker Dashboard
+          </button>
+          <button
+            onClick={() => navigate("/employer-dashboard")}
+            className="w-full py-2 bg-lime-600 text-white border border-sky-900 rounded-lg hover:bg-lime-500/50 hover:text-sky-900 transition cursor-pointer"
+          >
+            Employer Dashboard
+          </button>
+          <button
+            onClick={() => navigate("/learn/tesda/enroll")}
+            className="w-full py-2 bg-lime-600 text-white border border-sky-900 rounded-lg hover:bg-lime-500/50 hover:text-sky-900 transition cursor-pointer"
+          >
+            Learner Page
+          </button>
+        </div>
       </div>
     </div>
   );
