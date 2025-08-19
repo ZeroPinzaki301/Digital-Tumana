@@ -9,7 +9,7 @@ const Learn = () => {
 
   const navigate = useNavigate();
   return (
-    <div className="font-sans text-white">
+    <div className="text-white">
       {/* HERO PAGE*/}
       <section
         id="hero"
@@ -30,7 +30,7 @@ const Learn = () => {
           </div>
           {/* Right: 2-line Heading */}
           <div className="w-full md:w-1/2 flex justify-center md:justify-end items-center text-white md:pr-10 mt-8 md:mt-0 text-right">
-            <h2 className="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight">
+            <h2 className="text-4xl md:text-8xl leading-tight tracking-widest">
               WE OFFER TESDA <br className="hidden md:block" />
               COURSE FOR YOU!
             </h2>
@@ -42,7 +42,7 @@ const Learn = () => {
       <section id="services" className="w-full bg-white p-4 md:p-10">
 
         {/* Card 1 */}
-        <div className="group w-full h-[500px] flex flex-col md:flex-row-reverse overflow-hidden rounded-lg">
+        <div className="group w-full h-[500px] flex flex-col md:flex-row-reverse overflow-hidden rounded-lg tracking-wider">
           <div
             className="relative w-full md:w-[65%] h-[250px] md:h-auto bg-cover bg-center"
             style={{ backgroundImage: `url(${plantingImage})` }}

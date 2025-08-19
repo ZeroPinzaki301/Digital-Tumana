@@ -8,19 +8,9 @@ import aboutPageImage from '../assets/HomePage-Images/aboutpage-image.jpg';
 
 const HomePage = () => {
   const navigate = useNavigate();
-{/*
-  const handleGetStarted = () => {
-    const isAuthenticated = localStorage.getItem("userToken");
-    if (isAuthenticated) {
-      navigate("/marketplace");
-    } else {
-      navigate("/login");
-    }
-  };
-*/}
 
   return (
-    <div className="font-sans text-white">
+    <div className="text-white">
 
       {/* Hero Section */}
       <section

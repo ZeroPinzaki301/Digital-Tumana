@@ -7,6 +7,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'SpaceGrotesk';
+  src: url('/src/assets/fonts/Space_Grotesk/static/SpaceGrotesk-SemiBold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
-  font-family: 'Savate', sans-serif;
+  font-family: 'SpaceGrotesk', sans-serif;
 }
