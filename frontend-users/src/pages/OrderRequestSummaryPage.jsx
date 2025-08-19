@@ -6,6 +6,7 @@ const OrderRequestSummaryPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  const [selectedItemIndex, setSelectedItemIndex] = useState(0);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -25,15 +26,43 @@ const OrderRequestSummaryPage = () => {
   const handleAccept = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axiosInstance.patch(`/api/orders/seller/accept/${orderId}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      
+      // 1. First accept the order
+      const acceptResponse = await axiosInstance.patch(
+        `/api/orders/seller/accept/${orderId}`, 
+        {}, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      alert("Order accepted.");
-      navigate("/order-requests");
-    } catch (err) {
-      console.error("Accept failed:", err.message);
-      alert("Could not accept order.");
+      // 2. Then create tracking
+      try {
+        const trackingResponse = await axiosInstance.post(
+          '/api/order-tracking',
+          { orderId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // 3. Redirect with both responses
+        navigate(`/seller-ongoing-order/${orderId}`, {
+          state: {
+            order: acceptResponse.data.order,
+            orderTracking: trackingResponse.data.orderTracking
+          }
+        });
+      } catch (trackingError) {
+        console.error("Tracking creation failed:", trackingError);
+        // Show order accepted but tracking failed
+        navigate("/order-confirmation", {
+          state: { 
+            order: acceptResponse.data.order,
+            trackingError: true
+          }
+        });
+      }
+
+    } catch (acceptError) {
+      console.error("Order acceptance failed:", acceptError);
+      alert(`Order acceptance failed: ${acceptError.response?.data?.message || acceptError.message}`);
     }
   };
 
@@ -56,12 +85,36 @@ const OrderRequestSummaryPage = () => {
     return <p className="text-center p-6 text-gray-600">Loading order details...</p>;
   }
 
-  const { productId, quantity, totalPrice, deliveryAddress, sellerAddress, buyerId } = order;
+  // Get the first pending item (or handle multiple items)
+  const currentItem = order.items[selectedItemIndex];
+  const { productId, quantity, priceAtOrder } = currentItem;
+  const { deliveryAddress, sellerAddress, buyerId, totalPrice } = order;
 
   return (
     <div className="min-h-screen bg-orange-50 p-6">
       <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md border border-orange-300">
         <h2 className="text-2xl font-bold text-orange-800 mb-6 text-center">Order Request Summary</h2>
+
+        {/* Show navigation if multiple items */}
+        {order.items.length > 1 && (
+          <div className="flex justify-between mb-4">
+            <button 
+              onClick={() => setSelectedItemIndex(prev => Math.max(0, prev - 1))}
+              disabled={selectedItemIndex === 0}
+              className="px-3 py-1 bg-orange-200 rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span>Item {selectedItemIndex + 1} of {order.items.length}</span>
+            <button 
+              onClick={() => setSelectedItemIndex(prev => Math.min(order.items.length - 1, prev + 1))}
+              disabled={selectedItemIndex === order.items.length - 1}
+              className="px-3 py-1 bg-orange-200 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
 
         <img
           src={productId.productImage}
@@ -73,7 +126,8 @@ const OrderRequestSummaryPage = () => {
           <p><strong>Product:</strong> {productId.productName} ({productId.type})</p>
           <p><strong>Unit:</strong> {productId.unitType}</p>
           <p><strong>Quantity:</strong> {quantity}</p>
-          <p><strong>Price per Unit:</strong> ₱{productId.pricePerUnit}</p>
+          <p><strong>Price per Unit:</strong> ₱{priceAtOrder}</p>
+          <p><strong>Item Status:</strong> {currentItem.itemStatus}</p>
         </div>
 
         <div className="mb-4 text-sm text-gray-700">

@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import { FaUser } from "react-icons/fa";
 import { IoMdLogIn } from "react-icons/io";
 import digitalTumanaIcon from "../assets/digital-tumana-icon.png";
+import karitonServiceIcon from "../assets/KaritonServiceIcon.png";
 import axiosInstance from "../utils/axiosInstance";
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showKaritonDropdown, setShowKaritonDropdown] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -41,9 +43,18 @@ const Navbar = () => {
       fetchUserData();
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowKaritonDropdown(false);
+      setShowModal(false);
+    };
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -54,11 +65,12 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  const showProfileIcon = !user?.profilePicture || 
-                         user.profilePicture.includes("default-profile.png");
+  const showProfileIcon =
+    !user?.profilePicture ||
+    user.profilePicture.includes("default-profile.png");
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-linear-to-b from-lime-600 to-emerald-100 shadow-md px-6 py-4 flex items-center justify-between border-b-2 border-lime-200/25">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-lime-600 to-emerald-100 shadow-md px-6 py-4 flex items-center justify-between border-b-2 border-lime-200/25">
       {/* Logo */}
       <Link to="/" className="flex items-center">
         <img src={digitalTumanaIcon} alt="Digital Tumana" className="w-12 h-12" />
@@ -73,11 +85,42 @@ const Navbar = () => {
       </div>
 
       {/* Right Side */}
-      <div className="relative">
+      <div className="relative flex items-center space-x-4">
+        {/* Kariton Dropdown */}
+        <div className="relative">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowKaritonDropdown((prev) => !prev);
+            }}
+            className="flex items-center px-4 py-2 rounded-lg shadow hover:bg-lime-700 hover:text-white transition"
+          >
+            <img src={karitonServiceIcon} alt="Kariton Icon" className="w-5 h-5" />
+          </button>
+
+          {showKaritonDropdown && (
+            <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+              <button
+                onClick={() => {
+                  setShowKaritonDropdown(false);
+                  navigate("/kariton-service/login");
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-lime-100"
+              >
+                Kariton Service Login
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Profile or Login */}
         {user ? (
-          <>
+          <div className="relative">
             <button
-              onClick={() => setShowModal(!showModal)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowModal(!showModal);
+              }}
               className="w-12 h-12 rounded-full overflow-hidden border-2 border-lime-700 bg-white"
             >
               {!showProfileIcon ? (
@@ -118,13 +161,13 @@ const Navbar = () => {
                 </div>
               </div>
             )}
-          </>
+          </div>
         ) : (
           <Link
             to="/login"
             className="w-12 h-12 flex items-center justify-center text-white bg-lime-700 rounded-full hover:bg-lime-800 transition"
           >
-            <h1>Login</h1>
+            <IoMdLogIn className="text-xl" />
           </Link>
         )}
       </div>

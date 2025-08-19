@@ -136,6 +136,8 @@ export const addWorkerAddressByUser = async (req, res) => {
       postalCode,
       latitude,
       longitude,
+      email,
+      telephone
     } = req.body;
 
     const [worker] = await Worker.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);
@@ -156,6 +158,8 @@ export const addWorkerAddressByUser = async (req, res) => {
       postalCode,
       latitude,
       longitude,
+      email,
+      telephone
     });
 
     worker.workerAddress = newAddress._id;

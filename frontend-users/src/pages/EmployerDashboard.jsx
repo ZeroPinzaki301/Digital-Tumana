@@ -200,7 +200,7 @@ const EmployerDashboard = () => {
           </button>
 
           <button
-            onClick={() => navigate("/job-postings")}
+            onClick={() => navigate("/employer-jobs")}
             className="py-2 px-4 bg-indigo-100 text-indigo-900 border border-indigo-600 rounded-lg hover:bg-indigo-200 transition"
           >
             Job Postings
@@ -211,6 +211,20 @@ const EmployerDashboard = () => {
             className="py-2 px-4 bg-pink-100 text-pink-900 border border-pink-600 rounded-lg hover:bg-pink-200 transition"
           >
             Contacts
+          </button>
+
+          <button
+            onClick={() => navigate("/employer/job-applications/pending")}
+            className="py-2 px-4 bg-pink-100 text-pink-900 border border-pink-600 rounded-lg hover:bg-pink-200 transition"
+          >
+            Pending Applications
+          </button>
+
+          <button
+            onClick={() => navigate("/employer/jobs/ongoing")}
+            className="py-2 px-4 bg-pink-100 text-pink-900 border border-pink-600 rounded-lg hover:bg-pink-200 transition"
+          >
+            Ongoing Workers
           </button>
         </div>
       </div>

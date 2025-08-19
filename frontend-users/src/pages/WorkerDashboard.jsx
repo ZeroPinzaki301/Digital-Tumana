@@ -211,6 +211,14 @@ const WorkerDashboard = () => {
           </button>
 
           <button
+            onClick={() => navigate("/worker/portfolio")}
+            className="py-2 px-4 bg-indigo-100 text-indigo-900 border border-indigo-600 rounded-lg hover:bg-indigo-200 transition"
+          >
+            My Portfolio
+          </button>
+
+
+          <button
             onClick={() => navigate("/worker-contacts")}
             className="py-2 px-4 bg-pink-100 text-pink-900 border border-pink-600 rounded-lg hover:bg-pink-200 transition"
           >

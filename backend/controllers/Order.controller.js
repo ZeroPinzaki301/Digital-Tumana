@@ -63,7 +63,7 @@ export const previewOrder = async (req, res) => {
   }
 };
 
-// ✅ Place order (from preview)
+// ✅ Place order (from preview) - UPDATED FOR ITEMS ARRAY
 export const createDirectOrder = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
@@ -81,13 +81,19 @@ export const createDirectOrder = async (req, res) => {
     const sellerAddress = await SellerAddress.findOne({ sellerId: seller._id });
     if (!sellerAddress) return res.status(404).json({ message: "Seller address missing" });
 
-    const totalPrice = quantity * product.pricePerUnit + 50;
+    const subtotal = quantity * product.pricePerUnit;
+    const shippingFee = 50;
+    const totalPrice = subtotal + shippingFee;
 
     const order = await Order.create({
       buyerId: customer._id,
       sellerId: seller._id,
-      productId,
-      quantity,
+      items: [{
+        productId: product._id,
+        quantity,
+        priceAtOrder: product.pricePerUnit,
+        itemStatus: "pending"
+      }],
       totalPrice,
       deliveryAddress: {
         region: customer.region,
@@ -188,7 +194,7 @@ export const previewCartOrder = async (req, res) => {
   }
 };
 
-// 🧺 Cart-based batch checkout
+// 🧺 Cart-based batch checkout - UPDATED FOR ITEMS ARRAY
 export const checkoutCart = async (req, res) => {
   try {
     const customer = await Customer.findOne({ userId: req.user._id, isVerified: true });
@@ -198,7 +204,8 @@ export const checkoutCart = async (req, res) => {
     if (!cart || cart.items.length === 0)
       return res.status(400).json({ message: "Cart is empty" });
 
-    const createdOrders = [];
+    // Group cart items by seller
+    const ordersBySeller = {};
 
     for (const item of cart.items) {
       const product = await Product.findById(item.productId);
@@ -210,13 +217,36 @@ export const checkoutCart = async (req, res) => {
       const sellerAddress = await SellerAddress.findOne({ sellerId: seller._id });
       if (!sellerAddress) continue;
 
-      const totalPrice = item.quantity * product.pricePerUnit + 50;
+      if (!ordersBySeller[seller._id]) {
+        ordersBySeller[seller._id] = {
+          seller,
+          sellerAddress,
+          items: [],
+          subtotal: 0
+        };
+      }
+
+      ordersBySeller[seller._id].items.push({
+        productId: product._id,
+        quantity: item.quantity,
+        priceAtOrder: product.pricePerUnit,
+        itemStatus: "pending"
+      });
+
+      ordersBySeller[seller._id].subtotal += item.quantity * product.pricePerUnit;
+    }
+
+    // Create orders for each seller
+    const createdOrders = [];
+    for (const sellerId in ordersBySeller) {
+      const { seller, sellerAddress, items, subtotal } = ordersBySeller[sellerId];
+      const shippingFee = 50;
+      const totalPrice = subtotal + shippingFee;
 
       const order = await Order.create({
         buyerId: customer._id,
         sellerId: seller._id,
-        productId: product._id,
-        quantity: item.quantity,
+        items,
         totalPrice,
         deliveryAddress: {
           region: customer.region,
@@ -243,10 +273,11 @@ export const checkoutCart = async (req, res) => {
           email: sellerAddress.email
         }
       });
-      
+
       createdOrders.push(order);
     }
 
+    // Clear cart only if all items were processed successfully
     cart.items = [];
     await cart.save();
 

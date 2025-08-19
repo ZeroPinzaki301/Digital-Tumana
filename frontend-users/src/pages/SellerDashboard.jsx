@@ -323,6 +323,18 @@ const SellerDashboard = () => {
             >
               Contacts
             </button>
+            <button 
+              onClick={() => navigate("/seller-ongoing-orders")} 
+              className="py-2 px-2 bg-cyan-100 text-cyan-900 border border-cyan-600 rounded-lg hover:bg-cyan-200 transition"
+            >
+              Ongoing Orders
+            </button>
+            <button 
+              onClick={() => navigate("/seller-balance")} 
+              className="py-2 px-2 bg-cyan-100 text-cyan-900 border border-cyan-600 rounded-lg hover:bg-cyan-200 transition"
+            >
+              Seller Balance
+            </button>
           </div>
         </div>
       </div>

@@ -5,6 +5,8 @@ import axiosInstance from "../utils/axiosInstance";
 const CartOrderPreviewPage = () => {
   const [preview, setPreview] = useState(null);
   const navigate = useNavigate();
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showPolicy, setShowPolicy] = useState(false);
 
   useEffect(() => {
     const fetchPreview = async () => {
@@ -22,6 +24,11 @@ const CartOrderPreviewPage = () => {
   }, []);
 
   const handlePlaceOrder = async () => {
+    if (!acceptedTerms) {
+      alert("Please accept the terms and conditions to proceed with your order");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       await axiosInstance.post("/api/orders/checkout", {}, {
@@ -111,6 +118,29 @@ const CartOrderPreviewPage = () => {
           <p className="text-lg">Grand Total: ₱{grandTotal}</p>
         </div>
 
+        {/* Terms and Conditions Section */}
+        <div className="mb-4 p-4 border border-gray-200 rounded-lg">
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="acceptTerms"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1 mr-2"
+            />
+            <label htmlFor="acceptTerms" className="text-sm text-gray-700">
+              I have read and agree to the{' '}
+              <button 
+                type="button" 
+                onClick={() => setShowPolicy(true)}
+                className="text-emerald-700 underline hover:text-emerald-900"
+              >
+                Terms & Conditions and Privacy Policy
+              </button>
+            </label>
+          </div>
+        </div>
+
         {/* ✅ Confirm */}
         <div className="flex justify-between">
           <button
@@ -122,11 +152,48 @@ const CartOrderPreviewPage = () => {
 
           <button
             onClick={handlePlaceOrder}
-            className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800"
+            disabled={!acceptedTerms}
+            className={`px-4 py-2 rounded ${
+              acceptedTerms 
+                ? "bg-emerald-700 text-white hover:bg-emerald-800"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             Confirm Orders
           </button>
         </div>
+
+        {/* Policy Modal */}
+        {showPolicy && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-emerald-900 mb-4">Terms & Conditions and Privacy Policy</h3>
+              <div className="prose prose-sm text-gray-700 mb-4">
+                <p className="font-semibold">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <p>
+                  Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl.
+                  Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl.
+                </p>
+                <p className="font-semibold mt-4">Privacy Policy</p>
+                <p>
+                  Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nullam auctor, nisl eget ultricies tincidunt.
+                  Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nullam auctor, nisl eget ultricies tincidunt.
+                </p>
+                <p className="mt-4">
+                  By placing an order, you agree to our terms and conditions and privacy policy.
+                </p>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowPolicy(false)}
+                  className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800"
+                >
+                  I Understand
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -140,6 +140,8 @@ export const addEmployerAddressByUser = async (req, res) => {
       postalCode,
       latitude,
       longitude,
+      email,
+      telephone
     } = req.body;
 
     const [employer] = await Employer.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(1);
@@ -160,6 +162,8 @@ export const addEmployerAddressByUser = async (req, res) => {
       postalCode,
       latitude,
       longitude,
+      email,
+      telephone
     });
 
     employer.employerAddress = newAddress._id;

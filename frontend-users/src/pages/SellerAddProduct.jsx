@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 
@@ -14,7 +14,32 @@ const SellerAddProduct = () => {
 
   const [productImage, setProductImage] = useState(null);
   const [extraImages, setExtraImages] = useState([]);
+  const [balanceExists, setBalanceExists] = useState(false);
+  const [loadingBalance, setLoadingBalance] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axiosInstance.get("/api/seller-balance/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.data.data) {
+          setBalanceExists(true);
+        }
+      } catch (err) {
+        if (err.response?.status !== 404) {
+          console.error("Error checking balance:", err);
+        }
+      } finally {
+        setLoadingBalance(false);
+      }
+    };
+
+    fetchBalance();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,7 +53,6 @@ const SellerAddProduct = () => {
   const handleExtraImagesChange = (e) => {
     const newFiles = Array.from(e.target.files);
     setExtraImages(prev => {
-      // Combine previous files with new files, then slice to keep only first 5
       const combined = [...prev, ...newFiles];
       return combined.slice(0, 5);
     });
@@ -47,8 +71,8 @@ const SellerAddProduct = () => {
     data.append("uploadDuration", formData.uploadDuration);
 
     if (productImage) data.append("productImage", productImage);
-    extraImages.forEach((file, index) => {
-      data.append(`extraImages`, file);
+    extraImages.forEach((file) => {
+      data.append("extraImages", file);
     });
 
     try {
@@ -58,16 +82,44 @@ const SellerAddProduct = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      navigate("/seller-products"); // go back after success
+      navigate("/seller-products");
     } catch (err) {
       console.error("Failed to add product:", err);
     }
   };
 
-  // Function to remove an extra image
   const removeExtraImage = (index) => {
     setExtraImages(prev => prev.filter((_, i) => i !== index));
   };
+
+  if (loadingBalance) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        Checking balance status...
+      </div>
+    );
+  }
+
+  if (!balanceExists) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-yellow-50 px-4 py-6">
+        <div className="max-w-md bg-white border border-yellow-400 shadow-lg rounded-lg p-6 text-center">
+          <h2 className="text-xl font-semibold text-yellow-700 mb-4">
+            Balance System Not Found
+          </h2>
+          <p className="text-gray-700 mb-4">
+            You currently don't have a balance system enabled. To begin selling products, you need to activate your seller balance.
+          </p>
+          <button
+            onClick={() => navigate("/seller-balance/create")}
+            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+          >
+            Setup Your Balance →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-emerald-50 flex items-center justify-center px-4 py-6">
@@ -108,11 +160,11 @@ const SellerAddProduct = () => {
           <input type="file" name="productImage" onChange={handleProductImageChange} required />
 
           <label className="block text-sm text-gray-700 font-semibold mt-2">Extra Images (max 5)</label>
-          <input 
-            type="file" 
-            name="extraImages" 
-            onChange={handleExtraImagesChange} 
-            multiple 
+          <input
+            type="file"
+            name="extraImages"
+            onChange={handleExtraImagesChange}
+            multiple
             disabled={extraImages.length >= 5}
           />
           {extraImages.length > 0 && (
@@ -122,8 +174,8 @@ const SellerAddProduct = () => {
                 {extraImages.map((file, index) => (
                   <li key={index} className="flex items-center justify-between">
                     <span className="truncate">{file.name}</span>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => removeExtraImage(index)}
                       className="text-red-500 hover:text-red-700 ml-2"
                     >

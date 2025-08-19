@@ -10,14 +10,14 @@ const productSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: [
-      "Fresh Produce",       // 🥬 perishable fruits, vegetables, eggs
-      "Grains & Seeds",      // 🌾 rice, corn, mungbean
-      "Fertilizers",         // 💩 organic/inorganic nutrients
-      "Agri Chemicals",      // 🧪 pesticides, herbicides
-      "Animal Feed",         // 🐓 livestock nutrition
-      "Tools & Equipment",   // 🛠️ hoes, tractors, sprayers
-      "Nursery Plants",      // 🌿 saplings, ornamentals
-      "Compost & Soil"       // 🪱 blends, growing media
+      "Fresh Produce",    
+      "Grains & Seeds",     
+      "Fertilizers",       
+      "Agri Chemicals",     
+      "Animal Feed",       
+      "Tools & Equipment",   
+      "Nursery Plants",      
+      "Compost & Soil"       
     ],
     required: true
   },

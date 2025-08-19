@@ -3,9 +3,20 @@ import mongoose from "mongoose";
 const orderSchema = new mongoose.Schema({
   buyerId: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", required: true },
   sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "Seller", required: true },
-  productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
-
-  quantity: { type: Number, required: true },
+  
+  items: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+      quantity: { type: Number, required: true },
+      priceAtOrder: { type: Number, required: true },
+      itemStatus: {
+        type: String,
+        enum: ["pending", "confirmed", "cancelled"],
+        default: "pending"
+      }
+    }
+  ],
+  
   totalPrice: { type: Number, required: true },
 
   // 🏠 Delivery Snapshot (from Customer)
@@ -41,7 +52,6 @@ const orderSchema = new mongoose.Schema({
     enum: ["pending", "confirmed", "shipped", "out for delivery", "completed", "cancelled"],
     default: "pending"
   },
-
 
 }, { timestamps: true });
 

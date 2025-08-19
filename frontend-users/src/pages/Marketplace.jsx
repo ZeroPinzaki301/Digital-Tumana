@@ -76,7 +76,7 @@ const Marketplace = () => {
     <div className="min-h-screen bg-orange-50">
       <h2 className="text-3xl font-bold text-orange-800 mb-6 text-center pt-10">Tumana Market</h2>
       {/* Fixed Sidebar */}
-      <aside className="fixed top-41 left-4 w-64 bg-white border border-orange-300 rounded-lg shadow-md p-4 h-[calc(100vh-4rem)] overflow-y-auto">
+      <aside className="fixed top-25 left-4 w-64 bg-white border border-orange-300 rounded-lg shadow-md p-4 max-h-screen overflow-y-auto">
         <h2 className="text-lg font-bold text-orange-800 mb-4">Filters</h2>
 
         <input
@@ -148,8 +148,25 @@ const Marketplace = () => {
             onClick={() => navigate("/my-cart")}
             className="w-full py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700 transition flex items-center justify-center gap-2"
           >
-            <span>🧺</span>
             <span>View My Cart</span>
+          </button>
+        </div>
+
+        <div className="mt-8 border-t pt-4">
+          <button
+            onClick={() => navigate("/customer/ongoing-orders")}
+            className="w-full py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700 transition flex items-center justify-center gap-2"
+          >
+            <span>Ongoing Orders</span>
+          </button>
+        </div>
+
+        <div className="mt-8 border-t pt-4">
+          <button
+            onClick={() => navigate("/customer/order-history")}
+            className="w-full py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700 transition flex items-center justify-center gap-2"
+          >
+            <span>Order History</span>
           </button>
         </div>
       </aside>
