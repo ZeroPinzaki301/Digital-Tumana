@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
@@ -48,12 +49,21 @@ const WorkerAddressPage = () => {
     }
   };
 
+  const buttonBase = "w-full py-2 rounded-lg transition cursor-pointer";
+  const buttonPrimary = buttonBase + " bg-lime-600 text-white hover:bg-lime-500/75 hover:text-sky-900";
+  const buttonSecondary = buttonBase + " bg-sky-900 text-white hover:bg-sky-800";
+  const buttonCancel = buttonBase + " bg-gray-200 text-lime-700 hover:bg-gray-300";
+
   return (
     <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4">
+      <button
+        onClick={() => navigate("/worker-dashboard")}
+        className="absolute top-4 left-4 py-2 px-4 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition cursor-pointer mt-3"
+      >
+        ← Back to Dashboard
+      </button>
       <div className="bg-white w-full max-w-lg rounded-lg p-6 shadow-md border border-lime-700">
-        <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">
-          Worker Address
-        </h2>
+        <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">Worker Address</h2>
 
         {address && !isEditing ? (
           <div className="space-y-2 text-sm text-gray-700">
@@ -65,10 +75,7 @@ const WorkerAddressPage = () => {
             <p><strong>Postal Code:</strong> {address.postalCode}</p>
             <p><strong>Email:</strong> {address.email}</p>
             <p><strong>Telephone:</strong> {address.telephone}</p>
-            <button
-              onClick={() => setIsEditing(true)}
-              className="mt-4 w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
-            >
+            <button onClick={() => setIsEditing(true)} className={buttonPrimary}>
               Edit Address
             </button>
           </div>
@@ -104,23 +111,20 @@ const WorkerAddressPage = () => {
                   alert("Geolocation is not supported by your browser.");
                 }
               }}
-              className="w-full py-2 bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
+              className={buttonSecondary}
             >
               Use My Location
             </button>
 
-            <button type="submit" className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition">
+            <button type="submit" className={buttonPrimary}>
               {address ? "Update Address" : "Add Address"}
             </button>
             {address && (
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="w-full py-2 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition"
-              >
+              <button type="button" onClick={() => setIsEditing(false)} className={buttonCancel}>
                 Cancel
               </button>
             )}
+            
           </form>
         )}
       </div>

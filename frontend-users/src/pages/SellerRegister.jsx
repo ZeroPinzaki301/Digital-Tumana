@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
@@ -99,14 +100,14 @@ const SellerRegister = () => {
             required
             value={formData.firstName}
             onChange={handleChange}
-            className="input"
+            className="input cursor-pointer"
           />
           <input
             name="middleName"
             placeholder="Middle Name (Optional)"
             value={formData.middleName}
             onChange={handleChange}
-            className="input"
+            className="input cursor-pointer"
           />
           <input
             name="lastName"
@@ -114,14 +115,14 @@ const SellerRegister = () => {
             required
             value={formData.lastName}
             onChange={handleChange}
-            className="input"
+            className="input cursor-pointer"
           />
           <select
             name="sex"
             required
             value={formData.sex}
             onChange={handleChange}
-            className="input"
+            className="input cursor-pointer"
           >
             <option value="">Select Sex</option>
             <option>Male</option>
@@ -135,7 +136,7 @@ const SellerRegister = () => {
             required
             value={formData.age}
             onChange={handleChange}
-            className="input"
+            className="input cursor-pointer"
           />
           <input
             type="date"
@@ -143,7 +144,7 @@ const SellerRegister = () => {
             required
             value={formData.birthdate}
             onChange={handleChange}
-            className="input"
+            className="input cursor-pointer"
           />
           <input
             name="nationality"
@@ -151,32 +152,32 @@ const SellerRegister = () => {
             required
             value={formData.nationality}
             onChange={handleChange}
-            className="input"
+            className="input cursor-pointer"
           />
         </div>
 
         <hr className="my-4" />
 
         <div className="space-y-3">
-          <label className="block">
+          <label className="block cursor-pointer border rounded-md cursor-pointer p-1">
             Upload Valid ID:{" "}
-            <input type="file" name="validId" onChange={handleChange} required />
+            <input type="file" name="validId" onChange={handleChange} required className="cursor-pointer" />
           </label>
-          <label className="block">
+          <label className="block cursor-pointer border rounded-md cursor-pointer p-1">
             Upload DTI Certificate:{" "}
-            <input type="file" name="dtiCert" onChange={handleChange} required />
+            <input type="file" name="dtiCert" onChange={handleChange} required className="cursor-pointer" />
           </label>
-          <label className="block">
+          <label className="block cursor-pointer border rounded-md cursor-pointer p-1">
             Upload BIR Certificate:{" "}
-            <input type="file" name="birCert" onChange={handleChange} required />
+            <input type="file" name="birCert" onChange={handleChange} required className="cursor-pointer" />
           </label>
-          <label className="flex items-center mt-2">
+          <label className="flex items-center mt-2 cursor-pointer">
             <input
               type="checkbox"
               name="agreedToPolicy"
               checked={formData.agreedToPolicy}
               onChange={handleChange}
-              className="mr-2"
+              className="mr-2 cursor-pointer"
             />
             I agree to the Seller Policy
           </label>
@@ -188,17 +189,16 @@ const SellerRegister = () => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`w-full mt-4 py-2 rounded-lg transition ${
+          className={`w-full mt-4 py-2 rounded-lg transition cursor-pointer ${
             isSubmitting
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-lime-700 text-white hover:bg-lime-800"
+              : "bg-lime-700 text-white hover:bg-lime-500/75 hover:text-sky-900"
           }`}
         >
           {isSubmitting ? "Submitting..." : "Submit Application"}
         </button>
       </form>
 
-      {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white w-full max-w-sm mx-auto rounded-lg p-6 shadow-lg relative text-center border border-lime-700">
@@ -208,7 +208,7 @@ const SellerRegister = () => {
             </p>
             <button
               onClick={() => navigate("/account")}
-              className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
+              className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer"
             >
               Back to Profile
             </button>

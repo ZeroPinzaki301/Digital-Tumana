@@ -266,8 +266,8 @@ const SellerDashboard = () => {
             <p><strong>Status:</strong> {seller.status}</p>
           </div>
 
-          <button onClick={() => navigate("/affiliate-dashboards")} className={buttonBase + " mt-6 w-full"}>
-            Back to Affiliate Dashboards
+          <button onClick={() => navigate("/account")} className={buttonBase + " mt-6 w-full"}>
+            back to account
           </button>
         </div>
 

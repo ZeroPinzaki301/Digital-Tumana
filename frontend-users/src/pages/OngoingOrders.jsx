@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../utils/axiosInstance';
 
@@ -27,7 +28,7 @@ const OngoingOrdersPage = () => {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">🛒 Your Ongoing Orders</h2>
+      <h2 className="text-3xl font-semibold mb-4 text-lime-900 text-center">Your Ongoing Orders</h2>
       {orders.length === 0 ? (
         <p className="text-gray-500">You have no ongoing orders.</p>
       ) : (
@@ -46,7 +47,6 @@ const OrderCard = ({ order }) => {
 
   return (
     <div className="border rounded-lg shadow-sm p-4 bg-white">
-      {/* Seller Info */}
       <div className="flex items-center gap-4 mb-4">
         <img
           src={sellerId.storePicture || '/default-store.png'}
@@ -59,7 +59,6 @@ const OrderCard = ({ order }) => {
         </div>
       </div>
 
-      {/* Items */}
       <div className="space-y-3">
         {items.map(item => (
           <div key={item._id} className="flex items-center gap-4">
@@ -77,7 +76,6 @@ const OrderCard = ({ order }) => {
         ))}
       </div>
 
-      {/* Footer */}
       <div className="flex justify-between items-center mt-4 pt-4 border-t">
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(status)}`}>
           {status}
@@ -88,19 +86,18 @@ const OrderCard = ({ order }) => {
   );
 };
 
-// Tailwind badge color helper
 const getStatusBadgeColor = status => {
   switch (status) {
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-lime-100 text-lime-800';
     case 'confirmed':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-lime-200 text-lime-900';
     case 'shipped':
-      return 'bg-indigo-100 text-indigo-800';
+      return 'bg-lime-300 text-lime-900';
     case 'out for delivery':
-      return 'bg-green-100 text-green-800';
+      return 'bg-lime-400 text-lime-900';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-lime-50 text-lime-800';
   }
 };
 

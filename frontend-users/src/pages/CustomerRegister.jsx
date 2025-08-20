@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
@@ -30,7 +31,6 @@ const CustomerRegister = () => {
 
   const navigate = useNavigate();
 
-  // 🔐 Fetch authenticated user
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -108,55 +108,54 @@ const CustomerRegister = () => {
     }
   };
 
+  const inputClass = "input cursor-pointer";
+  const buttonClass = "py-2 px-4 bg-lime-600 text-white rounded hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer";
+
   return (
     <div className="min-h-screen bg-orange-50 flex items-center justify-center px-4 relative">
       <form
         onSubmit={handleSubmit}
-        className="bg-white max-w-2xl w-full rounded-lg p-6 shadow-md border border-orange-300"
+        className="bg-white w-full max-w-2xl rounded-lg p-6 shadow-xl border border-orange-300"
       >
-        <h2 className="text-2xl font-bold text-orange-700 mb-4 text-center">
-          Customer Verification
-        </h2>
+        <h2 className="text-2xl font-bold text-orange-700 mb-4 text-center">Customer Verification</h2>
 
-        {/* 🧑 Personal Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input name="fullName" placeholder="Full Name" required value={formData.fullName} onChange={handleChange} className="input" />
-          <input name="email" placeholder="Email" required value={formData.email} onChange={handleChange} className="input" />
-          <input name="telephone" placeholder="Telephone" required value={formData.telephone} onChange={handleChange} className="input" />
-          <input name="region" placeholder="Region" required value={formData.region} onChange={handleChange} className="input" />
-          <input name="province" placeholder="Province" required value={formData.province} onChange={handleChange} className="input" />
-          <input name="cityOrMunicipality" placeholder="City or Municipality" required value={formData.cityOrMunicipality} onChange={handleChange} className="input" />
-          <input name="barangay" placeholder="Barangay" required value={formData.barangay} onChange={handleChange} className="input" />
-          <input name="street" placeholder="Street" required value={formData.street} onChange={handleChange} className="input" />
-          <input name="postalCode" placeholder="Postal Code" required value={formData.postalCode} onChange={handleChange} className="input" />
+          <input name="fullName" placeholder="Full Name" required value={formData.fullName} onChange={handleChange} className={inputClass} />
+          <input name="email" placeholder="Email" required value={formData.email} onChange={handleChange} className={inputClass} />
+          <input name="telephone" placeholder="Telephone" required value={formData.telephone} onChange={handleChange} className={inputClass} />
+          <input name="region" placeholder="Region" required value={formData.region} onChange={handleChange} className={inputClass} />
+          <input name="province" placeholder="Province" required value={formData.province} onChange={handleChange} className={inputClass} />
+          <input name="cityOrMunicipality" placeholder="City or Municipality" required value={formData.cityOrMunicipality} onChange={handleChange} className={inputClass} />
+          <input name="barangay" placeholder="Barangay" required value={formData.barangay} onChange={handleChange} className={inputClass} />
+          <input name="street" placeholder="Street" required value={formData.street} onChange={handleChange} className={inputClass} />
+          <input name="postalCode" placeholder="Postal Code" required value={formData.postalCode} onChange={handleChange} className={inputClass} />
         </div>
 
-        {/* 🧭 Location Section */}
         <hr className="my-4" />
         <label className="text-sm font-semibold text-orange-700 block mb-1">Location:</label>
         <div className="grid grid-cols-2 gap-4 mb-2">
-          <input name="latitude" value={formData.latitude} readOnly className="input bg-orange-100" placeholder="Latitude" />
-          <input name="longitude" value={formData.longitude} readOnly className="input bg-orange-100" placeholder="Longitude" />
+          <input name="latitude" value={formData.latitude} readOnly className="input bg-orange-100 cursor-pointer" placeholder="Latitude" />
+          <input name="longitude" value={formData.longitude} readOnly className="input bg-orange-100 cursor-pointer" placeholder="Longitude" />
         </div>
-        <button type="button" onClick={handleLocation} className="mb-4 py-2 px-4 bg-orange-600 text-white rounded hover:bg-orange-700 transition">
-          📍 Get My Location
+
+        <button type="button" onClick={handleLocation} className={buttonClass + " mb-4"}>
+          Get My Location
         </button>
 
-        {/* 🧾 ID Upload */}
-        <select name="idType" required value={formData.idType} onChange={handleChange} className="input mb-4">
+        <select name="idType" required value={formData.idType} onChange={handleChange} className={inputClass + " mb-4"}>
           <option value="">Select ID Type</option>
           {idTypes.map((type) => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
-        <label className="block mb-4">
+        
+        <label className="block mb-4 cursor-pointer border p-1 rounded-md">
           Upload Valid ID:{" "}
-          <input type="file" name="idImage" onChange={handleChange} required />
+          <input type="file" name="idImage" onChange={handleChange} required className="cursor-pointer" />
         </label>
 
-        {/* ✅ Policy Agreement */}
-        <label className="flex items-center mt-2 mb-4">
-          <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2" />
+        <label className="flex items-center mt-2 mb-4 cursor-pointer">
+          <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
           I agree to the Customer Policy
         </label>
 
@@ -169,14 +168,13 @@ const CustomerRegister = () => {
           className={`w-full py-2 rounded transition ${
             isSubmitting
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-orange-700 text-white hover:bg-orange-800"
+              : "bg-lime-600 text-white hover:bg-lime-500/75 hover:text-sky-900 cursor-pointer"
           }`}
         >
           {isSubmitting ? "Submitting..." : "Submit Verification"}
         </button>
       </form>
 
-      {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white w-full max-w-sm mx-auto rounded-lg p-6 shadow-lg relative text-center border border-orange-700">
@@ -186,7 +184,7 @@ const CustomerRegister = () => {
             </p>
             <button
               onClick={() => navigate("/marketplace")}
-              className="w-full py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition"
+              className={buttonClass + " w-full"}
             >
               Return to Marketplace
             </button>

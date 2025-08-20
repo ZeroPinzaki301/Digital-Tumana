@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
@@ -83,37 +84,43 @@ const EmployerRegister = () => {
   };
 
   return (
-    <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4 relative">
+    <div className="min-h-screen bg-bg-50 flex items-center justify-center px-4 relative">
       <form
         onSubmit={handleSubmit}
         className="bg-white max-w-lg w-full rounded-lg p-6 shadow-md border border-lime-700"
       >
-        <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">Employer Registration</h2>
+        <h2 className="text-2xl font-bold text-sky-900 mb-4 text-center">Employer Registration</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleChange} className="input" />
-          <input name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleChange} className="input" />
-          <input name="lastName" placeholder="Last Name" required value={formData.lastName} onChange={handleChange} className="input" />
-          <select name="sex" required value={formData.sex} onChange={handleChange} className="input">
+          <input name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleChange} className="input cursor-pointer" />
+          <input name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleChange} className="input cursor-pointer" />
+          <input name="lastName" placeholder="Last Name" required value={formData.lastName} onChange={handleChange} className="input cursor-pointer" />
+          <select name="sex" required value={formData.sex} onChange={handleChange} className="input cursor-pointer">
             <option value="">Select Sex</option>
             <option>Male</option>
             <option>Female</option>
             <option>Other</option>
           </select>
-          <input type="number" name="age" placeholder="Age" required value={formData.age} onChange={handleChange} className="input" />
-          <input type="date" name="birthdate" required value={formData.birthdate} onChange={handleChange} className="input" />
-          <input name="nationality" placeholder="Nationality" required value={formData.nationality} onChange={handleChange} className="input" />
-          <input name="companyName" placeholder="Company Name" required value={formData.companyName} onChange={handleChange} className="input" />
+          <input type="number" name="age" placeholder="Age" required value={formData.age} onChange={handleChange} className="input cursor-pointer" />
+          <input type="date" name="birthdate" required value={formData.birthdate} onChange={handleChange} className="input cursor-pointer" />
+          <input name="nationality" placeholder="Nationality" required value={formData.nationality} onChange={handleChange} className="input cursor-pointer" />
+          <input name="companyName" placeholder="Company Name" required value={formData.companyName} onChange={handleChange} className="input cursor-pointer" />
         </div>
 
         <hr className="my-4" />
 
         <div className="space-y-3">
-          <label className="block">Upload Valid ID: <input type="file" name="validId" onChange={handleChange} required /></label>
-          <label className="block">Upload DTI Certificate (Optional): <input type="file" name="dtiCert" onChange={handleChange} /></label>
-          <label className="block">Upload BIR Certificate (Optional): <input type="file" name="birCert" onChange={handleChange} /></label>
-          <label className="flex items-center mt-2">
-            <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2" />
+          <label className="block cursor-pointer border rounded-md p-1">
+            Upload Valid ID: <input type="file" name="validId" onChange={handleChange} required className="cursor-pointer" />
+          </label>
+          <label className="block cursor-pointer border rounded-md p-1">
+            Upload DTI Certificate (Optional): <input type="file" name="dtiCert" onChange={handleChange} className="cursor-pointer" />
+          </label>
+          <label className="block cursor-pointer border rounded-md p-1">
+            Upload BIR Certificate (Optional): <input type="file" name="birCert" onChange={handleChange} className="cursor-pointer" />
+          </label>
+          <label className="flex items-center mt-2 cursor-pointer">
+            <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
             I agree to the Employer Policy
           </label>
         </div>
@@ -125,7 +132,7 @@ const EmployerRegister = () => {
           type="submit"
           disabled={isSubmitting}
           className={`w-full mt-4 py-2 rounded-lg transition ${
-            isSubmitting ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-lime-700 text-white hover:bg-lime-800"
+            isSubmitting ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-sky-700 text-white hover:bg-sky-500/75 hover:text-sky-900 cursor-pointer"
           }`}
         >
           {isSubmitting ? "Submitting..." : "Submit Application"}
@@ -139,7 +146,7 @@ const EmployerRegister = () => {
             <p className="text-gray-700 mb-4">
               Thank you for submitting your application. Please wait a few days while we verify your documents.
             </p>
-            <button onClick={() => navigate("/account")} className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition">
+            <button onClick={() => navigate("/account")} className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition cursor-pointer">
               Back to Profile
             </button>
           </div>

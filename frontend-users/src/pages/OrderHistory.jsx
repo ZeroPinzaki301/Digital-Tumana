@@ -27,7 +27,7 @@ const OrderHistoryPage = () => {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">📦 Your Order History</h2>
+      <h2 className="text-3xl font-semibold mb-4 text-center text-lime-900">Your Order History</h2>
       {orders.length === 0 ? (
         <p className="text-gray-500">You have no completed or cancelled orders.</p>
       ) : (

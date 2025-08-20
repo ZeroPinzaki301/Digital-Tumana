@@ -42,7 +42,7 @@ const EmployerAddressPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setIsEditing(false);
-      navigate(0); // Refresh page
+      navigate(0);
     } catch (err) {
       console.error("Failed to update address:", err);
     }
@@ -51,11 +51,8 @@ const EmployerAddressPage = () => {
   return (
     <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4">
       <div className="bg-white w-full max-w-lg rounded-lg p-6 shadow-md border border-lime-700">
-        <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">
-          Employer Address
-        </h2>
+        <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">Employer Address</h2>
 
-        {/* View Mode */}
         {address && !isEditing ? (
           <div className="space-y-2 text-sm text-gray-700">
             <p><strong>Region:</strong> {address.region}</p>
@@ -68,22 +65,21 @@ const EmployerAddressPage = () => {
             <p><strong>Telephone:</strong> {address.telephone}</p>
             <button
               onClick={() => setIsEditing(true)}
-              className="mt-4 w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
+              className="mt-4 w-full py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer"
             >
               Edit Address
             </button>
           </div>
         ) : (
-          // Edit/Add Mode
           <form onSubmit={handleSubmit} className="space-y-3">
-            <input type="text" name="region" value={formData.region || ""} onChange={handleChange} placeholder="Region" required className="input" />
-            <input type="text" name="province" value={formData.province || ""} onChange={handleChange} placeholder="Province" required className="input" />
-            <input type="text" name="cityOrMunicipality" value={formData.cityOrMunicipality || ""} onChange={handleChange} placeholder="City/Municipality" required className="input" />
-            <input type="text" name="barangay" value={formData.barangay || ""} onChange={handleChange} placeholder="Barangay" required className="input" />
-            <input type="text" name="street" value={formData.street || ""} onChange={handleChange} placeholder="Street" required className="input" />
-            <input type="text" name="postalCode" value={formData.postalCode || ""} onChange={handleChange} placeholder="Postal Code" required className="input" />
-            <input type="email" name="email" value={formData.email || ""} onChange={handleChange} placeholder="Email" required className="input" />
-            <input type="tel" name="telephone" value={formData.telephone || ""} onChange={handleChange} placeholder="Telephone" required className="input" />
+            <input type="text" name="region" value={formData.region || ""} onChange={handleChange} placeholder="Region" required className="input cursor-pointer" />
+            <input type="text" name="province" value={formData.province || ""} onChange={handleChange} placeholder="Province" required className="input cursor-pointer" />
+            <input type="text" name="cityOrMunicipality" value={formData.cityOrMunicipality || ""} onChange={handleChange} placeholder="City/Municipality" required className="input cursor-pointer" />
+            <input type="text" name="barangay" value={formData.barangay || ""} onChange={handleChange} placeholder="Barangay" required className="input cursor-pointer" />
+            <input type="text" name="street" value={formData.street || ""} onChange={handleChange} placeholder="Street" required className="input cursor-pointer" />
+            <input type="text" name="postalCode" value={formData.postalCode || ""} onChange={handleChange} placeholder="Postal Code" required className="input cursor-pointer" />
+            <input type="email" name="email" value={formData.email || ""} onChange={handleChange} placeholder="Email" required className="input cursor-pointer" />
+            <input type="tel" name="telephone" value={formData.telephone || ""} onChange={handleChange} placeholder="Telephone" required className="input cursor-pointer" />
 
             <button
               type="button"
@@ -106,19 +102,19 @@ const EmployerAddressPage = () => {
                   alert("Geolocation is not supported by your browser.");
                 }
               }}
-              className="w-full py-2 bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
+              className="w-full py-2 bg-sky-900 text-white rounded-lg hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer"
             >
               Use My Location
             </button>
 
-            <button type="submit" className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition">
+            <button type="submit" className="w-full py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer">
               {address ? "Update Address" : "Add Address"}
             </button>
             {address && (
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="w-full py-2 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition"
+                className="w-full py-2 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition cursor-pointer"
               >
                 Cancel
               </button>

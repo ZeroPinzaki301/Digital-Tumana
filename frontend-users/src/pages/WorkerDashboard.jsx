@@ -1,14 +1,18 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaCheck, FaTimes } from "react-icons/fa";
 
 const WorkerDashboard = () => {
   const [worker, setWorker] = useState(null);
   const [statusCode, setStatusCode] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+
+  const buttonBase = "py-2 px-2 bg-lime-600 text-white rounded-lg hover:bg-lime-600/75 hover:text-sky-900 transition cursor-pointer";
 
   useEffect(() => {
     const fetchWorker = async () => {
@@ -44,6 +48,7 @@ const WorkerDashboard = () => {
     if (!file) return;
 
     setUploading(true);
+    setUploadStatus(null);
     try {
       const formData = new FormData();
       formData.append("profilePicture", file);
@@ -61,77 +66,66 @@ const WorkerDashboard = () => {
         params: { t: Date.now() },
       });
       setWorker(refreshed.data.worker);
+      setUploadStatus("success");
     } catch (err) {
       console.error("Upload error:", err);
+      setUploadStatus("error");
     } finally {
       setUploading(false);
+      setTimeout(() => setUploadStatus(null), 3000);
     }
   };
 
-  if (statusCode === 410) {
-    return (
-      <div className="min-h-screen bg-red-100 flex items-center justify-center px-4">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center border border-red-400">
-          <h2 className="text-xl font-bold text-red-700 mb-2">Registration Declined</h2>
-          <p className="text-gray-700">
-            Your worker registration was declined. Please review and reapply.
-          </p>
-          <button
-            onClick={async () => {
-              try {
-                const token = localStorage.getItem("token");
-                await axiosInstance.delete("/api/workers/me", {
-                  headers: { Authorization: `Bearer ${token}` },
-                });
-                navigate("/worker-registration");
-              } catch {
-                navigate("/worker-registration");
-              }
-            }}
-            className="mt-4 w-full py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition"
-          >
-            Re-register as Worker
-          </button>
-        </div>
+  const renderStatusPage = (title, message, buttonText, buttonAction, bgColor, textColor) => (
+    <div className={`min-h-screen ${bgColor} flex items-center justify-center px-4`}>
+      <div className="bg-white p-6 shadow-lg max-w-sm text-center">
+        <h2 className={`text-xl font-bold ${textColor} mb-2`}>{title}</h2>
+        <p className="text-gray-700">{message}</p>
+        <button onClick={buttonAction} className={buttonBase + " mt-4 w-full"}>
+          {buttonText}
+        </button>
       </div>
+    </div>
+  );
+
+  if (statusCode === 410) {
+    return renderStatusPage(
+      "Registration Declined",
+      "Your worker registration was declined. Please review and reapply.",
+      "Re-register as Worker",
+      async () => {
+        try {
+          const token = localStorage.getItem("token");
+          await axiosInstance.delete("/api/workers/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch {}
+        navigate("/worker-registration");
+      },
+      "bg-red-100",
+      "text-red-700"
     );
   }
 
   if (statusCode === 404) {
-    return (
-      <div className="min-h-screen bg-orange-100 flex items-center justify-center px-4">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center border border-orange-400">
-          <h2 className="text-xl font-bold text-orange-700 mb-2">Worker Profile Not Found</h2>
-          <p className="text-gray-700">
-            You haven’t registered yet. Submit a worker application to get started.
-          </p>
-          <button
-            onClick={() => navigate("/worker-registration")}
-            className="mt-4 w-full py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition"
-          >
-            Go to Registration
-          </button>
-        </div>
-      </div>
+    return renderStatusPage(
+      "Worker Profile Not Found",
+      "You haven’t registered yet. Submit a worker application to get started.",
+      "Go to Registration",
+      () => navigate("/worker-registration"),
+      "bg-orange-100",
+      "text-orange-700"
     );
   }
 
   if (statusCode === 403) {
-    return (
-      <div className="min-h-screen bg-yellow-100 flex items-center justify-center px-4">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center border border-yellow-400">
-          <h2 className="text-xl font-bold text-yellow-700 mb-2">Awaiting Verification</h2>
-          <p className="text-gray-700">
-            Your application is under review. Please wait for approval.
-          </p>
-          <button
-            onClick={() => navigate("/account")}
-            className="mt-4 w-full py-2 bg-yellow-700 text-white rounded-lg hover:bg-yellow-800 transition"
-          >
-            Back to Account
-          </button>
-        </div>
-      </div>
+    return renderStatusPage(
+      "Awaiting Verification",
+      "Your application is under review. Please wait for approval.",
+      "Back to Account",
+      () => navigate("/account"),
+      "bg-yellow-100",
+      "text-yellow-700"
     );
   }
 
@@ -145,11 +139,52 @@ const WorkerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-emerald-50 flex items-center justify-center px-4">
-      <div className="bg-white max-w-5xl w-full p-6 rounded-lg shadow-md border border-sky-900 flex flex-col md:flex-row gap-6">
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h3 className="text-xl font-bold text-sky-900 mb-4">Edit Profile</h3>
 
-        {/* Left — Profile Info */}
-        <div className="md:w-1/2 w-full text-center">
-          <div onClick={handleProfileClick} className="cursor-pointer">
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2">Change Profile Picture</label>
+              <button onClick={handleProfileClick} className={buttonBase + " w-full"}>
+                Change Picture
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handlePictureUpload}
+                className="hidden"
+                accept="image/*"
+              />
+              {uploading && <p className="text-sm text-gray-500 mt-2 text-center">Uploading picture...</p>}
+              {uploadStatus === "success" && (
+                <div className="flex items-center justify-center mt-2 text-lime-600">
+                  <FaCheck className="mr-1" /> Picture uploaded successfully!
+                </div>
+              )}
+              {uploadStatus === "error" && (
+                <div className="flex items-center justify-center mt-2 text-red-600">
+                  <FaTimes className="mr-1" /> Upload failed. Please try again.
+                </div>
+              )}
+            </div>
+
+            <button onClick={() => setShowEditModal(false)} className="w-full py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition cursor-pointer">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white max-w-5xl w-full p-6 shadow-xl flex flex-col md:flex-row gap-6">
+        {/* Profile Section */}
+        <div className="md:w-[60%] w-full text-center bg-sky-50 p-4 relative">
+          <button onClick={() => setShowEditModal(true)} className={buttonBase + " absolute top-4 right-4 px-3 py-1"}>
+            Edit
+          </button>
+
+          <div>
             {worker.profilePicture === "default-profile.png" ? (
               <FaUserCircle className="w-32 h-32 mx-auto text-gray-500 mb-4 border-2 border-sky-900 rounded-full" />
             ) : (
@@ -159,20 +194,9 @@ const WorkerDashboard = () => {
                 className="w-32 h-32 mx-auto rounded-full object-cover border-2 border-sky-900 mb-4"
               />
             )}
-            {uploading && (
-              <p className="text-sm text-gray-500 mt-1">Uploading...</p>
-            )}
           </div>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handlePictureUpload}
-            className="hidden"
-          />
 
-          <h2 className="text-2xl font-bold text-sky-900 mb-2">
-            {worker.firstName} {worker.lastName}
-          </h2>
+          <h2 className="text-2xl font-bold text-sky-900 mb-2">{worker.firstName} {worker.lastName}</h2>
           <p className="text-sm text-gray-600 mb-6">{worker.email}</p>
 
           <div className="text-left text-sm space-y-2 text-gray-700">
@@ -184,46 +208,28 @@ const WorkerDashboard = () => {
             <p><strong>Status:</strong> {worker.status}</p>
           </div>
 
-          <button
-            onClick={() => navigate("/affiliate-dashboards")}
-            className="mt-6 w-full py-2 bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
-          >
-            Back to Affiliate Dashboards
+          <button onClick={() => navigate("/account")} className={buttonBase + " mt-6 w-full"}>
+            Back to Account
           </button>
         </div>
 
-        {/* Right — Actions */}
-        <div className="md:w-1/2 w-full flex flex-col justify-center gap-4 text-center">
-          <h3 className="text-xl font-semibold text-sky-900 mb-2">Quick Access</h3>
-
-          <button
-            onClick={() => navigate("/worker-address")}
-            className="py-2 px-4 bg-yellow-100 text-yellow-900 border border-yellow-600 rounded-lg hover:bg-yellow-200 transition"
-          >
-            My Address
-          </button>
-
-          <button
-            onClick={() => navigate("/job-applications")}
-            className="py-2 px-4 bg-indigo-100 text-indigo-900 border border-indigo-600 rounded-lg hover:bg-indigo-200 transition"
-          >
-            Job Applications
-          </button>
-
-          <button
-            onClick={() => navigate("/worker/portfolio")}
-            className="py-2 px-4 bg-indigo-100 text-indigo-900 border border-indigo-600 rounded-lg hover:bg-indigo-200 transition"
-          >
-            My Portfolio
-          </button>
-
-
-          <button
-            onClick={() => navigate("/worker-contacts")}
-            className="py-2 px-4 bg-pink-100 text-pink-900 border border-pink-600 rounded-lg hover:bg-pink-200 transition"
-          >
-            Contacts
-          </button>
+        {/* Quick Access Section */}
+        <div className="md:w-[40%] w-full bg-emerald-50 p-4">
+          <h3 className="text-xl font-semibold text-sky-900 mb-4 text-center">Quick Access</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { label: "My Address", path: "/worker-address" },
+              { label: "My Portfolio", path: "/worker/portfolio" },
+              { label: "Pending Applications", path: "/jobs/job-application/pending" },
+              { label: "Accepted Applications", path: "/jobs/job-application/waiting-to-confirm" },
+              { label: "Ongoing Jobs", path: "/jobs/job-application/ongoing-jobs" },
+              { label: "Contacts", path: "/worker-contacts" },
+            ].map(({ label, path }) => (
+              <button key={label} onClick={() => navigate(path)} className={buttonBase}>
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

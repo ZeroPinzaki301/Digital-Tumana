@@ -7,7 +7,7 @@ const Services = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [minSalary, setMinSalary] = useState("");
   const [maxSalary, setMaxSalary] = useState("");
-  const [worker, setWorker] = useState(null);
+  const [workerVerified, setWorkerVerified] = useState(false);
   const [hasPortfolio, setHasPortfolio] = useState(false);
   const [pendingWorker, setPendingWorker] = useState(false);
 
@@ -24,21 +24,32 @@ const Services = () => {
     };
 
     const fetchWorkerStatus = async () => {
-      try {
-        const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
+      try {
         const workerRes = await axiosInstance.get("/api/workers/dashboard", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setWorker(workerRes.data.worker);
 
-        const portfolioRes = await axiosInstance.get("/api/worker/portfolio", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setHasPortfolio(!!portfolioRes.data?.workerId);
+        if (workerRes.status === 200) {
+          setWorkerVerified(true);
+
+          try {
+            const portfolioRes = await axiosInstance.get("/api/worker/portfolio", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (portfolioRes.status === 200 && portfolioRes.data?.workerId) {
+              setHasPortfolio(true);
+            }
+          } catch (portfolioErr) {
+            if (portfolioErr.response?.status === 404) {
+              setHasPortfolio(false); // Portfolio not found
+            }
+          }
+        }
       } catch (err) {
         try {
-          const token = localStorage.getItem("token");
           const pendingRes = await axiosInstance.get("/api/workers/user", {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -47,7 +58,7 @@ const Services = () => {
             setPendingWorker(true);
           }
         } catch {
-          setWorker(null);
+          setWorkerVerified(false);
           setPendingWorker(false);
         }
       }
@@ -66,12 +77,15 @@ const Services = () => {
     })
     .sort(() => Math.random() - 0.5);
 
+  const buttonBase =
+    "w-full py-2 bg-lime-600 text-white rounded hover:bg-lime-600/75 hover:text-sky-900 transition cursor-pointer";
+
   return (
     <div className="min-h-screen bg-blue-50">
       <h2 className="text-3xl font-bold text-blue-800 mb-6 text-center pt-10">Available Jobs</h2>
 
       {/* Sidebar: Filters + Worker Status */}
-      <aside className="fixed top-25 left-4 w-64 bg-white border border-blue-300 rounded-lg shadow-md p-4 max-h-screen overflow-y-auto">
+      <aside className="fixed top-25 left-4 w-64 bg-white shadow-md p-4 max-h-screen overflow-y-auto">
         <h2 className="text-lg font-bold text-blue-800 mb-4">Filters</h2>
 
         <input
@@ -103,11 +117,8 @@ const Services = () => {
         <hr className="my-4" />
         <h2 className="text-lg font-bold text-blue-800 mb-2">Worker Status</h2>
 
-        {!worker && !pendingWorker ? (
-          <button
-            onClick={() => navigate("/worker-registration")}
-            className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-          >
+        {!workerVerified && !pendingWorker ? (
+          <button onClick={() => navigate("/worker-registration")} className={buttonBase}>
             Become a Worker
           </button>
         ) : pendingWorker ? (
@@ -115,10 +126,7 @@ const Services = () => {
             ⏳ Waiting for Verification
           </div>
         ) : !hasPortfolio ? (
-          <button
-            onClick={() => navigate("/worker/portfolio/create")}
-            className="w-full py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
-          >
+          <button onClick={() => navigate("/worker/portfolio/create")} className={buttonBase}>
             Create Portfolio
           </button>
         ) : (
@@ -128,27 +136,27 @@ const Services = () => {
             <div className="mt-8 border-t pt-4">
               <button
                 onClick={() => navigate("/jobs/job-application/pending")}
-                className="w-full py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700 transition flex items-center justify-center gap-2"
+                className={buttonBase}
               >
-                <span>Pending Applications</span>
+                Pending Applications
               </button>
             </div>
 
             <div className="mt-8 border-t pt-4">
               <button
                 onClick={() => navigate("/jobs/job-application/waiting-to-confirm")}
-                className="w-full py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700 transition flex items-center justify-center gap-2"
+                className={buttonBase}
               >
-                <span>Accepted Applications</span>
+                Accepted Applications
               </button>
             </div>
 
             <div className="mt-8 border-t pt-4">
               <button
                 onClick={() => navigate("/jobs/job-application/ongoing-jobs")}
-                className="w-full py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700 transition flex items-center justify-center gap-2"
+                className={buttonBase}
               >
-                <span>Ongoing Jobs</span>
+                Ongoing Jobs
               </button>
             </div>
           </div>
@@ -184,7 +192,7 @@ const Services = () => {
                   </p>
                   <button
                     onClick={() => navigate(`/jobs/${job._id}`)}
-                    className="mt-3 w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition"
+                    className={buttonBase + " mt-3"}
                   >
                     View Details
                   </button>

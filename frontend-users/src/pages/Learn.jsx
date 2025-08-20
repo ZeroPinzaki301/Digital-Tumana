@@ -108,13 +108,13 @@ const Learn = () => {
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 onClick={() => document.getElementById('requirements')?.scrollIntoView({ behavior: 'smooth' })}
-                className="rounded-xl bg-white/90 text-black font-semibold px-5 py-3 hover:bg-white transition shadow"
+                className="rounded-xl bg-white/90 text-black font-semibold px-5 py-3 hover:bg-white transition shadow cursor-pointer"
               >
                 View Requirements
               </button>
               <button
                 onClick={() => navigate('/learn/tesda/enroll')}
-                className="rounded-xl bg-[#91CA4C] text-black font-semibold px-5 py-3 hover:bg-lime-600 transition shadow"
+                className="rounded-xl bg-[#91CA4C] text-black font-semibold px-5 py-3 hover:bg-lime-600 transition shadow cursor-pointer"
               >
                 Enroll Now
               </button>
@@ -248,7 +248,7 @@ const Learn = () => {
             <div className="mt-5 flex flex-wrap gap-3">
               <button
                 onClick={() => navigate('/learn/tesda/enroll')}
-                className="rounded-xl bg-[#91CA4C] text-black font-semibold px-4 py-2 text-sm hover:bg-lime-600 shadow"
+                className="rounded-xl bg-[#91CA4C] text-black font-semibold px-4 py-2 text-sm hover:bg-lime-600 shadow cursor-pointer"
               >
                 Enroll Now
               </button>

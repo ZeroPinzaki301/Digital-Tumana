@@ -91,13 +91,14 @@ const TesdaEnroll = () => {
       <div className="bg-white w-full max-w-5xl rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
         {/* Left: Welcome Section */}
         <div className="w-full md:w-1/2 bg-lime-600 flex flex-col items-center justify-center p-6 text-center">
-          <h1 className="text-3xl font-bold text-white md:text-4xl">TESDA Enrollment</h1>
+          <h1 className="text-3xl font-bold text-white md:text-6xl tracking-widest ">TESDA COURSE</h1>
+
           <img
             src={digitalTumanaIcon}
             alt="Digital Tumana Icon"
-            className="mx-auto mt-4 w-24 h-24 md:w-32 md:h-32"
+            className="mx-auto mt-4 w-24 h-24 md:w-50 md:h-50"
           />
-          <h2 className="font-sans text-2xl font-bold text-white mt-2">Digital Tumana</h2>
+          <h2 className="font-sans text-4xl font-bold text-white mt-2 tracking-wider">Digital Tumana</h2>
         </div>
 
         {/* Right: Enrollment Form or Message */}
@@ -123,7 +124,7 @@ const TesdaEnroll = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <h2 className="text-xl font-bold text-lime-700 text-center mb-4">Enroll Now</h2>
+              <h2 className="text-xl font-bold text-lime-900 text-center mb-4">Enroll Now</h2>
 
               <input
                 type="text"
@@ -191,7 +192,7 @@ const TesdaEnroll = () => {
                 className={`w-full py-3 rounded-lg font-semibold shadow-md transition ${
                   isSubmitting
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-lime-700 text-white hover:bg-lime-800"
+                    : "bg-lime-700 text-white hover:bg-lime-600/75 hover:text-lime-900 cursor-pointer"
                 }`}
               >
                 {isSubmitting ? "Submitting..." : "Submit Enrollment"}
