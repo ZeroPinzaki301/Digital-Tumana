@@ -192,7 +192,7 @@ const EmployerEditJob = () => {
 
           <button
             type="submit"
-            className="mt-4 w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition font-bold"
+            className="mt-4 w-full py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-600/75 transition font-bold cursor-pointer"
           >
             Save Changes
           </button>
@@ -200,7 +200,7 @@ const EmployerEditJob = () => {
           <button
             type="button"
             onClick={() => navigate(`/employer-job/${jobId}`)}
-            className="w-full py-2 mt-2 bg-gray-200 text-sky-900 rounded-lg hover:bg-gray-300 transition font-bold"
+            className="w-full py-2 mt-2 bg-gray-200 text-sky-900 rounded-lg hover:bg-gray-300 transition font-bold cursor-pointer"
           >
             Cancel
           </button>
@@ -211,11 +211,11 @@ const EmployerEditJob = () => {
           onClick={toggleAvailability}
           className={`w-full py-2 mt-4 rounded-lg transition font-bold ${
             formData.isAvailable
-              ? "bg-red-600 text-white hover:bg-red-700"
-              : "bg-green-600 text-white hover:bg-green-700"
+              ? "bg-red-600 text-white hover:bg-red-700 cursor-pointer"
+              : "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
           }`}
         >
-          {formData.isAvailable ? "❌ Close Job" : "✅ Reopen Job"}
+          {formData.isAvailable ? "Close Job" : "Reopen Job"}
         </button>
       </div>
     </div>

@@ -48,7 +48,7 @@ const SellerProductDetail = () => {
           <p className="text-gray-700 mb-4">This product may have been deleted or never existed.</p>
           <button
             onClick={() => navigate("/seller-products")}
-            className="w-full py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition"
+            className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
           >
             Back to Products
           </button>
@@ -64,22 +64,22 @@ const SellerProductDetail = () => {
         <div className="flex justify-between mb-6">
           <button
             onClick={() => navigate("/seller-products")}
-            className="py-2 px-4 bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
+            className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
           >
             ⬅ Back to Products
           </button>
           <div className="space-x-3">
             <button
               onClick={() => navigate(`/seller-edit-product/${product._id}`)}
-              className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
+              className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 hover:text-sky-900 cursor-pointer transition"
             >
-              ✏️ Edit
+              Edit
             </button>
             <button
               onClick={handleDelete}
-              className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              className="py-2 px-4 bg-red-900 text-white rounded-lg hover:bg-red-700 cursor-pointer hover:text-red-100/75 transition"
             >
-              🗑️ Delete
+              Delete
             </button>
           </div>
         </div>
@@ -91,12 +91,12 @@ const SellerProductDetail = () => {
             alt={product.productName}
             className="w-full max-w-md mx-auto rounded-lg object-cover mb-4"
           />
-          <h2 className="text-2xl font-bold text-sky-900 mb-2">{product.productName}</h2>
-          <p className="text-sm text-gray-700 mb-6">
+          <h2 className="text-2xl font-bold text-lime-900 mb-2">{product.productName}</h2>
+          <p className="text-sm text-lime-900 mb-6">
             <strong>₱{product.pricePerUnit}</strong> / {product.unitType} | <strong>Stock:</strong> {product.stock}
           </p>
 
-          <div className="text-left text-sm space-y-2 text-gray-800">
+          <div className="text-left text-sm space-y-2 text-lime-900">
             <p><strong>Type:</strong> {product.type}</p>
             <p><strong>Upload Duration:</strong> {product.uploadDuration} days</p>
             <p><strong>Created:</strong> {new Date(product.createdAt).toLocaleDateString()}</p>
@@ -104,7 +104,7 @@ const SellerProductDetail = () => {
 
           {product.extraImages?.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-lg font-semibold text-sky-900 mb-2">Extra Images:</h3>
+              <h3 className="text-lg font-semibold text-lime-900 mb-2">Extra Images:</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {product.extraImages.map((img, index) => (
                   <img

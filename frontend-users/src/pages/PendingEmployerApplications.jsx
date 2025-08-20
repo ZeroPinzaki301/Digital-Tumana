@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const PendingEmployerApplications = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -25,21 +26,35 @@ const PendingEmployerApplications = () => {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-10 text-gray-500">Loading applications...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading applications...</div>;
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">📄 Pending Job Applications</h2>
-      {applications.length === 0 ? (
-        <p className="text-gray-500">You have no pending applications.</p>
-      ) : (
-        <div className="space-y-6">
-          {applications.map(app => (
-            <ApplicationCard key={app._id} application={app} />
-          ))}
-        </div>
-      )}
+    <div className="min-h-screen bg-gray-50 px-4 py-6">
+      {/* Back Button Section */}
+      <div className="mb-6">
+        <button
+          onClick={() => navigate('/employer-dashboard')}
+          className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition font-semibold flex items-center gap-2 cursor-pointer"
+        >
+          <span className="text-xl">←</span>
+          <span className="hidden sm:inline">Back to Dashboard</span>
+        </button>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-4">Pending Job Applications</h2>
+        {applications.length === 0 ? (
+          <p className="text-gray-500">You have no pending applications.</p>
+        ) : (
+          <div className="space-y-6">
+            {applications.map(app => (
+              <ApplicationCard key={app._id} application={app} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -131,21 +146,21 @@ const ApplicationCard = ({ application }) => {
         <div className="mt-4 flex flex-wrap gap-3">
           <button
             onClick={() => navigate(`/employer/job-application/applicant-details/${applicantId?._id}`)}
-            className="px-4 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition"
+            className="px-4 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition cursor-pointer"
           >
             View Worker Details
           </button>
           <button
             onClick={() => handleStatusUpdate('workerConfirmation')}
             disabled={loading}
-            className="px-4 py-2 bg-green-100 text-green-800 rounded hover:bg-green-200 transition"
+            className="px-4 py-2 bg-green-100 text-green-800 rounded hover:bg-green-200 transition cursor-pointer"
           >
             Accept
           </button>
           <button
             onClick={() => handleStatusUpdate('rejected')}
             disabled={loading}
-            className="px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200 transition"
+            className="px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200 transition cursor-pointer"
           >
             Reject
           </button>

@@ -70,7 +70,14 @@ export default function AllSellerOngoingOrders() {
 
   return (
     <div className="min-h-screen bg-orange-50 p-6">
-      <h1 className="text-2xl font-bold text-orange-700 mb-6 text-center">Ongoing Seller Orders</h1>
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/seller-dashboard')}
+        className="mb-6 px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800 transition cursor-pointer"
+      >
+        ← Back to Dashboard
+      </button>
+      <h1 className="text-2xl font-bold text-lime-900 mb-6 text-center">Ongoing Seller Orders</h1>
       <div className="grid gap-4">
         {ongoingOrders.map((order) => (
           <div
@@ -78,13 +85,13 @@ export default function AllSellerOngoingOrders() {
             className="p-4 bg-white rounded-lg shadow-md border border-orange-200 cursor-pointer hover:shadow-lg"
             onClick={() => navigate(`/seller-ongoing-order/${order.orderId}`)}
           >
-            <p className="text-sm text-orange-700">
+            <p className="text-sm text-lime-900">
               Tracking Code: <strong>{order.orderCode}</strong>
             </p>
             <p className="text-sm">Order ID: {order.orderId}</p>
             <p className="text-sm">Status: {order.status}</p>
             <p className={`text-sm font-semibold ${
-              order.paymentStatus === 'Paid' ? 'text-green-600' : 'text-orange-600'
+              order.paymentStatus === 'Paid' ? 'text-lime-900' : 'text-lime-900/75'
             }`}>
               Payment: {order.paymentStatus}
             </p>

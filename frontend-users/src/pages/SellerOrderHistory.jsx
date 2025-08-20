@@ -1,47 +1,60 @@
 import React, { useEffect, useState } from 'react';
-import axiosInstance from '../utils/axiosInstance';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../utils/axiosInstance';
 
-const OrderHistoryPage = () => {
+const SellerOrderHistory = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchSellerOrders = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axiosInstance.get('/api/customer/order/history', {
+        const res = await axiosInstance.get('/api/orders/seller/history', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setOrders(res.data.data);
+        setOrders(res.data.orders);
       } catch (error) {
-        console.error('Error fetching order history:', error.message);
+        console.error('Error fetching seller order history:', error.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrders();
+    fetchSellerOrders();
   }, []);
 
-  if (loading) return <div className="text-center py-10 text-gray-500">Loading order history...</div>;
+  if (loading) {
+    return (
+      <div className="text-center py-10 text-gray-500">
+        Loading order history...
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      {/* Back Button */}
       <button
-        onClick={() => navigate("/marketplace")}
-        className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
+        onClick={() => navigate('/seller-dashboard')}
+        className="mb-6 px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800 transition cursor-pointer"
       >
-        ⬅ Back to Marketplace
+        ← Back to Dashboard
       </button>
-      <h2 className="text-3xl font-semibold mb-4 text-center text-lime-900">Your Order History</h2>
+
+      <h2 className="text-3xl font-semibold mb-4 text-center text-lime-900">
+        Completed & Cancelled Orders
+      </h2>
+
       {orders.length === 0 ? (
-        <p className="text-gray-500">You have no completed or cancelled orders.</p>
+        <p className="text-gray-500 text-center">
+          No completed or cancelled orders found.
+        </p>
       ) : (
         <div className="space-y-6">
           {orders.map(order => (
-            <OrderCard key={order._id} order={order} />
+            <SellerOrderCard key={order._id} order={order} />
           ))}
         </div>
       )}
@@ -49,21 +62,21 @@ const OrderHistoryPage = () => {
   );
 };
 
-const OrderCard = ({ order }) => {
-  const { sellerId, items, status, totalPrice } = order;
+const SellerOrderCard = ({ order }) => {
+  const { buyerId, items, status, totalPrice } = order;
 
   return (
     <div className="border rounded-lg shadow-sm p-4 bg-white">
-      {/* Seller Info */}
+      {/* Buyer Info */}
       <div className="flex items-center gap-4 mb-4">
         <img
-          src={sellerId.storePicture || '/default-store.png'}
-          alt="Store"
+          src={buyerId.userId?.profilePicture || '/default-user.png'}
+          alt="Buyer"
           className="w-12 h-12 rounded-full object-cover"
         />
         <div>
-          <h3 className="text-lg font-medium">{sellerId.storeName}</h3>
-          <p className="text-sm text-gray-500">{sellerId.email}</p>
+          <h3 className="text-lg font-medium">{buyerId.fullName}</h3>
+          <p className="text-sm text-gray-500">{buyerId.email}</p>
         </div>
       </div>
 
@@ -80,6 +93,7 @@ const OrderCard = ({ order }) => {
               <p className="font-medium">{item.productId?.productName || 'Unnamed Product'}</p>
               <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
               <p className="text-sm text-gray-600">₱{item.priceAtOrder.toFixed(2)}</p>
+              <p className="text-xs text-gray-500 italic">Status: {item.itemStatus}</p>
             </div>
           </div>
         ))}
@@ -90,7 +104,9 @@ const OrderCard = ({ order }) => {
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(status)}`}>
           {status}
         </span>
-        <span className="text-lg font-semibold text-gray-800">₱{totalPrice.toFixed(2)}</span>
+        <span className="text-lg font-semibold text-gray-800">
+          ₱{(totalPrice - 50).toFixed(2)}
+        </span>
       </div>
     </div>
   );
@@ -116,4 +132,4 @@ const getStatusBadgeColor = status => {
   }
 };
 
-export default OrderHistoryPage;
+export default SellerOrderHistory;

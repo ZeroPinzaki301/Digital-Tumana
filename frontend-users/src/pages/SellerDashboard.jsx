@@ -279,8 +279,8 @@ const SellerDashboard = () => {
               { label: "Products", path: "/seller-products" },
               { label: "My Address", path: "/seller-address" },
               { label: "Orders", path: "/order-requests", badge: hasPendingOrders },
-              { label: "Contacts", path: "/seller-contacts" },
               { label: "Ongoing Orders", path: "/seller-ongoing-orders" },
+              { label: "Order History", path: "/seller-order-history" },
               { label: "Seller Balance", path: "/seller-balance" },
             ].map(({ label, path, badge }) => (
               <button

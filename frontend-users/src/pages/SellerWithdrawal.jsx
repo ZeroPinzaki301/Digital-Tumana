@@ -48,21 +48,12 @@ const SellerWithdrawal = () => {
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
-    
-    // If empty, set empty string
     if (value === '') {
       setWithdrawalAmount('');
       return;
     }
-    
     const amount = parseFloat(value);
-    
-    // If not a number, don't update
-    if (isNaN(amount)) {
-      return;
-    }
-    
-    // If amount exceeds balance, set to max balance
+    if (isNaN(amount)) return;
     if (balance && amount > balance.currentBalance) {
       setWithdrawalAmount(balance.currentBalance.toString());
     } else {
@@ -97,7 +88,16 @@ const SellerWithdrawal = () => {
   if (error) return <div className="min-h-screen text-red-600 flex items-center justify-center">{error}</div>;
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen p-6 bg-gray-50 flex items-center justify-center relative">
+
+      {/* ✅ Back Button fixed at upper left corner */}
+      <button
+        onClick={() => navigate('/seller-balance')}
+        className="absolute cursor-pointer border border-lime-700 top-6 left-6 px-4 py-2 bg-white hover:bg-lime-100 text-gray-700 rounded-lg shadow"
+      >
+        ← Back
+      </button>
+
       <div className="max-w-md w-full bg-white shadow rounded-lg p-6 text-center">
         <h1 className="text-2xl font-bold mb-4 text-gray-800">Withdraw Funds</h1>
 
@@ -130,7 +130,7 @@ const SellerWithdrawal = () => {
               />
               <button
                 onClick={handleMaxClick}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded cursor-pointer"
               >
                 Max
               </button>
@@ -138,7 +138,7 @@ const SellerWithdrawal = () => {
             {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
             <button
               onClick={handleWithdraw}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer"
             >
               Submit Withdrawal
             </button>

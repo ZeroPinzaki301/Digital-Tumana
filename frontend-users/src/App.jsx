@@ -64,6 +64,7 @@ import KaritonServiceDashboard from "./kariton service/KaritonServiceDashboard";
 import RiderDeliveryRequests from "./kariton service/RiderDeliveryRequests";
 import RiderDeliveryDetails from "./kariton service/RiderDeliveryDetail";
 import RiderDeliveryHistory from "./kariton service/RiderDeliveryHistory";
+import SellerOrderHistory from "./pages/SellerOrderHistory";
 
 import "./App.css";
 
@@ -119,6 +120,7 @@ function AppContent() {
           <Route path="/seller-product/:productId" element={<SellerProductDetail />} />
           <Route path="/seller-add-product" element={<SellerAddProduct />} />
           <Route path="/seller-edit-product/:productId" element={<SellerEditProduct />} />
+          <Route path="/seller-order-history" element={<SellerOrderHistory />} />
           <Route path="/employer-jobs" element={<EmployerJobs />} />
           <Route path="/employer-add-job" element={<EmployerAddJob />} />
           <Route path="/employer-job/:jobId" element={<EmployerJobDetail />} />

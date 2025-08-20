@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
@@ -83,8 +82,21 @@ const EmployerRegister = () => {
     }
   };
 
+  const getFileName = (file) => (file ? file.name : "No file selected");
+
   return (
-    <div className="min-h-screen bg-bg-50 flex items-center justify-center px-4 relative">
+    <div className="min-h-screen bg-bg-50 flex flex-col items-center justify-center px-4 py-6">
+      {/* Back Button */}
+      <div className="w-full max-w-lg mb-4">
+        <button
+          onClick={() => navigate("/account")}
+          className="py-2 px-4 bg-sky-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition w-full sm:w-auto"
+        >
+          ⬅ Back to Account
+        </button>
+      </div>
+
+      {/* Registration Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white max-w-lg w-full rounded-lg p-6 shadow-md border border-lime-700"
@@ -109,16 +121,28 @@ const EmployerRegister = () => {
 
         <hr className="my-4" />
 
-        <div className="space-y-3">
-          <label className="block cursor-pointer border rounded-md p-1">
-            Upload Valid ID: <input type="file" name="validId" onChange={handleChange} required className="cursor-pointer" />
-          </label>
-          <label className="block cursor-pointer border rounded-md p-1">
-            Upload DTI Certificate (Optional): <input type="file" name="dtiCert" onChange={handleChange} className="cursor-pointer" />
-          </label>
-          <label className="block cursor-pointer border rounded-md p-1">
-            Upload BIR Certificate (Optional): <input type="file" name="birCert" onChange={handleChange} className="cursor-pointer" />
-          </label>
+        <div className="space-y-4">
+          {[
+            { name: "validId", label: "Upload Valid ID", required: true },
+            { name: "dtiCert", label: "Upload DTI Certificate (Optional)", required: false },
+            { name: "birCert", label: "Upload BIR Certificate (Optional)", required: false },
+          ].map(({ name, label, required }) => (
+            <div key={name}>
+              <label htmlFor={name} className="block w-full text-center py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-500/75 cursor-pointer transition">
+                {label}
+              </label>
+              <input
+                type="file"
+                name={name}
+                id={name}
+                onChange={handleChange}
+                className="hidden"
+                required={required}
+              />
+              <p className="text-sm text-gray-600 mt-1 text-center italic">{getFileName(formData[name])}</p>
+            </div>
+          ))}
+
           <label className="flex items-center mt-2 cursor-pointer">
             <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
             I agree to the Employer Policy

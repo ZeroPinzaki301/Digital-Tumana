@@ -7,7 +7,7 @@ import {
   createKaritonService,
   getAllKaritonServices,
   getKaritonServiceById,
-  getActiveRiders,
+  getActiveKaritonServices,
   loginKaritonService
 } from "../controllers/KaritonService.controller.js";
 
@@ -41,7 +41,7 @@ router.get("/delivery-history", protectRider, getDeliveryHistory);
 
 router.get("/:id", getKaritonServiceById);
 
-router.get("/active-riders", getActiveRiders);
+router.get("/active-riders", getActiveKaritonServices);
 
 
 

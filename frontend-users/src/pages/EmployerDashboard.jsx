@@ -218,7 +218,6 @@ const EmployerDashboard = () => {
             {[
               { label: "My Address", path: "/employer-address" },
               { label: "Job Postings", path: "/employer-jobs" },
-              { label: "Contacts", path: "/employer-contacts" },
               { label: "Pending Applications", path: "/employer/job-applications/pending" },
               { label: "Ongoing Workers", path: "/employer/jobs/ongoing" },
             ].map(({ label, path }) => (

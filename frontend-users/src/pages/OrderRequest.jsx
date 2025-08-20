@@ -23,8 +23,14 @@ const OrderRequestsPage = () => {
 
   return (
     <div className="min-h-screen bg-orange-50 p-6">
+      <button
+          onClick={() => navigate("/seller-dashboard")}
+          className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
+        >
+          ⬅ Back to Dashboard
+        </button>
       <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md border border-orange-300">
-        <h2 className="text-2xl font-bold text-orange-800 mb-6 text-center">Order Requests</h2>
+        <h2 className="text-2xl font-bold text-lime-900 mb-6 text-center">Order Requests</h2>
 
         {orders.length === 0 ? (
           <p className="text-center text-gray-600">No pending orders.</p>
@@ -39,7 +45,7 @@ const OrderRequestsPage = () => {
               <div className="mt-2 flex gap-2">
                 <button
                   onClick={() => navigate(`/order-request-summary/${order._id}`)}
-                  className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700"
+                  className="px-3 py-1 bg-lime-700 text-white rounded hover:bg-lime-600/75 cursor-pointer"
                 >
                   View Summary
                 </button>

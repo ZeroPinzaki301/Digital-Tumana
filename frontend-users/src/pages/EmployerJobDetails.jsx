@@ -48,7 +48,7 @@ const EmployerJobDetail = () => {
           <p className="text-gray-700 mb-4">This job may have been deleted or never existed.</p>
           <button
             onClick={() => navigate("/employer-jobs")}
-            className="w-full py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition"
+            className="w-full py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition cursor-pointer"
           >
             Back to Jobs
           </button>
@@ -64,22 +64,22 @@ const EmployerJobDetail = () => {
         <div className="flex justify-between mb-6">
           <button
             onClick={() => navigate("/employer-jobs")}
-            className="py-2 px-4 bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
+            className="py-2 px-4 bg-sky-700 text-white rounded-lg hover:bg-sky-600/75 transition cursor-pointer"
           >
             ⬅ Back to Jobs
           </button>
           <div className="space-x-3">
             <button
               onClick={() => navigate(`/employer-edit-job/${job._id}`)}
-              className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
+              className="py-2 px-4 bg-sky-700 text-white rounded-lg hover:bg-sky-600/75 transition cursor-pointer"
             >
-              ✏️ Edit
+              Edit
             </button>
             <button
               onClick={handleDelete}
-              className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition cursor-pointer"
             >
-              🗑️ Delete
+              Delete
             </button>
           </div>
         </div>

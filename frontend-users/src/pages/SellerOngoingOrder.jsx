@@ -38,9 +38,9 @@ export default function SellerOngoingOrder() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-orange-50 p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-lime-50 p-6 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-lg text-orange-800">Loading order details...</p>
+          <p className="text-lg text-lime-900">Loading order details...</p>
         </div>
       </div>
     );
@@ -48,13 +48,13 @@ export default function SellerOngoingOrder() {
 
   if (error || !orderTracking) {
     return (
-      <div className="min-h-screen bg-orange-50 p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-lime-50 p-6 flex items-center justify-center">
         <div className="max-w-md bg-white p-6 rounded-lg shadow-md text-center">
           <h2 className="text-xl font-bold text-orange-800 mb-4">Error Loading Order</h2>
           <p className="mb-4">{error || 'Order tracking information not available'}</p>
           <button
             onClick={() => navigate('/order-requests')}
-            className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+            className="px-4 py-2 bg-lime-900 text-white rounded hover:bg-lime-600/75"
           >
             Back to Orders
           </button>
@@ -101,8 +101,9 @@ export default function SellerOngoingOrder() {
 
   return (
     <div className="min-h-screen bg-orange-50 p-4">
-      <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg border border-orange-200">
-        <h1 className="text-2xl font-bold text-orange-700 mb-4 text-center">
+
+      <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg border border-orange-200 mt-4">
+        <h1 className="text-2xl font-bold text-lime-900 mb-4 text-center">
           Order Accepted Successfully
         </h1>
 
@@ -110,19 +111,24 @@ export default function SellerOngoingOrder() {
           <h2 className="font-semibold text-lg mb-2">Delivery Instructions:</h2>
           <p className="mb-2">Please prepare and drop off your items at:</p>
           <div className="bg-white p-3 rounded border border-orange-200">
-            <p className="font-medium">Farmers Cooperative Drop-off Center</p>
-            <p>123 Market Street</p>
-            <p>Barangay Agricultural</p>
+            <p className="font-medium">Angel Tolits Integrated Farm,</p>
+            <hr />
+            <p>123 Sweetheart Street,</p>
+            <hr />
+            <p>Barangay donacion,</p>
+            <hr />
+            <p>Near Tres Marias Resort,</p>
+            <hr />
             <p>8:00 AM - 5:00 PM, Mon-Fri</p>
           </div>
         </div>
 
-        <div className="mb-6 p-4 bg-orange-100 rounded-lg text-center">
+        <div className="mb-6 p-4 bg-lime-200/75 rounded-lg text-center">
           <p className="text-sm font-medium mb-1">Your Order Tracking Code:</p>
-          <p className="text-3xl font-bold font-mono text-orange-800">
+          <p className="text-3xl font-bold font-mono text-lime-800">
             {orderTracking.orderCode}
           </p>
-          <p className="text-xs mt-2 text-orange-700">
+          <p className="text-xs mt-2 text-lime-700">
             Present this code when dropping off your items
           </p>
         </div>
@@ -131,16 +137,16 @@ export default function SellerOngoingOrder() {
           <p className="font-medium">Payment Status:</p>
           <p className={`font-semibold ${
             orderTracking.paymentStatus === 'Paid'
-              ? 'text-green-600'
-              : 'text-orange-600'
+              ? 'text-lime-900'
+              : 'text-lime-800/75'
           }`}>
             {orderTracking.paymentStatus}
           </p>
         </div>
 
         <button
-          onClick={() => navigate('/order-requests')}
-          className="w-full py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition"
+          onClick={() => navigate('/seller-ongoing-orders')}
+          className="w-full py-2 bg-lime-700 text-white rounded hover:bg-lime-600/75 cursor-pointer transition"
         >
           Back to Order Requests
         </button>

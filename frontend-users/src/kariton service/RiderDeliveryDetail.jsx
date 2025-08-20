@@ -10,17 +10,21 @@ const RiderDeliveryDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null); // 👈 track selected file
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
         const token = localStorage.getItem('karitonToken');
-        const response = await axiosInstance.get(`/api/kariton/delivery-details/${orderId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
+        const response = await axiosInstance.get(
+          `/api/kariton/delivery-details/${orderId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        });
+        );
         setDeliveryData(response.data);
         setLoading(false);
       } catch (err) {
@@ -34,20 +38,23 @@ const RiderDeliveryDetails = () => {
   }, [orderId]);
 
   const handleProofUpload = async () => {
-    const file = fileInputRef.current?.files[0];
-    if (!file) return alert('Please select an image first.');
+    if (!selectedFile) return alert('Please select an image first.');
 
     const formData = new FormData();
-    formData.append('deliveryProof', file);
+    formData.append('deliveryProof', selectedFile);
 
     try {
       const token = localStorage.getItem('karitonToken');
-      await axiosInstance.put(`/api/kariton/delivery-status/${orderId}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+      await axiosInstance.put(
+        `/api/kariton/delivery-status/${orderId}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
         }
-      });
+      );
 
       setShowSuccess(true);
     } catch (err) {
@@ -61,17 +68,35 @@ const RiderDeliveryDetails = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-100">
+      <div className="mt-6 pb-2">
+        <button
+          onClick={() => navigate('/kariton-service/rider/delivery-requests')}
+          className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"
+        >
+          ← Back to Delivery Requests
+        </button>
+      </div>
+
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Delivery Details</h1>
 
-        <p><strong>Order Code:</strong> {deliveryData.orderCode}</p>
-        <p><strong>Buyer:</strong> {deliveryData.buyerName}</p>
+        <p>
+          <strong>Order Code:</strong> {deliveryData.orderCode}
+        </p>
+        <p>
+          <strong>Buyer:</strong> {deliveryData.buyerName}
+        </p>
 
         <div className="mt-4">
           <FaMapMarkerAlt className="inline mr-2 text-green-500" />
           <span className="font-semibold">Delivery Location:</span>
           <p className="ml-6 text-gray-700">
-            {deliveryData.deliveryAddress.street}, {deliveryData.deliveryAddress.barangay}, {deliveryData.deliveryAddress.cityOrMunicipality}, {deliveryData.deliveryAddress.province}, {deliveryData.deliveryAddress.region}, {deliveryData.deliveryAddress.postalCode}
+            {deliveryData.deliveryAddress.street},{' '}
+            {deliveryData.deliveryAddress.barangay},{' '}
+            {deliveryData.deliveryAddress.cityOrMunicipality},{' '}
+            {deliveryData.deliveryAddress.province},{' '}
+            {deliveryData.deliveryAddress.region},{' '}
+            {deliveryData.deliveryAddress.postalCode}
           </p>
         </div>
 
@@ -79,7 +104,10 @@ const RiderDeliveryDetails = () => {
           <h2 className="font-semibold text-lg mb-2">Items</h2>
           <div className="space-y-4">
             {deliveryData.items.map((item, index) => (
-              <div key={index} className="flex items-center space-x-4 border-b pb-4">
+              <div
+                key={index}
+                className="flex items-center space-x-4 border-b pb-4"
+              >
                 <img
                   src={item.productImage}
                   alt={item.productName}
@@ -87,8 +115,12 @@ const RiderDeliveryDetails = () => {
                 />
                 <div>
                   <p className="font-medium text-gray-800">{item.productName}</p>
-                  <p className="text-sm text-gray-600">Qty: {item.quantity} — ₱{item.priceAtOrder}</p>
-                  <p className="text-xs text-gray-500">Status: {item.itemStatus}</p>
+                  <p className="text-sm text-gray-600">
+                    Qty: {item.quantity} — ₱{item.priceAtOrder}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Status: {item.itemStatus}
+                  </p>
                 </div>
               </div>
             ))}
@@ -110,29 +142,55 @@ const RiderDeliveryDetails = () => {
 
         {!deliveryData.isDelivered && !showSuccess && (
           <div className="mt-8">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">Upload Delivery Proof</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">
+              Upload Delivery Proof
+            </h2>
+
+            {/* Hidden file input */}
             <input
               type="file"
               ref={fileInputRef}
               accept="image/*"
-              className="mb-4 block w-full border p-2 rounded"
+              className="hidden"
+              id="deliveryProof"
+              onChange={(e) => setSelectedFile(e.target.files[0])} // 👈 update state
             />
+
+            {/* Custom button to trigger file input */}
             <button
-              onClick={handleProofUpload}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 py-2 bg-lime-600 text-white rounded hover:bg-lime-500 mr-3"
             >
-              Submit Proof & Complete Delivery
+              Choose File...
             </button>
+
+            {/* Show file name if selected */}
+            {selectedFile && (
+              <span className="text-gray-700 text-sm">{selectedFile.name}</span>
+            )}
+
+            <div className="mt-4">
+              <button
+                onClick={handleProofUpload}
+                className="px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800"
+              >
+                Submit Proof & Complete Delivery
+              </button>
+            </div>
           </div>
         )}
 
         {showSuccess && (
           <div className="mt-8 text-center">
             <FaCheckCircle className="mx-auto mb-2 text-green-500 text-3xl" />
-            <p className="text-green-700 text-lg font-medium">Delivery completion has been submitted.</p>
+            <p className="text-green-700 text-lg font-medium">
+              Delivery completion has been submitted.
+            </p>
             <button
-              onClick={() => navigate('/kariton-service/rider/delivery-requests')}
-              className="mt-4 px-5 py-2 bg-gray-800 text-white rounded hover:bg-gray-900"
+              onClick={() =>
+                navigate('/kariton-service/rider/delivery-requests')
+              }
+              className="mt-4 px-5 py-2 cursor-pointer bg-gray-800 text-white rounded hover:bg-gray-900"
             >
               Back to Delivery Requests
             </button>

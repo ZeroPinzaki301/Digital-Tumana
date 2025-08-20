@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
@@ -83,102 +82,68 @@ const SellerRegister = () => {
     }
   };
 
+  const getFileName = (file) => (file ? file.name : "No file selected");
+
   return (
-    <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4 relative">
+    <div className="min-h-screen bg-bg-50 flex flex-col items-center justify-center px-4 py-6">
+      {/* Back Button */}
+      <div className="w-full max-w-lg mb-4">
+        <button
+          onClick={() => navigate("/account")}
+          className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-lime-900 transition w-full sm:w-auto"
+        >
+          ⬅ Back to Account
+        </button>
+      </div>
+
+      {/* Registration Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white max-w-lg w-full rounded-lg p-6 shadow-md border border-lime-700"
       >
-        <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">
-          Seller Registration
-        </h2>
+        <h2 className="text-2xl font-bold text-lime-900 mb-4 text-center">Seller Registration</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input
-            name="firstName"
-            placeholder="First Name"
-            required
-            value={formData.firstName}
-            onChange={handleChange}
-            className="input cursor-pointer"
-          />
-          <input
-            name="middleName"
-            placeholder="Middle Name (Optional)"
-            value={formData.middleName}
-            onChange={handleChange}
-            className="input cursor-pointer"
-          />
-          <input
-            name="lastName"
-            placeholder="Last Name"
-            required
-            value={formData.lastName}
-            onChange={handleChange}
-            className="input cursor-pointer"
-          />
-          <select
-            name="sex"
-            required
-            value={formData.sex}
-            onChange={handleChange}
-            className="input cursor-pointer"
-          >
+          <input name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleChange} className="input cursor-pointer" />
+          <input name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleChange} className="input cursor-pointer" />
+          <input name="lastName" placeholder="Last Name" required value={formData.lastName} onChange={handleChange} className="input cursor-pointer" />
+          <select name="sex" required value={formData.sex} onChange={handleChange} className="input cursor-pointer">
             <option value="">Select Sex</option>
             <option>Male</option>
             <option>Female</option>
             <option>Other</option>
           </select>
-          <input
-            type="number"
-            name="age"
-            placeholder="Age"
-            required
-            value={formData.age}
-            onChange={handleChange}
-            className="input cursor-pointer"
-          />
-          <input
-            type="date"
-            name="birthdate"
-            required
-            value={formData.birthdate}
-            onChange={handleChange}
-            className="input cursor-pointer"
-          />
-          <input
-            name="nationality"
-            placeholder="Nationality"
-            required
-            value={formData.nationality}
-            onChange={handleChange}
-            className="input cursor-pointer"
-          />
+          <input type="number" name="age" placeholder="Age" required value={formData.age} onChange={handleChange} className="input cursor-pointer" />
+          <input type="date" name="birthdate" required value={formData.birthdate} onChange={handleChange} className="input cursor-pointer" />
+          <input name="nationality" placeholder="Nationality" required value={formData.nationality} onChange={handleChange} className="input cursor-pointer" />
         </div>
 
         <hr className="my-4" />
 
-        <div className="space-y-3">
-          <label className="block cursor-pointer border rounded-md cursor-pointer p-1">
-            Upload Valid ID:{" "}
-            <input type="file" name="validId" onChange={handleChange} required className="cursor-pointer" />
-          </label>
-          <label className="block cursor-pointer border rounded-md cursor-pointer p-1">
-            Upload DTI Certificate:{" "}
-            <input type="file" name="dtiCert" onChange={handleChange} required className="cursor-pointer" />
-          </label>
-          <label className="block cursor-pointer border rounded-md cursor-pointer p-1">
-            Upload BIR Certificate:{" "}
-            <input type="file" name="birCert" onChange={handleChange} required className="cursor-pointer" />
-          </label>
+        <div className="space-y-4">
+          {[
+            { name: "validId", label: "Upload Valid ID", required: true },
+            { name: "dtiCert", label: "Upload DTI Certificate", required: true },
+            { name: "birCert", label: "Upload BIR Certificate", required: true },
+          ].map(({ name, label, required }) => (
+            <div key={name}>
+              <label htmlFor={name} className="block w-full text-center py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-500/75 cursor-pointer transition">
+                {label}
+              </label>
+              <input
+                type="file"
+                name={name}
+                id={name}
+                onChange={handleChange}
+                className="hidden"
+                required={required}
+              />
+              <p className="text-sm text-gray-600 mt-1 text-center italic">{getFileName(formData[name])}</p>
+            </div>
+          ))}
+
           <label className="flex items-center mt-2 cursor-pointer">
-            <input
-              type="checkbox"
-              name="agreedToPolicy"
-              checked={formData.agreedToPolicy}
-              onChange={handleChange}
-              className="mr-2 cursor-pointer"
-            />
+            <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
             I agree to the Seller Policy
           </label>
         </div>
@@ -189,10 +154,8 @@ const SellerRegister = () => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`w-full mt-4 py-2 rounded-lg transition cursor-pointer ${
-            isSubmitting
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-lime-700 text-white hover:bg-lime-500/75 hover:text-sky-900"
+          className={`w-full mt-4 py-2 rounded-lg transition ${
+            isSubmitting ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-lime-700 text-white hover:bg-lime-500/75 hover:text-lime-900 cursor-pointer"
           }`}
         >
           {isSubmitting ? "Submitting..." : "Submit Application"}
@@ -206,10 +169,7 @@ const SellerRegister = () => {
             <p className="text-gray-700 mb-4">
               Thank you for submitting your application. Please wait a few days while we verify your documents.
             </p>
-            <button
-              onClick={() => navigate("/account")}
-              className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer"
-            >
+            <button onClick={() => navigate("/account")} className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-500/75 hover:text-lime-900 transition cursor-pointer">
               Back to Profile
             </button>
           </div>

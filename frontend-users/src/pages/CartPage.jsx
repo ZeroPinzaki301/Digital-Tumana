@@ -99,6 +99,13 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-lime-50 p-6">
+      <button
+        onClick={() => navigate("/marketplace")}
+        className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
+      >
+        ⬅ Back to Marketplace
+      </button>
+
       <h2 className="text-2xl font-bold text-lime-900 mb-6 text-center">My Cart</h2>
 
       {loading ? (

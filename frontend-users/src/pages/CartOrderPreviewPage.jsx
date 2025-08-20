@@ -36,7 +36,7 @@ const CartOrderPreviewPage = () => {
       });
 
       alert("Orders placed successfully!");
-      navigate("/customer-orders");
+      navigate("/customer/ongoing-orders");
     } catch (err) {
       console.error("Checkout failed:", err.message);
       alert("Something went wrong during checkout.");
@@ -126,14 +126,14 @@ const CartOrderPreviewPage = () => {
               id="acceptTerms"
               checked={acceptedTerms}
               onChange={(e) => setAcceptedTerms(e.target.checked)}
-              className="mt-1 mr-2"
+              className="mt-1 mr-2 cursor-pointer"
             />
             <label htmlFor="acceptTerms" className="text-sm text-gray-700">
               I have read and agree to the{' '}
               <button 
                 type="button" 
                 onClick={() => setShowPolicy(true)}
-                className="text-emerald-700 underline hover:text-emerald-900"
+                className="text-lime-700 underline hover:text-lime-600/75 cursor-pointer"
               >
                 Terms & Conditions and Privacy Policy
               </button>
@@ -145,7 +145,7 @@ const CartOrderPreviewPage = () => {
         <div className="flex justify-between">
           <button
             onClick={() => navigate("/my-cart")}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+            className="px-4 py-2 bg-lime-400/50 text-gray-800 rounded hover:bg-lime-400 hover:text-white cursor-pointer"
           >
             Cancel
           </button>
@@ -155,7 +155,7 @@ const CartOrderPreviewPage = () => {
             disabled={!acceptedTerms}
             className={`px-4 py-2 rounded ${
               acceptedTerms 
-                ? "bg-emerald-700 text-white hover:bg-emerald-800"
+                ? "bg-lime-700 text-white hover:bg-lime-600/75 cursor-pointer hover:text-sky-900"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
@@ -186,7 +186,7 @@ const CartOrderPreviewPage = () => {
               <div className="flex justify-end">
                 <button
                   onClick={() => setShowPolicy(false)}
-                  className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800"
+                  className="px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-600/75 cursor-pointer"
                 >
                   I Understand
                 </button>

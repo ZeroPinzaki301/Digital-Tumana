@@ -35,11 +35,11 @@ const KaritonServiceLogin = () => {
   };
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center bg-emerald-100 px-4">
+    <div className="min-h-screen relative flex flex-col items-center justify-center bg-white px-4">
       {/* Back Button */}
       <button
         onClick={() => navigate("/")}
-        className="absolute top-4 left-4 bg-white text-lime-700 border border-lime-700 px-4 py-2 rounded-lg shadow hover:bg-lime-700 hover:text-white transition"
+        className="absolute top-4 left-4 bg-white cursor-pointer text-lime-700 border border-lime-700 px-4 py-2 rounded-lg shadow hover:bg-lime-100 transition"
       >
         ← Back
       </button>
@@ -62,7 +62,7 @@ const KaritonServiceLogin = () => {
       {/* Login Form */}
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg"
+        className="w-full max-w-md bg-white border border-lime-700 p-6 rounded-lg shadow-lg"
       >
         <h2 className="text-xl font-bold text-lime-700 text-center mb-4">
           Enter Your Login Code
@@ -85,7 +85,7 @@ const KaritonServiceLogin = () => {
 
         <button
           type="submit"
-          className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition text-lg"
+          className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition cursor-pointer text-lg"
         >
           Login
         </button>

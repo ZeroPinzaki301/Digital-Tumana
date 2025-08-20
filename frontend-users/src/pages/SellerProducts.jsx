@@ -48,15 +48,15 @@ const SellerProducts = () => {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => navigate("/seller-dashboard")}
-          className="py-2 px-4 bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
+          className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
         >
           ⬅ Back to Dashboard
         </button>
         <button
           onClick={() => navigate("/seller-add-product")}
-          className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
+          className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
         >
-          ➕ Add Product
+          Add Product
         </button>
       </div>
 
@@ -70,23 +70,23 @@ const SellerProducts = () => {
               className="w-full h-48 object-cover"
             />
             <div className="p-4 space-y-2">
-              <h3 className="text-xl font-bold text-sky-900">{product.productName}</h3>
-              <p className="text-gray-700 text-sm">
+              <h3 className="text-xl font-bold text-lime-900">{product.productName}</h3>
+              <p className="text-lime-900 text-sm">
                 <strong>Price:</strong> ₱{product.pricePerUnit} / {product.unitType}
               </p>
-              <p className="text-gray-700 text-sm">
+              <p className="text-lime-900 text-sm">
                 <strong>Stock:</strong> {product.stock}
               </p>
-              <p className="text-gray-700 text-sm">
+              <p className="text-lime-900 text-sm">
                 <strong>Type:</strong> {product.type}
               </p>
-              <p className="text-gray-700 text-sm">
+              <p className="text-lime-900 text-sm">
                 <strong>Duration:</strong> {product.uploadDuration} days
               </p>
 
               <button
                 onClick={() => navigate(`/seller-product/${product._id}`)}
-                className="mt-3 w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                className="mt-3 w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 hover:text-sky-900 cursor-pointer transition"
               >
                 View / Edit
               </button>

@@ -223,7 +223,6 @@ const WorkerDashboard = () => {
               { label: "Pending Applications", path: "/jobs/job-application/pending" },
               { label: "Accepted Applications", path: "/jobs/job-application/waiting-to-confirm" },
               { label: "Ongoing Jobs", path: "/jobs/job-application/ongoing-jobs" },
-              { label: "Contacts", path: "/worker-contacts" },
             ].map(({ label, path }) => (
               <button key={label} onClick={() => navigate(path)} className={buttonBase}>
                 {label}

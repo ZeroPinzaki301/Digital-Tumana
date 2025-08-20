@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const EmployerOngoingJobs = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOngoingJobs = async () => {
@@ -30,7 +31,18 @@ const EmployerOngoingJobs = () => {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">🛠️ Ongoing Job Applications</h2>
+      <div className="p-6 max-w-5xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate('/employer-dashboard')}
+          className="mb-4 px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition font-semibold flex items-center gap-2"
+        >
+          <span className="text-xl">←</span>
+          <span className="hidden sm:inline cursor-pointer">Back to Dashboard</span>
+        </button>
+      </div>
+
+      <h2 className="text-2xl font-semibold mb-4">Currently Employed Workers</h2>
       {applications.length === 0 ? (
         <p className="text-gray-500">You currently have no ongoing jobs.</p>
       ) : (
@@ -131,21 +143,21 @@ const OngoingJobCard = ({ application }) => {
         <div className="mt-4 flex flex-wrap gap-3">
           <button
             onClick={() => navigate(`/employer/job-application/applicant-details/${applicantId?._id}`)}
-            className="px-4 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition"
+            className="px-4 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition cursor-pointer"
           >
             View Worker Details
           </button>
           <button
             onClick={() => handleStatusUpdate('completed')}
             disabled={loading}
-            className="px-4 py-2 bg-green-100 text-green-800 rounded hover:bg-green-200 transition"
+            className="px-4 py-2 bg-green-100 text-green-800 rounded hover:bg-green-200 transition cursor-pointer"
           >
             Mark as Completed
           </button>
           <button
             onClick={() => handleStatusUpdate('cancelled')}
             disabled={loading}
-            className="px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200 transition"
+            className="px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200 transition cursor-pointer"
           >
             Cancel Job
           </button>

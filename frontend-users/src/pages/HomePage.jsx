@@ -5,6 +5,7 @@ import jobsImage from '../assets/HomePage-Images/jobs-image.jpg';
 import learnImage from '../assets/HomePage-Images/learn-image.jpg';
 import contactBg from '../assets/HomePage-Images/contact-bg.jpg';
 import aboutPageImage from '../assets/HomePage-Images/aboutpage-image.jpg';
+import tumanaIcon from '../assets/digital-tumana-icon.png'; // ✅ FIXED PATH
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -83,7 +84,7 @@ const HomePage = () => {
                 </h2>
                 <button
                   onClick={() => navigate(link)}
-                  className="bg-lime-600 text-white font-medium px-6 py-3 rounded hover:bg-lime-700 transition group-hover:scale-105 lg:text-lg"
+                  className="cursor-pointer bg-lime-600 text-white font-medium px-6 py-3 rounded hover:bg-lime-700 transition group-hover:scale-105 lg:text-lg"
                 >
                   Learn More
                 </button>
@@ -113,7 +114,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
+    {/* Contact + Quick Access */} 
       <section
         id="contact-section"
         className="relative mt-10 text-white"
@@ -124,51 +125,68 @@ const HomePage = () => {
           backgroundPosition: 'center',
         }}
       >
+        {/* Dark overlay for left side */}
         <div className="absolute inset-0 bg-black opacity-60 z-0" />
-        <div className="relative z-10 flex flex-col lg:flex-row py-10 px-5 lg:px-20 gap-10">
-          {/* Contact Form */}
-          <div className="w-full lg:w-2/3 space-y-5">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold">Contact Us to Learn More</h2>
-            <div className="flex flex-col md:flex-row gap-4 w-full">
-              <input
-                className="bg-white w-full py-3 px-4 text-black rounded-sm text-base lg:text-lg"
-                type="text"
-                placeholder="Your Name"
-              />
-              <input
-                className="bg-white w-full py-3 px-4 text-black rounded-sm text-base lg:text-lg"
-                type="email"
-                placeholder="Your Email"
-              />
+        <div className="relative z-10 flex flex-col lg:flex-row justify-between items-center py-10 px-5 lg:px-20 gap-10">
+
+          {/* Left Side: Quick Navigation + Contact */}
+          <div className="flex flex-col lg:flex-row gap-20">
+            
+            {/* Quick Navigation Access */}
+            <div className="w-full max-w-md">
+              <h2 className="text-xl md:text-3xl font-semibold mb-6 border-b-2 border-lime-500 pb-2 w-full">
+                Quick Navigation Access
+              </h2>
+              <div className="space-y-2">
+                {[
+                  { name: "HOME", link: "/" },
+                  { name: "MARKETPLACE", link: "/marketplace" },
+                  { name: "SERVICES", link: "/jobs" },
+                  { name: "LEARN", link: "/learn" },
+                ].map(({ name, link }, i) => (
+                  <a
+                    key={i}
+                    href={link}
+                    className="block text-lg md:text-xl font-medium text-white py-1 hover:scale-105 transition-all duration-300"
+                  >
+                    {name}
+                  </a>
+                ))}
+              </div>
             </div>
-            <textarea
-              className="bg-white w-full rounded-sm resize-none h-28 md:h-32 text-black py-4 px-5 text-base lg:text-lg"
-              placeholder="Your Message"
-            />
-            <button className="bg-lime-600 w-full rounded-sm py-4 text-white font-medium hover:bg-lime-700 transition lg:text-lg">
-              Submit
-            </button>
+
+            {/* Contact Info */}
+            <div className="w-full max-w-md">
+              <h1 className="text-xl md:text-3xl font-semibold mb-6 border-b-2 border-lime-500 pb-2 w-full">
+                Contact Us
+              </h1>
+              <ul className="space-y-4 text-base md:text-lg">
+                <li>
+                  <strong>PHONE NUMBER:</strong><br />
+                  09212392342
+                </li>
+                <li>
+                  <strong>EMAIL:</strong><br />
+                  digitaltumana@gmail.com <br />
+                  digimana.sup.admn@gmail.com
+                </li>
+                <li>
+                  <strong>LOCATION:</strong><br />
+                  Angat, Bulacan Philippines
+                </li>
+              </ul>
+            </div>
           </div>
 
-          {/* Contact Info */}
-          <div className="w-full lg:w-1/3 space-y-5">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold mb-4">CONTACT US</h1>
-            <ul className="space-y-4 text-base md:text-lg lg:text-xl">
-              <li>
-                <strong>PHONE NUMBER:</strong><br />
-                09212392342
-              </li>
-              <li>
-                <strong>EMAIL:</strong><br />
-                digitaltumana@gmail.com
-                digimana.sup.admn@gmail.com
-              </li>
-              <li>
-                <strong>LOCATION:</strong><br />
-                Angat, Bulacan Philippines
-              </li>
-            </ul>
+          {/* Right Side: Logo */}
+          <div className="flex justify-center items-center flex-1 w-60 h-60 lg:w-72 lg:h-72 rounded-full bg-lime-500/50">
+            <img
+              src={tumanaIcon}
+              alt="Digital Tumana Logo"
+              className="relative h-32 lg:h-44 object-contain z-10"
+            />
           </div>
+
         </div>
 
         <div className="relative z-10 text-center text-sm lg:text-base py-5">

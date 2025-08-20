@@ -103,7 +103,7 @@ export const createKaritonService = async (req, res) => {
 // 📋 Get All Riders (Admin)
 export const getAllKaritonServices = async (req, res) => {
   try {
-    const services = await KaritonService.find().sort({ createdAt: -1 });
+    const services = await KaritonService.find({isActive: true}).sort({ createdAt: -1 });
     res.status(200).json(services);
   } catch (err) {
     console.error("[Get Kariton Services Failed]", err);
@@ -129,31 +129,14 @@ export const getKaritonServiceById = async (req, res) => {
   }
 };
 
-// 🔄 Get Active Riders (Lightweight)
-export const getActiveRiders = async (req, res) => {
-  try {
-    const riders = await KaritonService.find(
-      { isActive: true },
-      {
-        firstName: 1,
-        lastName: 1,
-        email: 1,
-        profilePicture: 1,
-        municipality: 1,
-        province: 1,
-        loginCode: 1
-      }
-    ).sort({ lastName: 1, firstName: 1 });
 
-    res.status(200).json({
-      message: "Active riders fetched successfully",
-      riders
-    });
-  } catch (err) {
-    console.error("[Get Active Riders Failed]", err);
-    res.status(500).json({
-      message: "Failed to fetch active riders",
-      error: err.message
-    });
+// 📦 Controller to get all active Kariton Service entries
+export const getActiveKaritonServices = async (req, res) => {
+  try {
+    const activeServices = await KaritonService.find({ isActive: true });
+    res.status(200).json(activeServices);
+  } catch (error) {
+    console.error("Error fetching active Kariton services:", error);
+    res.status(500).json({ message: "Server error while fetching data." });
   }
 };

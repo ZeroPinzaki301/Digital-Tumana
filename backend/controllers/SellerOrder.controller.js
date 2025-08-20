@@ -1,7 +1,6 @@
 import Order from "../models/Order.model.js";
 import Product from "../models/Product.model.js";
 import Seller from "../models/Seller.model.js";
-import Customer from "../models/Customer.model.js";
 
 // 📋 Get all pending orders for seller
 export const getPendingOrdersForSeller = async (req, res) => {
@@ -189,5 +188,32 @@ export const cancelOrderRequest = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Failed to cancel order", error: err.message });
+  }
+};
+
+// 📦 Get all completed and cancelled orders for seller
+export const getOrderHistory = async (req, res) => {
+  try {
+    const seller = await Seller.findOne({ userId: req.user._id });
+    if (!seller || seller.status !== "verified") {
+      return res.status(403).json({ message: "Seller not verified" });
+    }
+
+    const orders = await Order.find({
+      sellerId: seller._id,
+      status: { $in: ["completed", "cancelled"] }
+    })
+    .populate({
+      path: "buyerId",
+      populate: {
+        path: "userId", // This gives access to profilePicture
+        model: "User"
+      }
+    })
+    .populate("items.productId");
+
+    res.status(200).json({ orders });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch order history", error: err.message });
   }
 };

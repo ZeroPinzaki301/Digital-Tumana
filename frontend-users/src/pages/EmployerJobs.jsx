@@ -48,15 +48,15 @@ const EmployerJobs = () => {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => navigate("/employer-dashboard")}
-          className="py-2 px-4 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition"
+          className="py-2 px-4 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition cursor-pointer"
         >
           ⬅ Back to Dashboard
         </button>
         <button
           onClick={() => navigate("/employer-add-job")}
-          className="py-2 px-4 bg-green-700 text-white rounded-lg hover:bg-green-800 transition"
+          className="py-2 px-4 bg-sky-700 text-white rounded-lg hover:bg-sky-600/75 transition cursor-pointer"
         >
-          ➕ Add Job
+          Add Job
         </button>
       </div>
 
@@ -89,7 +89,7 @@ const EmployerJobs = () => {
 
               <button
                 onClick={() => navigate(`/employer-job/${job._id}`)}
-                className="mt-3 w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                className="mt-3 w-full py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-600/75 transition cursor-pointer"
               >
                 View / Edit
               </button>

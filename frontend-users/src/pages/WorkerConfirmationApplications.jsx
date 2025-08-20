@@ -5,37 +5,57 @@ import { useNavigate } from 'react-router-dom';
 const WorkerConfirmationApplications = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchApplications = async () => {
       try {
         const token = localStorage.getItem('token');
         const res = await axiosInstance.get('/api/job-applications/worker-confirmation', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setApplications(res.data.applications);
+        setApplications(res.data.applications || []);
       } catch (error) {
         console.error('Error fetching applications:', error.message);
       } finally {
         setLoading(false);
       }
     };
-
     fetchApplications();
   }, []);
 
   if (loading) {
-    return <div className="text-center py-10 text-gray-500">Loading applications...</div>;
+    return (
+      <div className="text-center py-10 text-gray-500">
+        Loading applications...
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">📋 Applications Awaiting Your Confirmation</h2>
+    <div className="bg-blue-50 min-h-screen px-4 sm:px-6 lg:px-8 py-6">
+      {/* Back Button */}
+      <div className="flex justify-start mb-4">
+        <button
+          onClick={() => navigate('/services')}
+          className="px-4 py-2 bg-white border border-sky-800 cursor-pointer hover:bg-sky-100 text-gray-700 font-medium rounded-lg shadow transition"
+        >
+          ← Back
+        </button>
+      </div>
+
+      {/* Centered Heading */}
+      <h2 className="text-xl sm:text-2xl font-semibold text-sky-800 text-center mb-6">
+        Applications Awaiting Your Confirmation
+      </h2>
+
       {applications.length === 0 ? (
-        <p className="text-gray-500">You have no applications awaiting confirmation.</p>
+        <p className="text-gray-500 text-center">
+          You have no applications awaiting confirmation.
+        </p>
       ) : (
         <div className="space-y-6">
-          {applications.map(app => (
+          {applications.map((app) => (
             <ApplicationCard key={app._id} application={app} />
           ))}
         </div>
@@ -45,29 +65,20 @@ const WorkerConfirmationApplications = () => {
 };
 
 const ApplicationCard = ({ application }) => {
-  const {
-    _id: applicationId,
-    jobId,
-    employerId,
-    status,
-    createdAt
-  } = application;
-
+  const { _id: id, jobId, employerId, status, createdAt } = application;
   const [currentStatus, setCurrentStatus] = useState(status);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [actionType, setActionType] = useState(null);
-  const navigate = useNavigate();
 
   const handleStatusUpdate = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
-
       const endpoint =
         actionType === 'accept'
-          ? `/api/job-applications/confirm/${applicationId}`
-          : `/api/job-applications/cancel/${applicationId}`;
+          ? `/api/job-applications/confirm/${id}`
+          : `/api/job-applications/cancel/${id}`;
 
       const newStatus = actionType === 'accept' ? 'ongoingJob' : 'cancelled';
 
@@ -100,7 +111,7 @@ const ApplicationCard = ({ application }) => {
           alt="Employer"
           className="w-12 h-12 rounded-full object-cover"
         />
-        <div>
+        <div className="flex-1">
           <h3 className="text-lg font-medium">
             {employerId?.firstName} {employerId?.lastName}
           </h3>
@@ -116,7 +127,7 @@ const ApplicationCard = ({ application }) => {
           alt="Job"
           className="w-14 h-14 rounded-md object-cover"
         />
-        <div>
+        <div className="flex-1">
           <p className="font-medium">{jobId?.jobName || 'Unnamed Job'}</p>
           <p className="text-sm text-gray-600">Code: {jobId?.jobCode}</p>
           <p className="text-sm text-gray-600">
@@ -126,11 +137,17 @@ const ApplicationCard = ({ application }) => {
       </div>
 
       {/* Status + Date */}
-      <div className="flex justify-between items-center mt-4 pt-4 border-t">
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(currentStatus)}`}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 border-t gap-2 sm:gap-0">
+        <span
+          className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(
+            currentStatus
+          )}`}
+        >
           {currentStatus}
         </span>
-        <span className="text-sm text-gray-500">Received on {new Date(createdAt).toLocaleDateString()}</span>
+        <span className="text-sm text-gray-500">
+          Received on {new Date(createdAt).toLocaleDateString()}
+        </span>
       </div>
 
       {/* Action Buttons */}
@@ -139,14 +156,14 @@ const ApplicationCard = ({ application }) => {
           <button
             onClick={() => openModal('accept')}
             disabled={loading}
-            className="px-4 py-2 bg-green-100 text-green-800 rounded hover:bg-green-200 transition"
+            className="px-4 py-2 bg-green-100 cursor-pointer shadow-lg border border-lime-700 text-green-800 rounded hover:bg-green-200 transition"
           >
             Accept Job
           </button>
           <button
             onClick={() => openModal('cancel')}
             disabled={loading}
-            className="px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200 transition"
+            className="px-4 py-2 bg-red-100 cursor-pointer shadow-lg border border-lime-700 text-red-800 rounded hover:bg-red-200 transition"
           >
             Cancel Application
           </button>
@@ -155,15 +172,16 @@ const ApplicationCard = ({ application }) => {
 
       {/* Confirmation Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h3 className="text-lg font-semibold mb-4">
               {actionType === 'accept' ? 'Confirm Job Acceptance' : 'Confirm Cancellation'}
             </h3>
             <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to {actionType === 'accept' ? 'accept this job and begin work' : 'cancel this application'}?
+              Are you sure you want to{' '}
+              {actionType === 'accept' ? 'accept this job and begin work' : 'cancel this application'}?
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition"
@@ -189,17 +207,13 @@ const ApplicationCard = ({ application }) => {
 };
 
 // Tailwind badge color helper
-const getStatusBadgeColor = status => {
-  switch (status) {
-    case 'workerConfirmation':
-      return 'bg-blue-100 text-blue-800';
-    case 'ongoingJob':
-      return 'bg-green-100 text-green-800';
-    case 'cancelled':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
+const getStatusBadgeColor = (status) => {
+  const colors = {
+    workerConfirmation: 'bg-blue-100 text-blue-800',
+    ongoingJob: 'bg-green-100 text-green-800',
+    cancelled: 'bg-red-100 text-red-800',
+  };
+  return colors[status] || 'bg-gray-100 text-gray-800';
 };
 
 export default WorkerConfirmationApplications;

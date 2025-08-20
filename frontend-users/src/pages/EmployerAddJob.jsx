@@ -128,7 +128,15 @@ const EmployerAddJob = () => {
   return (
     <div className="min-h-screen bg-green-50 px-4 py-6 relative">
       <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-lg border border-green-400">
-        <h2 className="text-2xl font-bold text-green-800 mb-4">Add New Job</h2>
+        <button
+          onClick={() => navigate("/employer-jobs")}
+          className="mb-4 px-4 py-2 bg-sky-700 text-white rounded hover:bg-sky-600/75 cursor-pointer transition font-bold"
+        >
+          ← Back to Job Listings
+        </button>
+
+        <h2 className="text-2xl font-bold text-sky-900 mb-4">Add New Job</h2>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
@@ -205,9 +213,9 @@ const EmployerAddJob = () => {
           {imageError && <p className="text-red-600 text-sm font-bold">{imageError}</p>}
           <button
             type="submit"
-            className="w-full py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition font-bold"
+            className="w-full py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-600/75 cursor-pointer transition font-bold"
           >
-            ✅ Post Job
+            Post Job
           </button>
         </form>
       </div>

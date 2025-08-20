@@ -91,16 +91,16 @@ const SellerEditProduct = () => {
   return (
     <div className="min-h-screen bg-emerald-50 flex items-center justify-center px-4 py-6">
       <div className="bg-white w-full max-w-lg rounded-lg shadow-md p-6 border border-sky-900">
-        <h2 className="text-2xl font-bold text-sky-900 mb-4 text-center">Edit Product</h2>
+        <h2 className="text-2xl font-bold text-lime-900 mb-4 text-center">Edit Product</h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input type="text" name="productName" value={formData.productName} onChange={handleChange} placeholder="Product Name" required className="input" />
 
-          <input type="number" name="pricePerUnit" value={formData.pricePerUnit} onChange={handleChange} placeholder="Price Per Unit (₱)" required className="input" />
+          <input type="number" name="pricePerUnit" value={formData.pricePerUnit} onChange={handleChange} placeholder="Price Per Unit (₱)" required className="input ml-2" />
 
           <input type="number" name="stock" value={formData.stock} onChange={handleChange} placeholder="Available Stock" required className="input" />
 
-          <select name="type" value={formData.type} onChange={handleChange} className="input">
+          <select name="type" value={formData.type} onChange={handleChange} className="input cursor-pointer ml-2">
             <option>Fresh Produce</option>
             <option>Grains & Seeds</option>
             <option>Fertilizers</option>
@@ -111,7 +111,7 @@ const SellerEditProduct = () => {
             <option>Compost & Soil</option>
           </select>
 
-          <select name="unitType" value={formData.unitType} onChange={handleChange} className="input">
+          <select name="unitType" value={formData.unitType} onChange={handleChange} className="input cursor-pointer ml-2">
             <option>kg</option>
             <option>liter</option>
             <option>pcs</option>
@@ -123,14 +123,14 @@ const SellerEditProduct = () => {
 
           <input type="number" name="uploadDuration" value={formData.uploadDuration} onChange={handleChange} placeholder="Duration (days)" required className="input" />
 
-          <button type="submit" className="mt-4 w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition">
+          <button type="submit" className="mt-4 w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition">
             Save Changes
           </button>
 
           <button
             type="button"
             onClick={() => navigate(`/seller-product/${productId}`)}
-            className="w-full py-2 mt-2 bg-gray-200 text-sky-900 rounded-lg hover:bg-gray-300 transition"
+            className="w-full py-2 mt-2 bg-lime-200 text-lime-900 rounded-lg hover:bg-lime-200/50 cursor-pointer transition"
           >
             Cancel
           </button>

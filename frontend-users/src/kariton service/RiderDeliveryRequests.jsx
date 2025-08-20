@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
-import { FaSearch, FaTruck } from 'react-icons/fa';
+import { FaSearch, FaTruck, FaArrowLeft } from 'react-icons/fa';
 
 const RiderDeliveryRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -9,6 +9,7 @@ const RiderDeliveryRequests = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [error, setError] = useState(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -80,6 +81,12 @@ const RiderDeliveryRequests = () => {
           <p className="text-gray-500">
             {searchTerm ? 'No matches for your search' : 'You currently have no pending deliveries'}
           </p>
+          <button
+            onClick={() => navigate("/kariton-service/rider/dashboard")}
+            className="mt-6 inline-flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg shadow hover:bg-gray-800 transition"
+          >
+            <FaArrowLeft className="mr-2" /> Back
+          </button>
         </div>
       </div>
     );
@@ -88,6 +95,14 @@ const RiderDeliveryRequests = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-100">
       <div className="max-w-6xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/kariton-service/rider/dashboard")}
+          className="mb-4 inline-flex items-center px-4 py-2 cursor-pointer bg-white border border-lime-700 text-lime-700 rounded-lg shadow hover:bg-lime-100 transition"
+        >
+          <FaArrowLeft className="mr-2" /> Back
+        </button>
+
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Delivery Requests</h1>
 
         <div className="bg-white p-4 rounded-lg shadow mb-6">
@@ -96,7 +111,7 @@ const RiderDeliveryRequests = () => {
             <input
               type="text"
               placeholder="Search by order code, ID, or customer name..."
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full pl-10 pr-4 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -104,7 +119,7 @@ const RiderDeliveryRequests = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="grid grid-cols-12 bg-green-100 p-4 font-semibold text-gray-700">
+          <div className="grid grid-cols-12 bg-lime-700 p-4 font-semibold text-white">
             <div className="col-span-3">Order Code</div>
             <div className="col-span-3">Customer</div>
             <div className="col-span-3">Date</div>
@@ -114,14 +129,12 @@ const RiderDeliveryRequests = () => {
           {filteredRequests.map((request) => (
             <div
               key={request._id}
-              className="grid grid-cols-12 p-4 border-b hover:bg-green-50 cursor-pointer"
+              className="grid grid-cols-12 p-4 border-b bg-white hover:bg-gray-50 cursor-pointer"
               onClick={() => handleRequestClick(request.orderId)}
             >
-              <div className="col-span-3 font-medium text-green-600">{request.orderCode}</div>
+              <div className="col-span-3 font-medium text-lime-700">{request.orderCode}</div>
               <div className="col-span-3">{request.customerName}</div>
-              <div className="col-span-3">
-                {new Date(request.createdAt).toLocaleDateString()}
-              </div>
+              <div className="col-span-3">{new Date(request.createdAt).toLocaleDateString()}</div>
               <div className="col-span-3 text-sm text-gray-600">
                 {request.isDelivered ? 'Delivered' : 'Pending'}
               </div>
