@@ -38,9 +38,7 @@ const EmployerAddressPage = () => {
 
     try {
       const method = address ? "put" : "post";
-      await axiosInstance[method]("/api/employers/address", formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstancemethod;
       setIsEditing(false);
       navigate(0);
     } catch (err) {
@@ -49,20 +47,19 @@ const EmployerAddressPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4 relative">
       <button
         onClick={() => navigate("/employer-dashboard")}
         className="absolute top-4 left-4 py-2 px-4 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition cursor-pointer mt-3"
       >
         ← Back to Dashboard
       </button>
+
       <div className="bg-white w-full max-w-lg rounded-lg p-6 shadow-md border border-lime-700">
         <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">Employer Address</h2>
 
         {address && !isEditing ? (
-          
           <div className="space-y-2 text-sm text-gray-700">
-            
             <p><strong>Region:</strong> {address.region}</p>
             <p><strong>Province:</strong> {address.province}</p>
             <p><strong>City:</strong> {address.cityOrMunicipality}</p>
@@ -118,6 +115,7 @@ const EmployerAddressPage = () => {
             <button type="submit" className="w-full py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer">
               {address ? "Update Address" : "Add Address"}
             </button>
+
             {address && (
               <button
                 type="button"

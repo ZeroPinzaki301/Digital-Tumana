@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
@@ -39,9 +38,7 @@ const WorkerAddressPage = () => {
 
     try {
       const method = address ? "put" : "post";
-      await axiosInstance[method]("/api/workers/address", formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstancemethod;
       setIsEditing(false);
       navigate(0);
     } catch (err) {
@@ -55,13 +52,15 @@ const WorkerAddressPage = () => {
   const buttonCancel = buttonBase + " bg-gray-200 text-lime-700 hover:bg-gray-300";
 
   return (
-    <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4 relative">
+      {/* ✅ Fixed: Added relative to parent container */}
       <button
         onClick={() => navigate("/worker-dashboard")}
         className="absolute top-4 left-4 py-2 px-4 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition cursor-pointer mt-3"
       >
         ← Back to Dashboard
       </button>
+
       <div className="bg-white w-full max-w-lg rounded-lg p-6 shadow-md border border-lime-700">
         <h2 className="text-2xl font-bold text-lime-700 mb-4 text-center">Worker Address</h2>
 
@@ -119,12 +118,12 @@ const WorkerAddressPage = () => {
             <button type="submit" className={buttonPrimary}>
               {address ? "Update Address" : "Add Address"}
             </button>
+
             {address && (
               <button type="button" onClick={() => setIsEditing(false)} className={buttonCancel}>
                 Cancel
               </button>
             )}
-            
           </form>
         )}
       </div>

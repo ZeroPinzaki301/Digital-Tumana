@@ -26,23 +26,20 @@ const OrderRequestSummaryPage = () => {
   const handleAccept = async () => {
     try {
       const token = localStorage.getItem("token");
-      
-      // 1. First accept the order
+
       const acceptResponse = await axiosInstance.patch(
-        `/api/orders/seller/accept/${orderId}`, 
-        {}, 
+        `/api/orders/seller/accept/${orderId}`,
+        {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // 2. Then create tracking
       try {
         const trackingResponse = await axiosInstance.post(
-          '/api/order-tracking',
+          "/api/order-tracking",
           { orderId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // 3. Redirect with both responses
         navigate(`/seller-ongoing-order/${orderId}`, {
           state: {
             order: acceptResponse.data.order,
@@ -51,15 +48,13 @@ const OrderRequestSummaryPage = () => {
         });
       } catch (trackingError) {
         console.error("Tracking creation failed:", trackingError);
-        // Show order accepted but tracking failed
         navigate("/order-confirmation", {
-          state: { 
+          state: {
             order: acceptResponse.data.order,
             trackingError: true
           }
         });
       }
-
     } catch (acceptError) {
       console.error("Order acceptance failed:", acceptError);
       alert(`Order acceptance failed: ${acceptError.response?.data?.message || acceptError.message}`);
@@ -85,7 +80,6 @@ const OrderRequestSummaryPage = () => {
     return <p className="text-center p-6 text-gray-600">Loading order details...</p>;
   }
 
-  // Get the first pending item (or handle multiple items)
   const currentItem = order.items[selectedItemIndex];
   const { productId, quantity, priceAtOrder } = currentItem;
   const { deliveryAddress, sellerAddress, buyerId, totalPrice } = order;
@@ -95,21 +89,20 @@ const OrderRequestSummaryPage = () => {
       <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md border border-orange-300">
         <h2 className="text-2xl font-bold text-orange-800 mb-6 text-center">Order Request Summary</h2>
 
-        {/* Show navigation if multiple items */}
         {order.items.length > 1 && (
           <div className="flex justify-between mb-4">
-            <button 
+            <button
               onClick={() => setSelectedItemIndex(prev => Math.max(0, prev - 1))}
               disabled={selectedItemIndex === 0}
-              className="px-3 py-1 bg-orange-200 rounded disabled:opacity-50"
+              className="px-3 py-1 bg-orange-200 rounded disabled:opacity-50 cursor-pointer"
             >
               Previous
             </button>
             <span>Item {selectedItemIndex + 1} of {order.items.length}</span>
-            <button 
+            <button
               onClick={() => setSelectedItemIndex(prev => Math.min(order.items.length - 1, prev + 1))}
               disabled={selectedItemIndex === order.items.length - 1}
-              className="px-3 py-1 bg-orange-200 rounded disabled:opacity-50"
+              className="px-3 py-1 bg-orange-200 rounded disabled:opacity-50 cursor-pointer"
             >
               Next
             </button>
@@ -154,16 +147,26 @@ const OrderRequestSummaryPage = () => {
         <div className="flex justify-between">
           <button
             onClick={handleCancel}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition cursor-pointer"
           >
-            ❌ Cancel Order
+            Cancel Order
           </button>
 
           <button
             onClick={handleAccept}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition cursor-pointer"
           >
-            ✅ Accept Order
+            Accept Order
+          </button>
+        </div>
+
+        {/* Back to Order Requests Button */}
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => navigate("/order-requests")}
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition cursor-pointer"
+          >
+            ← Back to Order Requests
           </button>
         </div>
       </div>
