@@ -206,6 +206,12 @@ const Services = () => {
                 >
                   Ongoing Jobs
                 </button>
+                <button
+                  onClick={() => navigate("/jobs/job-application/job-history")}
+                  className="w-full py-2 bg-sky-600 text-white font-medium rounded hover:bg-sky-500 transition cursor-pointer"
+                >
+                  Job History
+                </button>
               </div>
             )}
           </div>

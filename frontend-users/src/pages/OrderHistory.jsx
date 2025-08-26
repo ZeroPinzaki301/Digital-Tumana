@@ -21,25 +21,28 @@ const OrderHistoryPage = () => {
         setLoading(false);
       }
     };
-
     fetchOrders();
   }, []);
 
-  if (loading) return <div className="text-center py-10 text-gray-500">Loading order history...</div>;
-
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-lime-50 p-6">
       <button
         onClick={() => navigate("/marketplace")}
         className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
       >
         ⬅ Back to Marketplace
       </button>
-      <h2 className="text-3xl font-semibold mb-4 text-center text-lime-900">Your Order History</h2>
-      {orders.length === 0 ? (
-        <p className="text-gray-500">You have no completed or cancelled orders.</p>
+
+      <h2 className="text-2xl md:text-3xl font-bold text-lime-900 mb-6 text-center">
+        Your Order History
+      </h2>
+
+      {loading ? (
+        <p className="text-center text-gray-600">Loading order history...</p>
+      ) : orders.length === 0 ? (
+        <p className="text-center text-gray-600">You have no completed or cancelled orders.</p>
       ) : (
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {orders.map(order => (
             <OrderCard key={order._id} order={order} />
           ))}
@@ -53,17 +56,17 @@ const OrderCard = ({ order }) => {
   const { sellerId, items, status, totalPrice } = order;
 
   return (
-    <div className="border rounded-lg shadow-sm p-4 bg-white">
+    <div className="bg-white p-4 rounded-lg shadow-md border border-lime-300">
       {/* Seller Info */}
       <div className="flex items-center gap-4 mb-4">
         <img
           src={sellerId.storePicture || '/default-store.png'}
-          alt="Store"
-          className="w-12 h-12 rounded-full object-cover"
+          alt={sellerId.storeName}
+          className="h-16 w-16 rounded-full object-cover border border-lime-200"
         />
         <div>
-          <h3 className="text-lg font-medium">{sellerId.storeName}</h3>
-          <p className="text-sm text-gray-500">{sellerId.email}</p>
+          <h3 className="text-lg font-semibold text-lime-800">{sellerId.storeName}</h3>
+          <p className="text-sm text-gray-600">{sellerId.email}</p>
         </div>
       </div>
 
@@ -74,10 +77,10 @@ const OrderCard = ({ order }) => {
             <img
               src={item.productId?.productImage || '/default-product.png'}
               alt={item.productId?.productName || 'Product'}
-              className="w-14 h-14 rounded-md object-cover"
+              className="h-20 w-20 object-cover rounded border border-lime-200"
             />
             <div>
-              <p className="font-medium">{item.productId?.productName || 'Unnamed Product'}</p>
+              <p className="font-semibold text-lime-800">{item.productId?.productName || 'Unnamed Product'}</p>
               <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
               <p className="text-sm text-gray-600">₱{item.priceAtOrder.toFixed(2)}</p>
             </div>
@@ -90,29 +93,29 @@ const OrderCard = ({ order }) => {
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(status)}`}>
           {status}
         </span>
-        <span className="text-lg font-semibold text-gray-800">₱{totalPrice.toFixed(2)}</span>
+        <span className="text-lg font-bold text-lime-900">₱{totalPrice.toFixed(2)}</span>
       </div>
     </div>
   );
 };
 
-// Tailwind badge color helper
+// Tailwind badge color helper with CartPage-like lime color scheme
 const getStatusBadgeColor = status => {
   switch (status) {
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-lime-100 text-lime-800';
     case 'confirmed':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-lime-200 text-lime-900';
     case 'shipped':
-      return 'bg-indigo-100 text-indigo-800';
+      return 'bg-lime-300 text-lime-900';
     case 'out for delivery':
-      return 'bg-green-100 text-green-800';
+      return 'bg-lime-400 text-lime-900';
     case 'completed':
-      return 'bg-green-200 text-green-900';
+      return 'bg-lime-500 text-white';
     case 'cancelled':
       return 'bg-red-100 text-red-800';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-lime-50 text-lime-800';
   }
 };
 

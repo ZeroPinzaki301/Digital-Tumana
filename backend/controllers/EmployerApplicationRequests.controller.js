@@ -183,3 +183,20 @@ export const updateJobApplicationStatus = async (req, res) => {
   }
 };
 
+export const getWorkerJobHistoryById = async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const applications = await JobApplication.find({
+      applicantId: workerId,
+      status: { $in: ["completed", "terminated"] }
+    })
+      .populate("jobId", "jobName jobImage jobCode minSalary maxSalary")
+      .populate("employerId", "firstName lastName companyName profilePicture email status");
+
+    return res.status(200).json({ applications });
+  } catch (error) {
+    console.error("Error fetching worker job history:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

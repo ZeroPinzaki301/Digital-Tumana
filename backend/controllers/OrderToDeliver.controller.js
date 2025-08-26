@@ -153,6 +153,7 @@ export const getDeliveredOrders = async (req, res) => {
     const deliveredOrders = await OrderToDeliver.find({ isDelivered: true })
       .populate({
         path: 'orderId',
+        select: 'status buyerId',
         populate: {
           path: 'buyerId',
           select: 'fullName'
@@ -161,10 +162,9 @@ export const getDeliveredOrders = async (req, res) => {
       .populate('orderTrackingId', 'orderCode')
       .populate('riderId', 'firstName lastName email');
 
-    // Filter for only those with orderId.status === "Out for Delivery"
+    // FIX: Changed 'out for Delivery' to 'out for delivery' (lowercase d)
     const filteredOrders = deliveredOrders.filter(order => 
-      order.orderId?.status === 'Out for Delivery'
-    );
+      order.orderId?.status === 'out for delivery');
 
     const formatted = filteredOrders.map(order => ({
       _id: order._id,

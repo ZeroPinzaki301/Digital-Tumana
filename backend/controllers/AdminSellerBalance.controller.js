@@ -162,7 +162,11 @@ export const getSellerWithdrawalsBySellerId = async (req, res) => {
       return res.status(404).json({ message: 'Seller not found.' });
     }
 
-    const withdrawals = await SellerBalanceWithdrawal.find({ sellerId }).sort({ createdAt: -1 });
+    // Only fetch withdrawals with 'pending' status
+    const withdrawals = await SellerBalanceWithdrawal.find({ 
+      sellerId, 
+      status: 'pending' // Add this filter
+    }).sort({ createdAt: -1 });
 
     return res.status(200).json({
       message: 'Withdrawals fetched successfully.',

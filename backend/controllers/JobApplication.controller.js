@@ -1,6 +1,8 @@
 import JobApplication from "../models/JobApplication.model.js";
 import Job from "../models/Job.model.js";
 import Worker from "../models/Worker.model.js";
+import Employer from "../models/Employer.model.js";
+import EmployerAddress from "../models/EmployerAddress.model.js";
 import WorkerPortfolio from "../models/WorkerPortfolio.model.js";
 
 export const createJobApplication = async (req, res) => {
@@ -140,6 +142,35 @@ export const getWorkerOngoingJobs = async (req, res) => {
   }
 };
 
+export const getOngoingJobDetails = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await JobApplication.findById(applicationId)
+      .populate({
+        path: "jobId",
+        model: "Job",
+      })
+      .populate({
+        path: "employerId",
+        model: "Employer",
+        populate: {
+          path: "employerAddress",
+          model: "EmployerAddress",
+        },
+      });
+
+    if (!application) {
+      return res.status(404).json({ message: "Job application not found" });
+    }
+
+    return res.status(200).json({ application });
+  } catch (error) {
+    console.error("Error fetching job details:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const confirmJobApplication = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -246,3 +277,30 @@ export const cancelApplication = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+export const getJobHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const worker = await Worker.findOne({ userId });
+    if (!worker) {
+      return res.status(403).json({ message: "User is not registered as a worker" });
+    }
+
+    const workerId = worker._id;
+
+    const applications = await JobApplication.find({
+      applicantId: workerId,
+      status: { $in: ["completed", "terminated"] }
+    })
+      .populate("jobId", "jobName jobImage jobCode minSalary maxSalary")
+      .populate("employerId", "firstName lastName companyName profilePicture email status");
+
+    return res.status(200).json({ applications });
+  } catch (error) {
+    console.error("Error fetching job history:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+

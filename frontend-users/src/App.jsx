@@ -58,6 +58,8 @@ import ViewApplicantDetails from "./pages/ViewApplicantDetails";
 import WorkerConfirmationApplications from "./pages/WorkerConfirmationApplications";
 import EmployerOngoingJobs from "./pages/EmployerOngoingJobs";
 import WorkerOngoingJobs from "./pages/WorkerOngoingJobs";
+import OngoingJobDetails from "./pages/OngoingJobDetails";
+import WorkerJobHistory from "./pages/WorkerJobHistory";
 
 import KaritonServiceLogin from "./kariton service/KaritonServiceLogin";
 import KaritonServiceDashboard from "./kariton service/KaritonServiceDashboard";
@@ -144,6 +146,9 @@ function AppContent() {
           <Route path="/jobs/job-application/pending" element={<PendingApplicationsPage />} />
           <Route path="/jobs/job-application/waiting-to-confirm" element={<WorkerConfirmationApplications />} />
           <Route path="/jobs/job-application/ongoing-jobs" element={<WorkerOngoingJobs />} />
+          <Route path="/jobs/job-application/job-history" element={<WorkerJobHistory />} />
+          <Route path="/jobs/job-application/ongoing-job/:applicationId" element={<OngoingJobDetails />} />
+
 
           {/* Kariton Service Routes */}
           <Route path="/kariton-service/login" element={<KaritonServiceLogin />} />

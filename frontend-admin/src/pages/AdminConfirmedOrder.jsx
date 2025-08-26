@@ -83,16 +83,7 @@ const AdminConfirmedOrders = () => {
               onClick={() => navigate('/admin-shipped-orders')}
               className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
             >
-              View Shipped Orders
-            </button>
-          </div>
-
-          <div className="mb-6">
-            <button
-              onClick={() => navigate('/admin/orders/ongoing-delivery')}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              View Ongoing Deliveries
+              Go to Shipped Orders
             </button>
           </div>
           
@@ -132,15 +123,6 @@ const AdminConfirmedOrders = () => {
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
             View Shipped Orders
-          </button>
-        </div>
-
-        <div className="mb-6">
-          <button
-            onClick={() => navigate('/admin/orders/ongoing-delivery')}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            View Ongoing Deliveries
           </button>
         </div>
         

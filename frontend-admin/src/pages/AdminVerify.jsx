@@ -23,7 +23,7 @@ const AdminVerify = () => {
       const res = await axiosInstance.post("/api/admins/verify-admin-login", { email, code });
       localStorage.setItem("adminToken", res.data.token);
       setMessage(res.data.message);
-      setTimeout(() => navigate("/admin-dashboard"), 1500);
+      setTimeout(() => navigate("/"), 1500);
     } catch (err) {
       setError(err.response?.data?.message || "Invalid code, try again");
     }

@@ -35,7 +35,7 @@ const KaritonServiceDashboard = () => {
 
   if (!rider) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-lime-50">
         <p className="text-lg font-semibold text-lime-700 animate-pulse">
           Loading...
         </p>
@@ -44,12 +44,12 @@ const KaritonServiceDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center p-4 sm:p-6 relative">
+    <div className="min-h-screen bg-lime-50 flex flex-col items-center p-4 sm:p-6 relative">
       {/* Back Button - Top Left */}
       <div className="w-full flex justify-between items-center mb-6">
         <button
-          onClick={() => navigate(-1)}
-          className="bg-white cursor-pointer border border-lime-700 text-lime-700 px-4 sm:px-5 py-2 rounded-lg shadow-md hover:bg-lime-100 transition"
+          onClick={() => navigate('/')}
+          className="bg-lime-700 cursor-pointer border border-lime-700 text-white px-4 sm:px-5 py-2 rounded-lg shadow-md hover:bg-lime-800 transition"
         >
           ← Back
         </button>
@@ -57,7 +57,7 @@ const KaritonServiceDashboard = () => {
         {/* Logout Button - Top Right */}
         <button
           onClick={handleLogout}
-          className="bg-red-500 text-white px-4 sm:px-5 py-2 rounded-lg shadow-md hover:bg-red-600 transition"
+          className="bg-red-500 text-white px-4 cursor-pointer sm:px-5 py-2 rounded-lg shadow-md hover:bg-red-600 transition"
         >
           Logout
         </button>
@@ -107,14 +107,14 @@ const KaritonServiceDashboard = () => {
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full justify-center">
           <button
             onClick={() => navigate("/kariton-service/rider/delivery-requests")}
-            className="flex-1 py-4 sm:py-5 bg-lime-700 text-white rounded-lg text-lg sm:text-xl font-semibold hover:bg-lime-800 transition shadow-md"
+            className="flex-1 py-4 sm:py- cursor-pointer bg-lime-700 text-white rounded-lg text-lg sm:text-xl font-semibold hover:bg-lime-800 transition shadow-md"
           >
             Delivery Requests
           </button>
 
           <button
             onClick={() => navigate("/kariton-service/rider/delivery-history")}
-            className="flex-1 py-4 sm:py-5 bg-lime-700 text-white rounded-lg text-lg sm:text-xl font-semibold hover:bg-lime-800 transition shadow-md"
+            className="flex-1 py-4 sm:py-5 cursor-pointer bg-lime-700 text-white rounded-lg text-lg sm:text-xl font-semibold hover:bg-lime-800 transition shadow-md"
           >
             Delivery History
           </button>

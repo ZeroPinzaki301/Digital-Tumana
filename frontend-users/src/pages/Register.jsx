@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import digitalTumanaIcon from "../assets/digital-tumana-icon.png";
@@ -7,6 +8,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 const Register = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -112,11 +114,13 @@ const Register = () => {
                 required
                 className="accent-lime-700"
               />
-              <span>I agree to the policy</span>
+              <span className="cursor-pointer" onClick={() => setShowPolicyModal(true)}>
+                I agree to the policy
+              </span>
             </label>
             <button
               type="submit"
-              className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition text-lg"
+              className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition text-lg cursor-pointer"
             >
               Register
             </button>
@@ -129,6 +133,38 @@ const Register = () => {
           </p>
         </div>
       </div>
+
+      {/* Modal for Digital Tumana Privacy Policy */}
+      {showPolicyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-bold text-lime-700 mb-4">Digital Tumana Privacy Policy</h2>
+            <div className="text-gray-700 space-y-4">
+              <p>
+                Digital Tumana is committed to protecting your privacy. We collect and use your personal information solely for the purpose of providing our services, including account management, transaction processing, and customer support.
+              </p>
+              <p>
+                <strong>Information Collection:</strong> We collect information such as your name, email, phone number, and transaction history to facilitate platform operations.
+              </p>
+              <p>
+                <strong>Usage:</strong> Your data is used to verify identity, process payments, and improve user experience. We do not sell or share your information with third parties without your consent.
+              </p>
+              <p>
+                <strong>Security:</strong> We implement industry-standard security measures to protect your data from unauthorized access.
+              </p>
+              <p>
+                <strong>Updates:</strong> This policy may be updated periodically. Users will be notified of significant changes through platform notifications.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPolicyModal(false)}
+              className="mt-6 px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800 cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

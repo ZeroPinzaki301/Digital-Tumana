@@ -75,7 +75,7 @@ const Marketplace = () => {
     .sort(() => Math.random() - 0.5);
 
   return (
-    <div className="min-h-screen bg-emerald-50 pb-16">
+    <div className="min-h-screen bg-lime-50 pb-16">
       {/* ✅ Hero Section */}
       <section className="relative w-full h-25 md:h-72 lg:h-80">
         <img

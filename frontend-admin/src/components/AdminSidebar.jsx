@@ -17,30 +17,22 @@ const AdminSidebar = () => {
           src={digitalIcon}
           alt="Digital Tumana"
           className="h-8 w-auto cursor-pointer mb-4"
-          onClick={() => navigate("/admin-dashboard")}
+          onClick={() => navigate("/")}
         />
       </div>
 
       <div className="mt-4 flex flex-col items-center space-y-4">
         <button
-          onClick={() => navigate("/admin-dashboard")}
-          className="flex flex-col items-center p-2 hover:bg-teal-100 text-sky-900 font-medium w-full"
+          onClick={() => navigate("/")}
+          className="flex flex-col items-center p-2 hover:bg-teal-100 text-sky-900 font-medium w-full cursor-pointer"
           title="Dashboard"
         >
           <FaTachometerAlt className="text-lg" />
           <span className="text-xs mt-1">Dashboard</span>
         </button>
         <button
-          onClick={() => navigate("/admin-account")}
-          className="flex flex-col items-center p-2 hover:bg-teal-100 text-sky-900 font-medium w-full"
-          title="Account"
-        >
-          <FaUser className="text-lg" />
-          <span className="text-xs mt-1">Account</span>
-        </button>
-        <button
           onClick={handleLogout}
-          className="flex flex-col items-center p-2 hover:bg-teal-100 text-red-600 font-medium w-full"
+          className="flex flex-col items-center p-2 hover:bg-teal-100 text-red-600 font-medium w-full cursor-pointer"
           title="Logout"
         >
           <FaSignOutAlt className="text-lg" />

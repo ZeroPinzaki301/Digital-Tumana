@@ -5,7 +5,7 @@ import jobsImage from '../assets/HomePage-Images/jobs-image.jpg';
 import learnImage from '../assets/HomePage-Images/learn-image.jpg';
 import contactBg from '../assets/HomePage-Images/contact-bg.jpg';
 import aboutPageImage from '../assets/HomePage-Images/aboutpage-image.jpg';
-import tumanaIcon from '../assets/digital-tumana-icon.png'; // ✅ FIXED PATH
+import tumanaIcon from '../assets/digital-tumana-icon.png';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -55,7 +55,7 @@ const HomePage = () => {
             title: "Services",
             image: jobsImage,
             text: "The Services section opens up opportunities for individuals and businesses to post or find available jobs and services related to agriculture and beyond. Whether you're looking for farmhands, offering labor, or seeking part-time or freelance work, this is where skills meet demand.",
-            link: "/jobs",
+            link: "/services",
             reverse: true,
           },
           {
@@ -141,7 +141,7 @@ const HomePage = () => {
                 {[
                   { name: "HOME", link: "/" },
                   { name: "MARKETPLACE", link: "/marketplace" },
-                  { name: "SERVICES", link: "/jobs" },
+                  { name: "SERVICES", link: "/services" },
                   { name: "LEARN", link: "/learn" },
                 ].map(({ name, link }, i) => (
                   <a

@@ -44,7 +44,7 @@ const WorkerOngoingJobs = () => {
         </button>
       </div>
 
-      {/* Centered Heading */}
+      {/* Heading */}
       <h2 className="text-xl sm:text-2xl text-sky-800 font-semibold text-center mb-6">
         Your Ongoing Jobs
       </h2>
@@ -69,8 +69,14 @@ const ApplicationCard = ({ application }) => {
   const [currentStatus, setCurrentStatus] = useState(status);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
-  const handleTerminate = async () => {
+  const handleCardClick = () => {
+    navigate(`/jobs/job-application/ongoing-job/${id}`);
+  };
+
+  const handleTerminate = async (e) => {
+    e.stopPropagation(); // Prevent card click
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -89,7 +95,10 @@ const ApplicationCard = ({ application }) => {
   };
 
   return (
-    <div className="border border-sky-700 rounded-lg shadow-sm p-4 bg-white hover:shadow-md transition">
+    <div
+      className="border border-sky-700 rounded-lg shadow-sm p-4 bg-white hover:shadow-md transition cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Employer Info */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
         <img
@@ -138,7 +147,10 @@ const ApplicationCard = ({ application }) => {
       {currentStatus === 'ongoingJob' && (
         <div className="mt-4 flex flex-wrap gap-3">
           <button
-            onClick={() => setShowModal(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowModal(true);
+            }}
             disabled={loading}
             className="px-4 py-2 bg-red-100 shadow-sm border border-red-700 cursor-pointer text-red-800 rounded hover:bg-red-200 transition"
           >
@@ -157,7 +169,10 @@ const ApplicationCard = ({ application }) => {
             </p>
             <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowModal(false);
+                }}
                 className="px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition"
               >
                 No, Go Back
@@ -176,7 +191,6 @@ const ApplicationCard = ({ application }) => {
   );
 };
 
-// Badge color helper
 const getStatusBadgeColor = (status) => {
   const colors = {
     workerConfirmation: 'bg-blue-100 text-blue-800',

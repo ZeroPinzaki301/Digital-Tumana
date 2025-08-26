@@ -11,7 +11,8 @@ import {
   getEmployerJobApplications,
   getWorkerApplicationDetails,
   updateJobApplicationStatus,
-  getEmployerOngoingJobs
+  getEmployerOngoingJobs,
+  getWorkerJobHistoryById
  } from "../controllers/EmployerApplicationRequests.controller.js";
 
 import protect from "../middlewares/authMiddleware.js";
@@ -44,7 +45,9 @@ router.get("/applications/ongoing", protect, getEmployerOngoingJobs);
 
 router.get('/:workerId/details', getWorkerApplicationDetails);
 
-router.put('/application/:applicationId/status', protect, updateJobApplicationStatus)
+router.get('/worker-history/:workerId', protect, getWorkerJobHistoryById);
+
+router.put('/application/:applicationId/status', protect, updateJobApplicationStatus);
 
 
 export default router;

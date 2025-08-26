@@ -14,6 +14,7 @@ const EmployerRegister = () => {
     nationality: "",
     companyName: "",
     agreedToPolicy: false,
+    agreedToTerms: false,
     validId: null,
     dtiCert: null,
     birCert: null,
@@ -23,6 +24,8 @@ const EmployerRegister = () => {
   const [message, setMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,8 +55,8 @@ const EmployerRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.agreedToPolicy) {
-      return setError("You must agree to the policy before submitting.");
+    if (!formData.agreedToPolicy || !formData.agreedToTerms) {
+      return setError("You must agree to the Employer Policy and Terms and Conditions before submitting.");
     }
 
     setIsSubmitting(true);
@@ -86,7 +89,6 @@ const EmployerRegister = () => {
 
   return (
     <div className="min-h-screen bg-bg-50 flex flex-col items-center justify-center px-4 py-6">
-      {/* Back Button */}
       <div className="w-full max-w-lg mb-4">
         <button
           onClick={() => navigate("/account")}
@@ -96,7 +98,6 @@ const EmployerRegister = () => {
         </button>
       </div>
 
-      {/* Registration Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white max-w-lg w-full rounded-lg p-6 shadow-md border border-lime-700"
@@ -145,7 +146,12 @@ const EmployerRegister = () => {
 
           <label className="flex items-center mt-2 cursor-pointer">
             <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
-            I agree to the Employer Policy
+            <span onClick={() => setShowPolicyModal(true)} className="text-sky-700 underline">I agree to the Employer Privacy Policy</span>
+          </label>
+
+          <label className="flex items-center mt-2 cursor-pointer">
+            <input type="checkbox" name="agreedToTerms" checked={formData.agreedToTerms} onChange={handleChange} className="mr-2 cursor-pointer" />
+            <span onClick={() => setShowTermsModal(true)} className="text-sky-700 underline">I agree to the Terms and Conditions</span>
           </label>
         </div>
 
@@ -163,6 +169,7 @@ const EmployerRegister = () => {
         </button>
       </form>
 
+      {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white w-full max-w-sm mx-auto rounded-lg p-6 shadow-lg relative text-center border border-lime-700">
@@ -172,6 +179,48 @@ const EmployerRegister = () => {
             </p>
             <button onClick={() => navigate("/account")} className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition cursor-pointer">
               Back to Profile
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Policy Modal */}
+      {showPolicyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-bold text-sky-700 mb-4">Employer Privacy Policy</h2>
+            <div className="text-gray-700 space-y-4">
+              <p>This policy outlines how Digital Tumana collects, uses, and protects employer data.</p>
+              <p><strong>Data Collection:</strong> We collect personal and company information for verification and platform use.</p>
+              <p><strong>Document Requirements:</strong> Employers must submit a valid ID and may optionally upload DTI and BIR certificates.</p>
+              <p><strong>Usage:</strong> Submitted data is used for account verification, job posting, and communication purposes.</p>
+              <p><strong>Security:</strong> All data is securely stored and protected against unauthorized access.</p>
+              <p><strong>Policy Updates:</strong> We may update this policy. Employers will be notified of changes via email or platform alerts.</p>
+            </div>
+            <button onClick={() => setShowPolicyModal(false)} className="mt-6 px-4 py-2 bg-sky-700 text-white rounded hover:bg-sky-800">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Terms and Conditions Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-bold text-sky-700 mb-4">Terms and Conditions</h2>
+            <div className="text-gray-700 space-y-4">
+              <p>By registering as an employer on Digital Tumana, you agree to the following terms:</p>
+              <ul className="list-disc list-inside space-y-2">
+                <li>All submitted information must be accurate and truthful.</li>
+                <li>You agree to comply with platform rules and employment standards.</li>
+                <li>Misuse of the platform may result in account suspension or termination.</li>
+                <li>You consent to the processing of your data for verification and operational purposes.</li>
+                <li>Digital Tumana reserves the right to update these terms at any time.</li>
+              </ul>
+            </div>
+            <button onClick={() => setShowTermsModal(false)} className="mt-6 px-4 py-2 bg-sky-700 text-white rounded hover:bg-sky-800">
+              Close
             </button>
           </div>
         </div>

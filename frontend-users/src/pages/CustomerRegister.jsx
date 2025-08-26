@@ -28,6 +28,7 @@ const CustomerRegister = () => {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
 
   const navigate = useNavigate();
 
@@ -113,11 +114,12 @@ const CustomerRegister = () => {
 
   return (
     <div className="min-h-screen bg-orange-50 flex items-center justify-center px-4 relative">
+      
       <form
         onSubmit={handleSubmit}
         className="bg-white w-full max-w-2xl rounded-lg p-6 shadow-xl border border-orange-300"
       >
-        <h2 className="text-2xl font-bold text-orange-700 mb-4 text-center">Customer Verification</h2>
+        <h2 className="text-2xl font-bold text-lime-900 mb-4 text-center">Customer Verification</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input name="fullName" placeholder="Full Name" required value={formData.fullName} onChange={handleChange} className={inputClass} />
@@ -132,23 +134,23 @@ const CustomerRegister = () => {
         </div>
 
         <hr className="my-4" />
-        <label className="text-sm font-semibold text-orange-700 block mb-1">Location:</label>
+        <label className="text-sm font-semibold text-lime-900 block mb-1">Location:</label>
         <div className="grid grid-cols-2 gap-4 mb-2">
-          <input name="latitude" value={formData.latitude} readOnly className="input bg-orange-100 cursor-pointer" placeholder="Latitude" />
-          <input name="longitude" value={formData.longitude} readOnly className="input bg-orange-100 cursor-pointer" placeholder="Longitude" />
+          <input name="latitude" value={formData.latitude} readOnly className="input bg-lime-100 cursor-pointer p-2 rounded-sm" placeholder="Latitude" />
+          <input name="longitude" value={formData.longitude} readOnly className="input bg-lime-100 cursor-pointer p-2 rounded-sm" placeholder="Longitude" />
         </div>
 
         <button type="button" onClick={handleLocation} className={buttonClass + " mb-4"}>
           Get My Location
         </button>
 
-        <select name="idType" required value={formData.idType} onChange={handleChange} className={inputClass + " mb-4"}>
+        <select name="idType" required value={formData.idType} onChange={handleChange} className={inputClass + " mb-4 ml-5 border p-2.5 rounded-sm "}>
           <option value="">Select ID Type</option>
           {idTypes.map((type) => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
-        
+
         <label className="block mb-4 cursor-pointer border p-1 rounded-md">
           Upload Valid ID:{" "}
           <input type="file" name="idImage" onChange={handleChange} required className="cursor-pointer" />
@@ -156,7 +158,7 @@ const CustomerRegister = () => {
 
         <label className="flex items-center mt-2 mb-4 cursor-pointer">
           <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
-          I agree to the Customer Policy
+          <span onClick={() => setShowPolicyModal(true)} className="text-lime-700 underline">I agree to the Customer Policy</span>
         </label>
 
         {error && <p className="text-red-600 text-sm mb-3 text-center">{error}</p>}
@@ -173,6 +175,14 @@ const CustomerRegister = () => {
         >
           {isSubmitting ? "Submitting..." : "Submit Verification"}
         </button>
+        <button
+          type="button"
+          onClick={() => navigate('/marketplace')}
+          className="w-full py-2 mt-2 rounded transition bg-red-600 text-white hover:bg-red-500/75 hover:text-white cursor-pointer"
+        >
+          Cancel
+        </button>
+
       </form>
 
       {showSuccessModal && (
@@ -187,6 +197,37 @@ const CustomerRegister = () => {
               className={buttonClass + " w-full"}
             >
               Return to Marketplace
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showPolicyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-bold text-orange-700 mb-4">Customer Privacy & Compliance Policy</h2>
+            <div className="text-gray-700 space-y-4">
+              <p>
+                This policy outlines the responsibilities and requirements for customers registering on our platform, especially in relation to the handling of fresh produce and agricultural goods.
+              </p>
+              <p>
+                <strong>Identity Verification:</strong> All customers must provide valid personal information and a government-issued ID to verify identity. This helps prevent fraud and ensures accountability.
+              </p>
+              <p>
+                <strong>Order Compliance:</strong> Customers must honor all placed orders, be available for delivery or pickup, and understand that non-compliance may result in cancellation or account suspension.
+              </p>
+              <p>
+                <strong>Data Protection:</strong> Customer data is securely stored and never shared with third parties except as required by law or to fulfill orders.
+              </p>
+              <p>
+                <strong>Policy Updates:</strong> This policy may be updated periodically. Customers will be notified via email or platform notifications.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPolicyModal(false)}
+              className="mt-6 px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-600/75 hover:text-sky-900 cursor-pointer"
+            >
+              Close
             </button>
           </div>
         </div>

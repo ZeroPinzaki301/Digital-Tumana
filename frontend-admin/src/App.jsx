@@ -39,7 +39,7 @@ const AppRoutes = () => {
     <AdminLayout>
       <Routes>
 
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/" element={<AdminDashboard />} />
         <Route path="/admin-affiliation-requests" element={<AdminAffiliationRequests />} />
         <Route path="/admin-seller-requests" element={<AdminSellerRequests />} />
         <Route path="/admin-worker-requests" element={<AdminWorkerRequests />} />

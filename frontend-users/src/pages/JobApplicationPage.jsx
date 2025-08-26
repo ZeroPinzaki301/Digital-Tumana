@@ -10,20 +10,19 @@ const JobApplicationPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [alreadyApplied, setAlreadyApplied] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchJobDetailsAndCheck = async () => {
       try {
         const token = localStorage.getItem("token");
 
-        // Fetch job details
         const jobRes = await axiosInstance.get(`/api/jobs/${jobId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const jobData = jobRes.data.job;
         setJob(jobData);
 
-        // Check if user already applied
         const checkRes = await axiosInstance.get(`/api/job-applications/check`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -59,7 +58,7 @@ const JobApplicationPage = () => {
       );
 
       setFeedback(res.data.message || "Application submitted successfully");
-      setTimeout(() => navigate("/dashboard"), 2000);
+      setShowModal(true); // Show modal instead of redirecting
     } catch (err) {
       const msg = err.response?.data?.message || "Failed to apply for job";
       setFeedback(msg);
@@ -77,7 +76,13 @@ const JobApplicationPage = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10 bg-white shadow-md rounded-lg">
+    <div className="max-w-3xl mx-auto px-6 py-10 bg-white shadow-md rounded-lg relative">
+      <button
+        onClick={() => navigate(`/jobs/${jobId}`)}
+        className="mb-6 py-2 px-4 bg-sky-900 text-white rounded-lg hover:bg-sky-800 transition"
+      >
+        ⬅ Back to Job details
+      </button>
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">Apply to Job</h2>
 
       {job ? (
@@ -124,7 +129,7 @@ const JobApplicationPage = () => {
           : "Confirm Application"}
       </button>
 
-      {feedback && (
+      {feedback && !showModal && (
         <div
           className={`mt-6 p-4 rounded-md text-sm ${
             feedback.includes("successfully")
@@ -133,6 +138,31 @@ const JobApplicationPage = () => {
           }`}
         >
           {feedback}
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
+            <h3 className="text-xl font-semibold text-green-700 mb-4">
+              You have successfully applied for this job!
+            </h3>
+            <div className="flex justify-center gap-4 mt-6">
+              <button
+                onClick={() => navigate("/jobs/job-application/pending")}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+              >
+                View Pending Jobs
+              </button>
+              <button
+                onClick={() => navigate("/services")}
+                className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+              >
+                Go to Services
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

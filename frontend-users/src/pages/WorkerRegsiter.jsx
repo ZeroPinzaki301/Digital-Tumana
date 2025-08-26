@@ -13,6 +13,7 @@ const WorkerRegister = () => {
     birthdate: "",
     nationality: "",
     agreedToPolicy: false,
+    agreedToTerms: false,
     validId: null,
     resumeFile: null,
   });
@@ -21,6 +22,8 @@ const WorkerRegister = () => {
   const [message, setMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,8 +54,8 @@ const WorkerRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.agreedToPolicy) {
-      return setError("You must agree to the policy before submitting.");
+    if (!formData.agreedToPolicy || !formData.agreedToTerms) {
+      return setError("You must agree to the Worker Policy and Terms and Conditions before submitting.");
     }
 
     setIsSubmitting(true);
@@ -85,7 +88,6 @@ const WorkerRegister = () => {
 
   return (
     <div className="min-h-screen bg-bg-50 flex flex-col items-center justify-center px-4 py-6">
-      {/* Back Button */}
       <div className="w-full max-w-lg mb-4">
         <button
           onClick={() => navigate("/account")}
@@ -95,7 +97,6 @@ const WorkerRegister = () => {
         </button>
       </div>
 
-      {/* Registration Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white max-w-lg w-full rounded-lg p-6 shadow-md border border-lime-700"
@@ -120,29 +121,24 @@ const WorkerRegister = () => {
         <hr className="my-4" />
 
         <div className="space-y-4">
-          {[
-            { name: "validId", label: "Upload Valid ID", required: true },
-            { name: "resumeFile", label: "Upload Resume (Optional)", required: false },
-          ].map(({ name, label, required }) => (
+          {[{ name: "validId", label: "Upload Valid ID", required: true }, { name: "resumeFile", label: "Upload Resume (Optional)", required: false }].map(({ name, label, required }) => (
             <div key={name}>
               <label htmlFor={name} className="block w-full text-center py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-500/75 cursor-pointer transition">
                 {label}
               </label>
-              <input
-                type="file"
-                name={name}
-                id={name}
-                onChange={handleChange}
-                className="hidden"
-                required={required}
-              />
+              <input type="file" name={name} id={name} onChange={handleChange} className="hidden" required={required} />
               <p className="text-sm text-gray-600 mt-1 text-center italic">{getFileName(formData[name])}</p>
             </div>
           ))}
 
           <label className="flex items-center mt-2 cursor-pointer">
             <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
-            I agree to the Worker Policy
+            <span onClick={() => setShowPolicyModal(true)} className="text-sky-700 underline">I agree to the Worker Policy</span>
+          </label>
+
+          <label className="flex items-center mt-2 cursor-pointer">
+            <input type="checkbox" name="agreedToTerms" checked={formData.agreedToTerms} onChange={handleChange} className="mr-2 cursor-pointer" />
+            <span onClick={() => setShowTermsModal(true)} className="text-sky-700 underline">I agree to the Terms and Conditions</span>
           </label>
         </div>
 
@@ -160,6 +156,7 @@ const WorkerRegister = () => {
         </button>
       </form>
 
+      {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white w-full max-w-sm mx-auto rounded-lg p-6 shadow-lg relative text-center border border-lime-700">
@@ -169,6 +166,48 @@ const WorkerRegister = () => {
             </p>
             <button onClick={() => navigate("/account")} className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer">
               Back to Profile
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Worker Policy Modal */}
+      {showPolicyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-bold text-sky-700 mb-4">Worker Policy</h2>
+            <div className="text-gray-700 space-y-4">
+              <p>This policy outlines the responsibilities and expectations for individuals registering as workers on our platform.</p>
+              <p><strong>Identity Verification:</strong> All workers must submit valid personal information and a government-issued ID.</p>
+              <p><strong>Document Requirements:</strong> Workers must upload a valid ID and may optionally submit a resume.</p>
+              <p><strong>Compliance:</strong> Workers are expected to adhere to platform guidelines and fulfill assigned tasks reliably.</p>
+              <p><strong>Data Protection:</strong> All submitted information is securely stored and used only for verification and operational purposes.</p>
+              <p><strong>Policy Updates:</strong> This policy may be updated periodically. Workers will be notified of changes.</p>
+            </div>
+            <button onClick={() => setShowPolicyModal(false)} className="mt-6 px-4 py-2 bg-sky-700 text-white rounded hover:bg-sky-800">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Terms and Conditions Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-bold text-sky-700 mb-4">Terms and Conditions</h2>
+            <div className="text-gray-700 space-y-4">
+              <p>By registering as a worker, you agree to the following terms and conditions:</p>
+              <ul className="list-disc list-inside space-y-2">
+                <li>You confirm that all information provided is accurate and truthful.</li>
+                <li>You agree to comply with all platform rules and regulations.</li>
+                <li>You understand that failure to meet work expectations may result in account suspension or termination.</li>
+                <li>You consent to the processing of your personal data for verification and employment purposes.</li>
+                <li>You acknowledge that this platform reserves the right to update policies and terms at any time.</li>
+              </ul>
+            </div>
+            <button onClick={() => setShowTermsModal(false)} className="mt-6 px-4 py-2 bg-sky-700 text-white rounded hover:bg-sky-800">
+              Close
             </button>
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../utils/axiosInstance';
 import { useNavigate } from 'react-router-dom';
@@ -22,25 +21,28 @@ const OngoingOrdersPage = () => {
         setLoading(false);
       }
     };
-
     fetchOrders();
   }, []);
 
-  if (loading) return <div className="text-center py-10 text-gray-500">Loading orders...</div>;
-
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-lime-50 p-6">
       <button
         onClick={() => navigate("/marketplace")}
         className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
       >
         ⬅ Back to Marketplace
       </button>
-      <h2 className="text-3xl font-semibold mb-4 text-lime-900 text-center">Your Ongoing Orders</h2>
-      {orders.length === 0 ? (
-        <p className="text-gray-500">You have no ongoing orders.</p>
+
+      <h2 className="text-2xl md:text-3xl font-bold text-lime-900 mb-6 text-center">
+        Your Ongoing Orders
+      </h2>
+
+      {loading ? (
+        <p className="text-center text-gray-600">Loading orders...</p>
+      ) : orders.length === 0 ? (
+        <p className="text-center text-gray-600">You have no ongoing orders.</p>
       ) : (
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {orders.map(order => (
             <OrderCard key={order._id} order={order} />
           ))}
@@ -54,45 +56,44 @@ const OrderCard = ({ order }) => {
   const { sellerId, items, status, totalPrice } = order;
 
   return (
-    
-    <div className="border rounded-lg shadow-sm p-4 bg-white">
-      
-      <div>
-        <div className="flex items-center gap-4 mb-4">
-          <img
-            src={sellerId.storePicture || '/default-store.png'}
-            alt="Store"
-            className="w-12 h-12 rounded-full object-cover"
-          />
-          <div>
-            <h3 className="text-lg font-medium">{sellerId.storeName}</h3>
-            <p className="text-sm text-gray-500">{sellerId.email}</p>
-          </div>
+    <div className="bg-white p-4 rounded-lg shadow-md border border-lime-300">
+      {/* Seller Info */}
+      <div className="flex items-center gap-4 mb-4">
+        <img
+          src={sellerId.storePicture || '/default-store.png'}
+          alt={sellerId.storeName}
+          className="h-16 w-16 rounded-full object-cover border border-lime-200"
+        />
+        <div>
+          <h3 className="text-lg font-semibold text-lime-800">{sellerId.storeName}</h3>
+          <p className="text-sm text-gray-600">{sellerId.email}</p>
         </div>
+      </div>
 
-        <div className="space-y-3">
-          {items.map(item => (
-            <div key={item._id} className="flex items-center gap-4">
-              <img
-                src={item.productId?.productImage || '/default-product.png'}
-                alt={item.productId?.productName || 'Product'}
-                className="w-14 h-14 rounded-md object-cover"
-              />
-              <div>
-                <p className="font-medium">{item.productId?.productName || 'Unnamed Product'}</p>
-                <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                <p className="text-sm text-gray-600">₱{item.priceAtOrder.toFixed(2)}</p>
-              </div>
+      {/* Items List */}
+      <div className="space-y-3">
+        {items.map(item => (
+          <div key={item._id} className="flex items-center gap-4">
+            <img
+              src={item.productId?.productImage || '/default-product.png'}
+              alt={item.productId?.productName || 'Product'}
+              className="h-20 w-20 object-cover rounded border border-lime-200"
+            />
+            <div>
+              <p className="font-semibold text-lime-800">{item.productId?.productName || 'Unnamed Product'}</p>
+              <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+              <p className="text-sm text-gray-600">₱{item.priceAtOrder.toFixed(2)}</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+      </div>
 
-        <div className="flex justify-between items-center mt-4 pt-4 border-t">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(status)}`}>
-            {status}
-          </span>
-          <span className="text-lg font-semibold text-gray-800">₱{totalPrice.toFixed(2)}</span>
-        </div>
+      {/* Status & Total */}
+      <div className="flex justify-between items-center mt-4 pt-4 border-t">
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(status)}`}>
+          {status}
+        </span>
+        <span className="text-lg font-bold text-lime-900">₱{totalPrice.toFixed(2)}</span>
       </div>
     </div>
   );
