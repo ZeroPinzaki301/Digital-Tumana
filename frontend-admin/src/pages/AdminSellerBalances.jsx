@@ -120,10 +120,10 @@ const AdminSellerBalances = () => {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="grid grid-cols-12 bg-gray-100 p-4 font-semibold text-gray-700">
             <div className="col-span-2">Bank Number</div>
-            <div className="col-span-2">Seller ID</div>
+            <div className="col-span-3">Seller ID</div>
             <div className="col-span-3">Name</div>
             <div className="col-span-3">Email</div>
-            <div className="col-span-2">Balance</div>
+            <div className="col-span-1">Balance</div>
           </div>
 
           {filteredBalances.map(balance => {
@@ -138,10 +138,10 @@ const AdminSellerBalances = () => {
                 onClick={() => navigate(`/admin/seller-withdrawal/${seller._id}`)}
               >
                 <div className="col-span-2 text-gray-800">{balance.bankNumber}</div>
-                <div className="col-span-2 text-blue-600 font-medium break-words">{seller?.userId}</div>
+                <div className="col-span-3 text-blue-600 font-medium break-words">{seller?.userId}</div>
                 <div className="col-span-3 text-gray-800 break-words">{fullName}</div>
                 <div className="col-span-3 text-gray-600 break-words">{seller?.email}</div>
-                <div className="col-span-2 text-green-700 font-semibold">₱{balance.currentBalance.toFixed(2)}</div>
+                <div className="col-span-1 text-green-700 font-semibold">₱{balance.currentBalance.toFixed(2)}</div>
               </div>
             );
           })}

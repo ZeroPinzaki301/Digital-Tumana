@@ -37,10 +37,10 @@ const WorkerJobHistory = () => {
       {/* Back Button */}
       <div className="flex justify-start mb-4">
         <button
-          onClick={() => navigate('/services')}
+          onClick={() => navigate(-1)}
           className="px-4 py-2 bg-white border border-sky-700 rounded-md shadow hover:bg-sky-100 cursor-pointer text-sky-800 font-medium transition"
         >
-          ← Back to Services
+          ← Back
         </button>
       </div>
 

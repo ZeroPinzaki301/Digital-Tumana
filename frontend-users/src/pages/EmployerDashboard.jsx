@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
-import { FaUserCircle, FaCheck, FaTimes } from "react-icons/fa";
+import { FaUserCircle, FaCheck, FaTimes, FaEdit, FaBell } from "react-icons/fa";
 
 const EmployerDashboard = () => {
   const [employer, setEmployer] = useState(null);
@@ -9,10 +9,11 @@ const EmployerDashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [hasPendingApplications, setHasPendingApplications] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  const buttonBase = "py-2 px-2 bg-lime-600 text-white rounded-lg hover:bg-lime-600/75 hover:text-sky-900 transition cursor-pointer";
+  const buttonBase = "relative p-4 bg-white border border-lime-100 rounded-xl shadow hover:shadow-md transition-all duration-300 cursor-pointer hover:-translate-y-0.5 group";
 
   useEffect(() => {
     const fetchEmployer = async () => {
@@ -30,16 +31,25 @@ const EmployerDashboard = () => {
         setEmployer(res.data.employer);
         setStatusCode(null);
       } catch (err) {
-        const code = err.response?.status;
-        setStatusCode(code || 500);
+        setStatusCode(err.response?.status || 500);
       }
     };
+
+    const checkPendingApplications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axiosInstance.get("/api/employer/jobs/applications/requests", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setHasPendingApplications(res.data.applications?.length > 0);
+      } catch {}
+    };
+
     fetchEmployer();
+    checkPendingApplications();
   }, []);
 
-  const handleProfileClick = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
-  };
+  const handleProfileClick = () => fileInputRef.current?.click();
 
   const handlePictureUpload = async (e) => {
     const file = e.target.files[0];
@@ -63,10 +73,10 @@ const EmployerDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
         params: { t: Date.now() },
       });
+
       setEmployer(refreshed.data.employer);
       setUploadStatus("success");
-    } catch (err) {
-      console.error("Upload error:", err);
+    } catch {
       setUploadStatus("error");
     } finally {
       setUploading(false);
@@ -76,10 +86,10 @@ const EmployerDashboard = () => {
 
   const renderStatusPage = (title, message, buttonText, buttonAction, bgColor, textColor) => (
     <div className={`min-h-screen ${bgColor} flex items-center justify-center px-4`}>
-      <div className="bg-white p-6 shadow-lg max-w-sm text-center">
-        <h2 className={`text-xl font-bold ${textColor} mb-2`}>{title}</h2>
-        <p className="text-gray-700">{message}</p>
-        <button onClick={buttonAction} className={buttonBase + " mt-4 w-full"}>
+      <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+        <h2 className={`text-2xl font-bold ${textColor} mb-4`}>{title}</h2>
+        <p className="text-gray-700 mb-6">{message}</p>
+        <button onClick={buttonAction} className="w-full py-3 bg-lime-600 text-white rounded-xl hover:bg-lime-500 transition-all duration-300">
           {buttonText}
         </button>
       </div>
@@ -108,7 +118,7 @@ const EmployerDashboard = () => {
   if (statusCode === 404) {
     return renderStatusPage(
       "Employer Profile Not Found",
-      "You haven’t registered yet. Submit your employer application to begin.",
+      "You haven't registered yet. Submit your employer application to begin.",
       "Go to Registration",
       () => navigate("/employer-registration"),
       "bg-orange-100",
@@ -130,99 +140,107 @@ const EmployerDashboard = () => {
   if (!employer && !statusCode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-emerald-100 text-sky-900 text-lg">
-        Loading employer dashboard...
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-16 h-16 bg-lime-600 rounded-full mb-4"></div>
+          <p>Loading employer dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-emerald-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-sky-50 flex items-center justify-center p-4 md:p-8">
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h3 className="text-xl font-bold text-sky-900 mb-4">Edit Profile</h3>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Change Profile Picture</label>
-              <button onClick={handleProfileClick} className={buttonBase + " w-full"}>
-                Change Picture
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full">
+            <h3 className="text-2xl font-bold text-sky-900 mb-6 text-center">Edit Profile</h3>
+            <div className="mb-6">
+              <label className="block text-gray-700 mb-3 text-lg font-medium">Change Profile Picture</label>
+              <button onClick={handleProfileClick} className="w-full py-3 bg-lime-600 text-white rounded-xl hover:bg-lime-500 flex justify-center items-center gap-2">
+                <FaEdit /> Change Picture
               </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handlePictureUpload}
-                className="hidden"
-                accept="image/*"
-              />
-              {uploading && <p className="text-sm text-gray-500 mt-2 text-center">Uploading picture...</p>}
+              <input type="file" ref={fileInputRef} onChange={handlePictureUpload} className="hidden" accept="image/*" />
+              {uploading && (
+                <div className="mt-4 flex items-center justify-center">
+                  <div className="w-6 h-6 border-t-2 border-lime-600 border-solid rounded-full animate-spin"></div>
+                  <p className="ml-2 text-gray-600">Uploading picture...</p>
+                </div>
+              )}
               {uploadStatus === "success" && (
-                <div className="flex items-center justify-center mt-2 text-lime-600">
-                  <FaCheck className="mr-1" /> Picture uploaded successfully!
+                <div className="flex items-center justify-center mt-4 text-lime-600 bg-lime-50 p-3 rounded-lg animate-pulse">
+                  <FaCheck className="mr-2" /> Picture uploaded successfully!
                 </div>
               )}
               {uploadStatus === "error" && (
-                <div className="flex items-center justify-center mt-2 text-red-600">
-                  <FaTimes className="mr-1" /> Upload failed. Please try again.
+                <div className="flex items-center justify-center mt-4 text-red-600 bg-red-50 p-3 rounded-lg">
+                  <FaTimes className="mr-2" /> Upload failed. Please try again.
                 </div>
               )}
             </div>
-
-            <button onClick={() => setShowEditModal(false)} className="w-full py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition cursor-pointer">
-              Close
-            </button>
+            <button onClick={() => setShowEditModal(false)} className="w-full py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300">Close</button>
           </div>
         </div>
       )}
 
-      <div className="bg-white max-w-5xl w-full p-6 shadow-xl flex flex-col md:flex-row gap-6">
-        {/* Profile Section */}
-        <div className="md:w-[60%] w-full text-center bg-sky-50 p-4 relative">
-          <button onClick={() => setShowEditModal(true)} className={buttonBase + " absolute top-4 right-4 px-3 py-1"}>
-            Edit
+      {/* Main Layout */}
+      <div className="bg-white max-w-6xl w-full p-8 rounded-3xl shadow-2xl flex flex-col md:flex-row gap-8">
+        {/* Profile */}
+        <div className="md:w-[60%] w-full text-center bg-gradient-to-b from-sky-50 to-emerald-50 p-6 rounded-2xl relative border border-sky-100 shadow-md">
+          <button onClick={() => setShowEditModal(true)} className="absolute top-5 right-5 bg-lime-600 text-white p-3 rounded-full hover:bg-lime-500 hover:rotate-12">
+            <FaEdit />
           </button>
-
-          <div>
+          <div className="relative inline-block mb-6">
             {employer.profilePicture === "default-profile.png" ? (
-              <FaUserCircle className="w-32 h-32 mx-auto text-gray-500 mb-4 border-2 border-sky-900 rounded-full" />
+              <FaUserCircle className="w-36 h-36 mx-auto text-gray-400 border-4 border-sky-200 rounded-full p-2 shadow-inner" />
             ) : (
-              <img
-                src={employer.profilePicture}
-                alt="Profile"
-                className="w-32 h-32 mx-auto rounded-full object-cover border-2 border-sky-900 mb-4"
-              />
+              <img src={employer.profilePicture} alt="Profile" className="w-36 h-36 mx-auto rounded-full object-cover border-4 border-sky-200 shadow-inner" />
             )}
+            <div className="absolute bottom-4 right-4 w-6 h-6 bg-lime-500 rounded-full border-2 border-white"></div>
           </div>
 
-          <h2 className="text-2xl font-bold text-sky-900 mb-2">{employer.companyName}</h2>
-          <p className="text-sm text-gray-600 mb-6">{employer.email}</p>
+          <h2 className="text-3xl font-bold text-sky-900">{employer.companyName}</h2>
+          <p className="text-gray-600 font-medium mb-6">{employer.email}</p>
 
-          <div className="text-left text-sm space-y-2 text-gray-700">
+          <div className="text-left text-sm space-y-3 text-gray-700 bg-white p-5 rounded-xl shadow">
             <p><strong>Contact Person:</strong> {employer.firstName} {employer.middleName} {employer.lastName}</p>
             <p><strong>Sex:</strong> {employer.sex}</p>
             <p><strong>Age:</strong> {employer.age}</p>
             <p><strong>Birthdate:</strong> {new Date(employer.birthdate).toLocaleDateString()}</p>
             <p><strong>Nationality:</strong> {employer.nationality}</p>
-            <p><strong>Status:</strong> {employer.status}</p>
+            <p><strong>Status:</strong> <span className="text-lime-600 font-medium">{employer.status}</span></p>
           </div>
 
-          <button onClick={() => navigate("/account")} className={buttonBase + " mt-6 w-full"}>
+          <button onClick={() => navigate("/account")} className="w-full cursor-pointer mt-8 py-3 bg-gradient-to-r from-lime-600 to-lime-500 text-white rounded-xl hover:from-lime-500 hover:to-lime-400">
             Back to Account
           </button>
         </div>
 
-        {/* Quick Access Section */}
-        <div className="md:w-[40%] w-full bg-emerald-50 p-4">
-          <h3 className="text-xl font-semibold text-sky-900 mb-4 text-center">Quick Access</h3>
-          <div className="grid grid-cols-2 gap-4">
+        {/* Quick Access */}
+        <div className="md:w-[40%] w-full bg-gradient-to-b from-emerald-50 to-sky-50 p-6 rounded-2xl border border-emerald-100 shadow-md">
+          <h3 className="text-2xl font-semibold text-sky-900 mb-6 text-center border-b pb-3">Quick Access</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { label: "My Address", path: "/employer-address" },
-              { label: "Job Postings", path: "/employer-jobs" },
-              { label: "Pending Applications", path: "/employer/job-applications/pending" },
-              { label: "Ongoing Workers", path: "/employer/jobs/ongoing" },
-            ].map(({ label, path }) => (
-              <button key={label} onClick={() => navigate(path)} className={buttonBase}>
-                {label}
+              { label: "My Address", path: "/employer-address", desc: "Manage your address info" },
+              { label: "Job Postings", path: "/employer-jobs", desc: "Create or update jobs" },
+              { label: "Pending Applications", path: "/employer/job-applications/pending", desc: "Review job applications", badge: hasPendingApplications },
+              { label: "Ongoing Workers", path: "/employer/jobs/ongoing", desc: "View ongoing contracts" },
+            ].map(({ label, path, badge, desc }) => (
+              <button
+                key={label}
+                onClick={() => navigate(path)}
+                className={`${buttonBase}`}
+              >
+                <div className="text-sky-800 font-semibold text-md">{label}</div>
+                <div className="text-xs text-gray-500 mt-1 group-hover:text-gray-700">{desc}</div>
+                {badge && (
+                  <span className="absolute top-2 right-2 flex h-5 w-5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-5 w-5 bg-red-500 justify-center items-center text-xs text-white">
+                      <FaBell />
+                    </span>
+                  </span>
+                )}
               </button>
             ))}
           </div>

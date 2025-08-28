@@ -70,7 +70,7 @@ const ViewPortfolio = () => {
         <div className="top-4 left-4 mb-2">
           <button
             onClick={() => navigate("/worker-dashboard")}
-            className="py-2 px-4 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+            className="py-2 cursor-pointer px-4 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
           >
             ← Back to Dashboard
           </button>
@@ -83,9 +83,9 @@ const ViewPortfolio = () => {
         <div className="absolute top-20 right-4">
           <button
             onClick={() => navigate("/worker/portfolio/edit")}
-            className="py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            className="py-2 cursor-pointer px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
-            ✏️ Edit Portfolio
+            Edit Portfolio
           </button>
         </div>
 

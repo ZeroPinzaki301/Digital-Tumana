@@ -33,7 +33,7 @@ const SellerProducts = () => {
           <p className="text-gray-700 mb-4">You haven’t added any products yet.</p>
           <button
             onClick={() => navigate("/seller-add-product")}
-            className="w-full py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition"
+            className="w-full py-2 cursor-pointer bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition"
           >
             Add Product
           </button>

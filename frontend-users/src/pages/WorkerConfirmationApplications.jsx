@@ -37,7 +37,7 @@ const WorkerConfirmationApplications = () => {
       {/* Back Button */}
       <div className="flex justify-start mb-4">
         <button
-          onClick={() => navigate('/services')}
+          onClick={() => navigate(-1)}
           className="px-4 py-2 bg-white border border-sky-800 cursor-pointer hover:bg-sky-100 text-gray-700 font-medium rounded-lg shadow transition"
         >
           ← Back

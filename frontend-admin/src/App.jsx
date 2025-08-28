@@ -27,6 +27,8 @@ import AdminSellerBalances from "./pages/AdminSellerBalances";
 import AdminPendingWithdrawal from "./pages/AdminPendingWithdrawal";
 import AdminTesdaEnrollments from "./pages/AdminTesdaEnrollments";
 import AdminTesdaEnrollmentDetail from "./pages/AdminTesdaEnrollmentDetail";
+import AdminUserManagement from "./pages/AdminUserManagement";
+import AdminFeedbackManagement from "./pages/AdminFeedbackManagement";
 
 import "./App.css";
 
@@ -41,7 +43,9 @@ const AppRoutes = () => {
 
         <Route path="/" element={<AdminDashboard />} />
         <Route path="/admin-affiliation-requests" element={<AdminAffiliationRequests />} />
+        <Route path="/admin-user-feedbacks" element={<AdminFeedbackManagement />} />
         <Route path="/admin-seller-requests" element={<AdminSellerRequests />} />
+        <Route path="/admin-user-management" element={<AdminUserManagement />} />
         <Route path="/admin-worker-requests" element={<AdminWorkerRequests />} />
         <Route path="/admin-employer-requests" element={<AdminEmployerRequests />} />
         <Route path="/admin-customer-verifications" element={<AdminCustomerRequests />} />

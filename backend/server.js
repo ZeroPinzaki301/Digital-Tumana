@@ -26,6 +26,8 @@ import employerJobRoutes from "./routes/EmployerJob.route.js"
 import jobsAndServicesRoutes from "./routes/JobsAndServices.route.js"
 import workerPortfolioRoutes from "./routes/WorkerPortfolio.route.js"
 import jobApplicationRoutes from "./routes/JobApplication.route.js"
+import adminUserManagementRoutes from "./routes/AdminUserManagement.route.js"
+import feedbackRoutes from "./routes/Feedback.route.js"
 
 dotenv.config();
 
@@ -40,6 +42,7 @@ connectDB();
 
 app.use("/api/users", userRoutes);
 app.use("/api/admins", adminRoutes);
+app.use("/api/admin/user-management", adminUserManagementRoutes);
 app.use("/api/sellers", sellerRoutes)
 app.use("/api/workers", workerRoutes);
 app.use("/api/employers", employerRoutes);
@@ -62,6 +65,7 @@ app.use("/api/employer/jobs", employerJobRoutes);
 app.use("/api/jobs", jobsAndServicesRoutes);
 app.use("/api/worker/portfolio", workerPortfolioRoutes);
 app.use("/api/job-applications", jobApplicationRoutes)
+app.use("/api/feedbacks", feedbackRoutes);
 
 
 

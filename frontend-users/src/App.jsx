@@ -67,6 +67,7 @@ import RiderDeliveryRequests from "./kariton service/RiderDeliveryRequests";
 import RiderDeliveryDetails from "./kariton service/RiderDeliveryDetail";
 import RiderDeliveryHistory from "./kariton service/RiderDeliveryHistory";
 import SellerOrderHistory from "./pages/SellerOrderHistory";
+import FeedbackForm from "./pages/FeedbackForm";
 
 import "./App.css";
 
@@ -97,6 +98,7 @@ function AppContent() {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/feedback" element={<FeedbackForm />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-reset" element={<VerifyReset />} />
           <Route path="/reset-password" element={<ResetPassword />} />
