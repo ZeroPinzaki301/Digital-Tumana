@@ -1,6 +1,8 @@
-import express, { application } from "express";
+import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import connectDB from "./config/db.js"; 
 import userRoutes from "./routes/User.route.js";
 import adminRoutes from "./routes/Admin.route.js"
@@ -29,17 +31,42 @@ import jobApplicationRoutes from "./routes/JobApplication.route.js"
 import adminUserManagementRoutes from "./routes/AdminUserManagement.route.js"
 import feedbackRoutes from "./routes/Feedback.route.js"
 
+// ES module equivalents of __filename and __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+
+// CORS configuration for production and development
+const allowedOrigins = [
+  'https://your-main-frontend.netlify.app',
+  'https://your-second-frontend.netlify.app',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
 
 // Connect to database
 connectDB();
 
-
+// API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/admins", adminRoutes);
 app.use("/api/admin/user-management", adminUserManagementRoutes);
@@ -67,7 +94,41 @@ app.use("/api/worker/portfolio", workerPortfolioRoutes);
 app.use("/api/job-applications", jobApplicationRoutes)
 app.use("/api/feedbacks", feedbackRoutes);
 
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    message: 'Server is running!', 
+    timestamp: new Date().toISOString()
+  });
+});
 
+// Serve static files in production (if needed)
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/dist')));
+  
+  // Handle SPA routing in production
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  });
+}
+
+// Global error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    message: 'Something went wrong!', 
+    error: process.env.NODE_ENV === 'production' ? {} : err 
+  });
+});
+
+// 404 handler for undefined routes
+app.use('*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
