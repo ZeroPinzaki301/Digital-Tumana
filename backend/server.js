@@ -44,22 +44,22 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS configuration for production and development
 const allowedOrigins = [
-  'https://your-main-frontend.netlify.app',
-  'https://your-second-frontend.netlify.app',
+  'https://digitaltumana.netlify.app',
+  'https://tumanaadmin.netlify.app',
   'http://localhost:5173',
   'http://localhost:3000'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    if (!origin) return callback(null, true); // Allow non-browser requests
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.warn(`Blocked CORS request from: ${origin}`);
+      return callback(new Error('CORS policy does not allow access from this origin.'), false);
     }
-    return callback(null, true);
   },
   credentials: true
 }));
