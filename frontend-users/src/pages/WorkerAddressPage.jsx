@@ -38,7 +38,9 @@ const WorkerAddressPage = () => {
 
     try {
       const method = address ? "put" : "post";
-      await axiosInstance;
+      await axiosInstance[method]("/api/workers/address", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setIsEditing(false);
       navigate(0);
     } catch (err) {
