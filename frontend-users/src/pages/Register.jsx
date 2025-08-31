@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import digitalTumanaIcon from "../assets/digital-tumana-icon.png";
@@ -22,6 +21,14 @@ const Register = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
+  };
+
+  // Special handler for phone number to enforce numbers only and max length
+  const handlePhoneChange = (e) => {
+    const input = e.target.value.replace(/\D/g, ''); // Remove non-digit characters
+    if (input.length <= 11) { // Limit to 11 characters
+      setFormData({ ...formData, phoneNumber: input });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -98,14 +105,22 @@ const Register = () => {
               </button>
             </div>
 
+            {/* Phone Number Input with Validation */}
             <input
               type="text"
               name="phoneNumber"
-              placeholder="Phone Number"
-              onChange={handleChange}
+              placeholder="Phone Number (11 digits)"
+              value={formData.phoneNumber}
+              onChange={handlePhoneChange}
               required
+              maxLength={11}
+              pattern="[0-9]{11}"
               className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
             />
+            <p className="text-sm text-gray-600 -mt-2">
+              {formData.phoneNumber.length}/11 digits
+            </p>
+            
             <label className="flex items-center space-x-2 text-lg">
               <input
                 type="checkbox"
