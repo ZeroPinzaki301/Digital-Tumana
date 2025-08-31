@@ -10,6 +10,19 @@ import tumanaIcon from '../assets/digital-tumana-icon.png';
 const HomePage = () => {
   const navigate = useNavigate();
 
+  // Function to handle email click
+  const handleEmailClick = (email) => {
+    window.location.href = `mailto:${email}`;
+  };
+
+  // Function to handle location click
+  const handleLocationClick = () => {
+    const address = "42 General Alejo G. Santos Hwy, Angat, 3012 Bulacan";
+    const name = "ANGEL TOLITS INTEGRATED FARM SCHOOL,INC.";
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + address)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="text-white">
 
@@ -167,10 +180,24 @@ const HomePage = () => {
                 </li>
                 <li>
                   <strong>EMAIL:</strong><br />
-                  digitaltumana@gmail.com <br />
-                  digimana.sup.admn@gmail.com
+                  <span 
+                    className="cursor-pointer hover:text-lime-400 transition-colors"
+                    onClick={() => handleEmailClick("digitaltumana@gmail.com")}
+                  >
+                    digitaltumana@gmail.com
+                  </span>
+                  <br />
+                  <span 
+                    className="cursor-pointer hover:text-lime-400 transition-colors"
+                    onClick={() => handleEmailClick("digimana.sup.admn@gmail.com")}
+                  >
+                    digimana.sup.admn@gmail.com
+                  </span>
                 </li>
-                <li>
+                <li 
+                  className="cursor-pointer hover:text-lime-400 transition-colors"
+                  onClick={handleLocationClick}
+                >
                   <strong>LOCATION:</strong><br />
                   Angat, Bulacan Philippines
                 </li>
