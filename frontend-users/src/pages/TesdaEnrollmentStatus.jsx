@@ -12,6 +12,16 @@ const TesdaEnrollmentStatus = () => {
   const [bachelorLoading, setBachelorLoading] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
 
+  const handleEmailClick = (email) => {
+    window.location.href = `mailto:${email}`;
+  };
+
+  const handleLocationClick = () => {
+    // You can implement location opening logic here
+    // For example: window.open("https://maps.google.com/?q=Angat,Bulacan,Philippines", "_blank");
+    console.log("Location clicked");
+  };
+
   useEffect(() => {
     const fetchEnrollment = async () => {
       try {
@@ -94,7 +104,7 @@ const TesdaEnrollmentStatus = () => {
           <>
             <h2 className="text-2xl font-semibold text-lime-600 mb-4">Status: Eligible</h2>
             <p className="text-gray-700 text-lg">
-              Your documents have been verified. We’re preparing your slot.
+              Your documents have been verified. We're preparing your slot.
             </p>
           </>
         );
@@ -102,12 +112,40 @@ const TesdaEnrollmentStatus = () => {
         return (
           <>
             <h2 className="text-2xl font-semibold text-lime-600 mb-4">Status: Reserved</h2>
-            <div className="text-left text-gray-700 space-y-2">
-              <p><strong>Date:</strong> August 25, 2025</p>
-              <p><strong>Location:</strong> Tumana Community Center, Marikina</p>
-              <p><strong>Contact:</strong> 0917-123-4567</p>
-              <p><strong>Email:</strong> digitaltumana@gmail.com</p>
-              <p><strong>Facebook:</strong> fb.com/digitaltumana</p>
+            {/* Contact Info */}
+            <div className="w-full max-w-md">
+              <h1 className="text-xl md:text-3xl font-semibold mb-6 border-b-2 border-lime-500 pb-2 w-full">
+                Contact Us
+              </h1>
+              <ul className="space-y-4 text-base md:text-lg">
+                <li>
+                  <strong>PHONE NUMBER:</strong><br />
+                  0919-001-4825
+                </li>
+                <li>
+                  <strong>EMAIL:</strong><br />
+                  <span 
+                    className="cursor-pointer hover:text-lime-400 transition-colors"
+                    onClick={() => handleEmailClick("digitaltumana@gmail.com")}
+                  >
+                    digitaltumana@gmail.com
+                  </span>
+                  <br />
+                  <span 
+                    className="cursor-pointer hover:text-lime-400 transition-colors"
+                    onClick={() => handleEmailClick("digimana.sup.admn@gmail.com")}
+                  >
+                    digimana.sup.admn@gmail.com
+                  </span>
+                </li>
+                <li 
+                  className="cursor-pointer hover:text-lime-400 transition-colors"
+                  onClick={handleLocationClick}
+                >
+                  <strong>LOCATION:</strong><br />
+                  Angat, Bulacan Philippines
+                </li>
+              </ul>
             </div>
           </>
         );
@@ -182,7 +220,6 @@ const TesdaEnrollmentStatus = () => {
         return <p className="text-gray-700">Unknown status.</p>;
     }
   };
-
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading...</div>;
