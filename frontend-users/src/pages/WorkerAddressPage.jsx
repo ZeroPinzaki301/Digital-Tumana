@@ -38,7 +38,7 @@ const WorkerAddressPage = () => {
 
     try {
       const method = address ? "put" : "post";
-      await axiosInstancemethod;
+      await axiosInstance;
       setIsEditing(false);
       navigate(0);
     } catch (err) {
