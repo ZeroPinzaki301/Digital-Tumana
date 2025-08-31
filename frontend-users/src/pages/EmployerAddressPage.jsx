@@ -38,14 +38,15 @@ const EmployerAddressPage = () => {
 
     try {
       const method = address ? "put" : "post";
-      await axiosInstancemethod;
+      await axiosInstance[method]("/api/employers/address", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setIsEditing(false);
       navigate(0);
     } catch (err) {
       console.error("Failed to update address:", err);
     }
   };
-
   return (
     <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4 relative">
       <button
