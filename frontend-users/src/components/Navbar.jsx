@@ -70,6 +70,24 @@ const Navbar = () => {
     navigate("/login");
   };
 
+  // Function to handle logo click
+  const handleLogoClick = (e) => {
+    if (location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    // If not on home page, the Link component will handle navigation normally
+  };
+
+  // Function to handle Home link click
+  const handleHomeClick = (e) => {
+    if (location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    setMobileMenuOpen(false);
+  };
+
   const showProfileIcon =
     !user?.profilePicture ||
     user.profilePicture.includes("default-profile.png");
@@ -77,7 +95,11 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-lime-800 shadow-md px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between border-b-2 border-lime-200/25">
       {/* Logo */}
-      <Link to="/" className="flex items-center">
+      <Link 
+        to="/" 
+        className="flex items-center"
+        onClick={handleLogoClick}
+      >
         <img
           src={digitalTumanaIcon}
           alt="Digital Tumana"
@@ -98,7 +120,11 @@ const Navbar = () => {
 
       {/* Middle Links - Desktop */}
       <div className="hidden sm:flex text-white space-x-4 md:space-x-8 lg:space-x-12 tracking-[.45em]">
-        <Link to="/" className="font-medium text-sm md:text-base lg:text-lg hover:text-green-300">
+        <Link 
+          to="/" 
+          className="font-medium text-sm md:text-base lg:text-lg hover:text-green-300"
+          onClick={handleHomeClick}
+        >
           Home
         </Link>
         <Link to="/marketplace" className="font-medium text-sm md:text-base lg:text-lg hover:text-green-300">
@@ -179,7 +205,7 @@ const Navbar = () => {
             <Link
               to="/"
               className="font-medium text-white hover:text-green-300 py-2 border-b border-lime-700"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={handleHomeClick}
             >
               Home
             </Link>
