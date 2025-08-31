@@ -113,10 +113,7 @@ const TesdaEnrollmentStatus = () => {
           <>
             <h2 className="text-2xl font-semibold text-lime-600 mb-4">Status: Reserved</h2>
             {/* Contact Info */}
-            <div className="w-full max-w-md">
-              <h1 className="text-xl md:text-3xl font-semibold mb-6 border-b-2 border-lime-500 pb-2 w-full">
-                Contact Us
-              </h1>
+            <div className="w-full max-w-md mx-auto">
               <ul className="space-y-4 text-base md:text-lg">
                 <li>
                   <strong>PHONE NUMBER:</strong><br />
