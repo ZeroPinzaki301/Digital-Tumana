@@ -17,10 +17,12 @@ const TesdaEnrollmentStatus = () => {
   };
 
   const handleLocationClick = () => {
-    // You can implement location opening logic here
-    // For example: window.open("https://maps.google.com/?q=Angat,Bulacan,Philippines", "_blank");
-    console.log("Location clicked");
+    const address = "42 General Alejo G. Santos Hwy, Angat, 3012 Bulacan";
+    const name = "ANGEL TOLITS INTEGRATED FARM SCHOOL,INC.";
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + address)}`;
+    window.open(url, '_blank');
   };
+
 
   useEffect(() => {
     const fetchEnrollment = async () => {
