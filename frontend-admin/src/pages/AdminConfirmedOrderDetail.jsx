@@ -36,7 +36,7 @@ const AdminConfirmedOrderDetail = () => {
     if (!window.confirm(`Are you sure you want to mark this order as ${newStatus}?`)) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('adminToken');
       await axiosInstance.put(
         `/api/order-tracking/admin/orders/${orderId}/status`,
         { status: newStatus },
