@@ -176,7 +176,7 @@ const HomePage = () => {
               <ul className="space-y-4 text-base md:text-lg">
                 <li>
                   <strong>PHONE NUMBER:</strong><br />
-                  09212392342
+                  0919-001-4825
                 </li>
                 <li>
                   <strong>EMAIL:</strong><br />
