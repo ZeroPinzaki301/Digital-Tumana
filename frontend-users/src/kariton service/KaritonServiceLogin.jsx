@@ -38,6 +38,33 @@ const KaritonServiceLogin = () => {
 
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-center bg-white px-4 py-8">
+      <style>
+        {`
+          .login-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+            border: 1px solid #4d7c0f;
+            border-radius: 0.5rem;
+            outline: none;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+          }
+          @media (min-width: 640px) {
+            .login-input {
+              font-size: 1.25rem;
+              line-height: 1.75rem;
+            }
+          }
+          .login-input:focus {
+            box-shadow: 0 0 0 3px rgba(101, 163, 13, 0.3);
+          }
+        `}
+      </style>
+      
       {/* Back Button */}
       <button
         onClick={() => navigate("/")}
@@ -83,8 +110,7 @@ const KaritonServiceLogin = () => {
             required
             placeholder="ENTER 8-DIGIT CODE"
             maxLength={8}
-            className="w-full px-4 py-3 text-center text-lg sm:text-xl tracking-widest border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 mb-4"
-            style={{ fontFamily: "monospace", letterSpacing: "0.2em" }}
+            className="login-input mb-4"
           />
           <div className="absolute bottom-2 right-4 text-xs text-gray-400">
             {loginCode.length}/8
