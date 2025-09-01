@@ -101,9 +101,9 @@ const JobDetail = () => {
           {canApply ? (
             <button
               onClick={() => navigate(`/jobs/job-application/${job._id}`)}
-              className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+              className="w-full py-2 bg-sky-600 text-white rounded hover:bg-sky-500 transition"
             >
-              Apply for This Job
+              Apply for this Job
             </button>
           ) : worker ? (
             portfolioStatus === "unavailable" ? (
