@@ -10,6 +10,8 @@ const KaritonServiceLogin = () => {
 
   const handleChange = (e) => {
     let value = e.target.value.toUpperCase().slice(0, 8);
+    // Ensure only alphanumeric characters
+    value = value.replace(/[^A-Z0-9]/g, '');
     setLoginCode(value);
   };
 
@@ -79,9 +81,10 @@ const KaritonServiceLogin = () => {
             value={loginCode}
             onChange={handleChange}
             required
-            placeholder="LOGIN CODE"
+            placeholder="ENTER 8-DIGIT CODE"
             maxLength={8}
-            className="w-full px-4 py-3 text-center text-lg sm:text-xl tracking-widest uppercase border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 mb-4"
+            className="w-full px-4 py-3 text-center text-lg sm:text-xl tracking-widest border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 mb-4"
+            style={{ fontFamily: "monospace", letterSpacing: "0.2em" }}
           />
           <div className="absolute bottom-2 right-4 text-xs text-gray-400">
             {loginCode.length}/8
