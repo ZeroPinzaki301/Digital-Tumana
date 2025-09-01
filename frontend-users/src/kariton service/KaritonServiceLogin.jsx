@@ -35,26 +35,26 @@ const KaritonServiceLogin = () => {
   };
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center bg-white px-4">
+    <div className="min-h-screen relative flex flex-col items-center justify-center bg-white px-4 py-8">
       {/* Back Button */}
       <button
         onClick={() => navigate("/")}
-        className="absolute top-4 left-4 bg-white cursor-pointer text-lime-700 border border-lime-700 px-4 py-2 rounded-lg shadow hover:bg-lime-100 transition"
+        className="absolute top-4 left-4 bg-white cursor-pointer text-lime-700 border border-lime-700 px-4 py-2 rounded-lg shadow hover:bg-lime-100 transition text-sm sm:text-base"
       >
         ← Back
       </button>
 
       {/* Welcome Section */}
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold text-lime-700 md:text-4xl">
+      <div className="text-center mb-6 w-full flex flex-col items-center">
+        <h1 className="text-2xl sm:text-3xl font-bold text-lime-700 md:text-4xl">
           Kariton Rider Login
         </h1>
         <img
           src={digitalTumanaIcon}
           alt="Digital Tumana Icon"
-          className="mx-auto mt-2 w-20 h-20 md:w-32 md:h-32"
+          className="mx-auto mt-2 w-16 h-16 sm:w-20 sm:h-20 md:w-32 md:h-32"
         />
-        <h1 className="font-sans text-2xl font-bold text-lime-700 md:text-2xl">
+        <h1 className="font-sans text-xl sm:text-2xl font-bold text-lime-700 md:text-2xl">
           Digital Tumana
         </h1>
       </div>
@@ -62,30 +62,35 @@ const KaritonServiceLogin = () => {
       {/* Login Form */}
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white border border-lime-700 p-6 rounded-lg shadow-lg"
+        className="w-full max-w-md bg-white border border-lime-700 p-4 sm:p-6 rounded-lg shadow-lg"
       >
-        <h2 className="text-xl font-bold text-lime-700 text-center mb-4">
+        <h2 className="text-lg sm:text-xl font-bold text-lime-700 text-center mb-4">
           Enter Your Login Code
         </h2>
 
         {error && (
-          <p className="text-red-600 text-center mb-4 font-medium">{error}</p>
+          <p className="text-red-600 text-center mb-4 font-medium text-sm sm:text-base">{error}</p>
         )}
 
-        <input
-          type="text"
-          name="loginCode"
-          value={loginCode}
-          onChange={handleChange}
-          required
-          placeholder="LOGIN CODE"
-          maxLength={8}
-          className="w-full px-4 py-3 text-center text-xl tracking-widest uppercase border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 mb-4"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            name="loginCode"
+            value={loginCode}
+            onChange={handleChange}
+            required
+            placeholder="LOGIN CODE"
+            maxLength={8}
+            className="w-full px-4 py-3 text-center text-lg sm:text-xl tracking-widest uppercase border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 mb-4"
+          />
+          <div className="absolute bottom-2 right-4 text-xs text-gray-400">
+            {loginCode.length}/8
+          </div>
+        </div>
 
         <button
           type="submit"
-          className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition cursor-pointer text-lg"
+          className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition cursor-pointer text-base sm:text-lg"
         >
           Login
         </button>
