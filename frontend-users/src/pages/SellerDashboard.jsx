@@ -136,7 +136,7 @@ const SellerDashboard = () => {
         <p className="text-gray-700 mb-6">{message}</p>
         <button
           onClick={buttonAction}
-          className={`${buttonBase} mt-4 w-full bg-lime-600 hover:bg-lime-500 text-white font-medium py-3 px-4 rounded-xl`}
+          className="mt-4 w-full bg-lime-700 hover:bg-lime-600 text-white font-medium py-3 px-4 rounded-xl transition-colors duration-300"
         >
           {buttonText}
         </button>
@@ -333,7 +333,7 @@ const SellerDashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {[
               { label: "Products", path: "/seller-products", desc: "Manage and update your products." },
-              { label: "My Address", path: "/seller-address", desc: "Edit your store’s pickup or delivery address." },
+              { label: "My Address", path: "/seller-address", desc: "Edit your store's pickup or delivery address." },
               { label: "Orders", path: "/order-requests", badge: hasPendingOrders, desc: "Handle incoming order requests." },
               { label: "Ongoing Orders", path: "/seller-ongoing-orders", desc: "Track and fulfill current orders." },
               { label: "Order History", path: "/seller-order-history", desc: "Review past orders and sales." },
