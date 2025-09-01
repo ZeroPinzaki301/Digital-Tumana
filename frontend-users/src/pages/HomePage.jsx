@@ -90,7 +90,8 @@ const HomePage = () => {
               style={{ backgroundImage: `url(${image})` }}
             >
               <div className="absolute inset-0 bg-black/50 transition duration-300 group-hover:bg-lime-600/20 z-0" />
-              <div className={`absolute top-0 ${reverse ? 'left-0' : 'right-0'} h-full w-1/3 bg-gradient-to-${reverse ? 'l' : 'r'} from-transparent to-gray-50 z-0`} />
+              {/* Fixed gradient classes - using conditional rendering instead of string interpolation */}
+              <div className={`absolute top-0 h-full w-1/3 z-0 ${reverse ? 'left-0 bg-gradient-to-l from-transparent to-gray-50' : 'right-0 bg-gradient-to-r from-transparent to-gray-50'}`} />
               <div className="relative z-10 flex flex-col items-center justify-center text-center h-full px-6">
                 <h2 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold mb-6 group-hover:scale-110 transition-transform duration-300">
                   {title}
