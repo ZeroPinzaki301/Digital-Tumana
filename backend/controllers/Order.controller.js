@@ -209,7 +209,7 @@ export const checkoutCart = async (req, res) => {
 
     for (const item of cart.items) {
       const product = await Product.findById(item.productId);
-      if (!product || product.stock < item.quantity) continue;
+      if (!product || product.durationEnd ||product.stock < item.quantity) continue;
 
       const seller = await Seller.findById(product.sellerId);
       if (!seller) continue;
