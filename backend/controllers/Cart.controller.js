@@ -1,7 +1,7 @@
 import Cart from "../models/Cart.model.js";
 import Customer from "../models/Customer.model.js";
+import Product from "../models/Product.model.js";
 
-// 📥 Add item to cart (or update quantity)
 export const addToCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
@@ -26,20 +26,34 @@ export const addToCart = async (req, res) => {
   }
 };
 
-// 🧺 View cart items
 export const getCartItems = async (req, res) => {
   try {
     const customer = await Customer.findOne({ userId: req.user._id });
     if (!customer) return res.status(403).json({ message: "Customer not found" });
 
-    const cart = await Cart.findOne({ customerId: customer._id }).populate("items.productId");
-    res.status(200).json({ cart: cart || { items: [] } });
+    const cart = await Cart.findOne({ customerId: customer._id }).populate({
+      path: "items.productId",
+      match: {
+        durationEnd: false,
+        stock: { $gt: 0 }
+      }
+    });
+
+    // Filter out items where product is null (unavailable)
+    const availableItems = cart ? cart.items.filter(item => item.productId !== null) : [];
+    
+    res.status(200).json({ 
+      cart: {
+        _id: cart?._id,
+        customerId: cart?.customerId,
+        items: availableItems
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch cart", error: err.message });
   }
 };
 
-// ❌ Remove item from cart
 export const removeCartItem = async (req, res) => {
   try {
     const { itemId } = req.params;
