@@ -117,7 +117,7 @@ const JobApplicationPage = () => {
         className={`w-full py-3 px-6 rounded-md text-white font-medium transition ${
           submitting || alreadyApplied || !job?.isAvailable
             ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700"
+            : "bg-sky-600 hover:bg-sky-500"
         }`}
       >
         {submitting
