@@ -36,6 +36,13 @@ export default function SellerOngoingOrder() {
     fetchOrderTracking();
   }, [orderId]);
 
+  const handleLocationClick = () => {
+    const address = "42 General Alejo G. Santos Hwy, Angat, 3012 Bulacan";
+    const name = "ANGEL TOLITS INTEGRATED FARM SCHOOL,INC.";
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + address)}`;
+    window.open(url, '_blank');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-lime-50 p-6 flex items-center justify-center">
