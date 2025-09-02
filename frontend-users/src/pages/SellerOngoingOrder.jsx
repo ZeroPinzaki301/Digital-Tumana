@@ -119,7 +119,12 @@ export default function SellerOngoingOrder() {
             <hr />
             <p>Near Tres Marias Resort,</p>
             <hr />
-            <p>8:00 AM - 5:00 PM, Mon-Fri</p>
+            <li 
+              className="cursor-pointer hover:text-lime-400 transition-colors"
+              onClick={handleLocationClick}
+            >
+              See on Google Maps
+            </li>
           </div>
         </div>
 
