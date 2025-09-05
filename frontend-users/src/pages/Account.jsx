@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaEdit, FaUser, FaStore, FaTools, FaBriefcase, FaGraduationCap } from "react-icons/fa";
+import { FaEdit, FaUser, FaStore, FaTools, FaBriefcase, FaGraduationCap, FaPhone, FaEnvelope } from "react-icons/fa";
 import axiosInstance from "../utils/axiosInstance";
 
 const Account = () => {
@@ -8,7 +8,7 @@ const Account = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ firstName: "", lastName: "" });
+  const [formData, setFormData] = useState({ firstName: "", lastName: "", phoneNumber: "" });
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -30,6 +30,7 @@ const Account = () => {
         setFormData({
           firstName: response.data.firstName || "",
           lastName: response.data.lastName || "",
+          phoneNumber: response.data.phoneNumber || "",
         });
       } catch (error) {
         setIsLoggedIn(false);
@@ -104,6 +105,7 @@ const Account = () => {
         ...prev,
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
+        phoneNumber: response.data.user.phoneNumber,
       }));
       setIsEditing(false);
     } catch (error) {
@@ -154,93 +156,147 @@ const Account = () => {
 
   return (
     <div className="min-h-screen bg-emerald-100 flex items-center justify-center px-4 py-10">
-      <div className="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg border border-lime-700 transform transition-all duration-500 hover:shadow-xl">
-        {/* Profile Section */}
-        <div className="flex flex-col items-center mb-6">
-          <div className="relative w-32 h-32 group mb-4">
-            {!showProfileIcon ? (
-              <img
-                src={user.profilePicture}
-                alt="Profile"
-                className="w-32 h-32 rounded-full object-cover border-2 border-lime-700 group-hover:opacity-80 transition-all duration-300 transform group-hover:scale-105"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <FaUser className="text-8xl text-lime-700 group-hover:opacity-80 transition-all duration-300 transform group-hover:scale-110" />
-              </div>
-            )}
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-              <span className="text-white text-sm font-medium">Change Photo</span>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              onChange={handleProfilePictureChange}
-              disabled={isUploading}
-            />
-            {isUploading && (
-              <div className="absolute -bottom-6 w-full">
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-2 bg-lime-600 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
+      <div className="bg-white w-full max-w-4xl p-6 rounded-lg shadow-lg border border-lime-700 transform transition-all duration-500 hover:shadow-xl">
+        {/* Profile Section - Split Layout */}
+        <div className="flex flex-col md:flex-row gap-8 mb-6">
+          {/* Left Side - Profile Picture and Name */}
+          <div className="flex flex-col items-center md:items-start md:w-1/2">
+            <div className="relative w-32 h-32 group mb-4">
+              {!showProfileIcon ? (
+                <img
+                  src={user.profilePicture}
+                  alt="Profile"
+                  className="w-32 h-32 rounded-full object-cover border-2 border-lime-700 group-hover:opacity-80 transition-all duration-300 transform group-hover:scale-105"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <FaUser className="text-8xl text-lime-700 group-hover:opacity-80 transition-all duration-300 transform group-hover:scale-110" />
                 </div>
-                <span className="text-xs text-gray-600">{uploadProgress}% uploaded</span>
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+                <span className="text-white text-sm font-medium">Change Photo</span>
               </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={handleProfilePictureChange}
+                disabled={isUploading}
+              />
+              {isUploading && (
+                <div className="absolute -bottom-6 w-full">
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-2 bg-lime-600 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-gray-600">{uploadProgress}% uploaded</span>
+                </div>
+              )}
+            </div>
+
+            {isEditing ? (
+              <form onSubmit={handleProfileUpdate} className="w-full space-y-3 animate-fadeIn">
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  placeholder="First Name"
+                  className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 text-lg transition-all duration-300"
+                  required
+                />
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  placeholder="Last Name"
+                  className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 text-lg transition-all duration-300"
+                  required
+                />
+                <input
+                  type="text"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  placeholder="Phone Number"
+                  className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 text-lg transition-all duration-300"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition transform hover:-translate-y-0.5 duration-300 shadow hover:shadow-md"
+                >
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="w-full py-2 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition transform hover:-translate-y-0.5 duration-300"
+                >
+                  Cancel
+                </button>
+              </form>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold text-lime-700 animate-fadeIn text-center md:text-left">
+                  {user?.firstName} {user?.lastName}
+                </h2>
+                <button
+                  onClick={handleEditToggle}
+                  className="w-full mt-4 cursor-pointer py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition transform hover:-translate-y-0.5 duration-300 flex items-center justify-center space-x-2 shadow hover:shadow-md"
+                >
+                  <FaEdit />
+                  <span>Edit Account</span>
+                </button>
+              </>
             )}
           </div>
 
-          {isEditing ? (
-            <form onSubmit={handleProfileUpdate} className="w-full space-y-3 animate-fadeIn">
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                placeholder="First Name"
-                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 text-lg transition-all duration-300"
-                required
-              />
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                placeholder="Last Name"
-                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 text-lg transition-all duration-300"
-                required
-              />
-              <button
-                type="submit"
-                className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition transform hover:-translate-y-0.5 duration-300 shadow hover:shadow-md"
-              >
-                Save Changes
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="w-full py-2 bg-gray-200 text-lime-700 rounded-lg hover:bg-gray-300 transition transform hover:-translate-y-0.5 duration-300"
-              >
-                Cancel
-              </button>
-            </form>
-          ) : (
-            <>
-              <h2 className="text-2xl font-bold text-lime-700 animate-fadeIn">
-                {user?.firstName} {user?.lastName}
-              </h2>
-              <p className="text-gray-700 animate-fadeIn">{user?.email}</p>
-              <button
-                onClick={handleEditToggle}
-                className="w-full mt-4 cursor-pointer py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition transform hover:-translate-y-0.5 duration-300 flex items-center justify-center space-x-2 shadow hover:shadow-md"
-              >
-                <FaEdit />
-                <span>Edit Account</span>
-              </button>
-            </>
-          )}
+          {/* Right Side - Contact Information */}
+          <div className="md:w-1/2 flex flex-col justify-center">
+            <h3 className="text-xl font-semibold text-lime-700 mb-4 border-b border-lime-200 pb-2">Contact Information</h3>
+            
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <div className="bg-lime-100 p-3 rounded-full mr-3">
+                  <FaEnvelope className="text-lime-700" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Email Address</p>
+                  <p className="text-lime-700 font-medium">{user?.email}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <div className="bg-lime-100 p-3 rounded-full mr-3">
+                  <FaPhone className="text-lime-700" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Phone Number</p>
+                  <p className="text-lime-700 font-medium">{user?.phoneNumber || "Not provided"}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <div className="bg-lime-100 p-3 rounded-full mr-3">
+                  <FaUser className="text-lime-700" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Account Status</p>
+                  <p className="text-lime-700 font-medium">
+                    {user?.isVerified ? "Verified" : "Not Verified"} • 
+                    {user?.isSeller ? " Seller" : ""}
+                    {user?.isWorker ? " Worker" : ""}
+                    {user?.isEmployer ? " Employer" : ""}
+                    {!user?.isSeller && !user?.isWorker && !user?.isEmployer ? " Basic User" : ""}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Dashboard Cards */}
@@ -297,6 +353,7 @@ const Account = () => {
             </p>
           </div>
         </div>
+        
         <button
           onClick={() => navigate("/feedback")}
           className="w-full mt-4 cursor-pointer py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition transform hover:-translate-y-0.5 duration-300 flex items-center justify-center space-x-2 shadow hover:shadow-md"
