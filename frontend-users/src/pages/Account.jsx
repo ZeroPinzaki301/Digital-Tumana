@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaEdit, FaUser, FaStore, FaTools, FaBriefcase, FaGraduationCap, FaPhone, FaEnvelope } from "react-icons/fa";
+import { FaEdit, FaUser, FaStore, FaTools, FaBriefcase, FaGraduationCap, FaPhone, FaEnvelope, FaAward } from "react-icons/fa";
 import axiosInstance from "../utils/axiosInstance";
 
 const Account = () => {
   const [user, setUser] = useState(null);
+  const [badge, setBadge] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ firstName: "", lastName: "", phoneNumber: "" });
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [badgeLoading, setBadgeLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +34,9 @@ const Account = () => {
           lastName: response.data.lastName || "",
           phoneNumber: response.data.phoneNumber || "",
         });
+        
+        // Fetch badge data after user data is loaded
+        await fetchBadgeData(token);
       } catch (error) {
         setIsLoggedIn(false);
         console.error("Failed to fetch user data", error);
@@ -39,6 +44,23 @@ const Account = () => {
         setIsLoading(false);
       }
     };
+    
+    const fetchBadgeData = async (token) => {
+      try {
+        const response = await axiosInstance.get("/api/tesda/badge", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setBadge(response.data.badge);
+      } catch (error) {
+        // If badge is not found, it's not an error - just set badge to null
+        if (error.response?.status !== 404) {
+          console.error("Failed to fetch badge data", error);
+        }
+      } finally {
+        setBadgeLoading(false);
+      }
+    };
+    
     fetchUserData();
   }, []);
 
@@ -298,6 +320,26 @@ const Account = () => {
             </div>
           </div>
         </div>
+
+        {/* TESDA Badge Section - Only show if badge exists */}
+        {badge && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg border border-amber-300 shadow-sm">
+            <div className="flex items-center mb-3">
+              <FaAward className="text-2xl text-amber-600 mr-2" />
+              <h3 className="text-xl font-bold text-amber-800">TESDA Certification</h3>
+            </div>
+            <div className="bg-white p-4 rounded-lg border border-amber-200">
+              <h4 className="text-lg font-semibold text-amber-700 mb-2">CERTIFIED TUMANA BACHELOR</h4>
+              <p className="text-gray-700">
+                This person has completed the TESDA NC1 course enrolled through Digital Tumana to Angel Tolits Integrated Farm.
+              </p>
+              <div className="mt-3 flex items-center text-sm text-amber-600">
+                <FaGraduationCap className="mr-1" />
+                <span>National Certificate (NC) Level I</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
