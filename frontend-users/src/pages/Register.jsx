@@ -23,8 +23,28 @@ const Register = () => {
     setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
   };
 
+  // Special handler for phone number to only allow numbers and limit to 11 digits
+  const handlePhoneNumberChange = (e) => {
+    const input = e.target.value;
+    
+    // Remove any non-digit characters
+    const numbersOnly = input.replace(/\D/g, '');
+    
+    // Limit to 11 digits
+    const limitedNumbers = numbersOnly.slice(0, 11);
+    
+    setFormData({ ...formData, phoneNumber: limitedNumbers });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Additional validation for phone number length
+    if (formData.phoneNumber.length !== 11) {
+      alert("Phone number must be exactly 11 digits");
+      return;
+    }
+    
     try {
       const response = await axiosInstance.post("/api/users/register", formData);
       alert(response.data.message);
@@ -97,14 +117,26 @@ const Register = () => {
               </button>
             </div>
 
-            <input
-              type="text"
-              name="phoneNumber"
-              placeholder="Phone Number"
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
-            />
+            {/* Phone Number Input with Validation */}
+            <div className="relative">
+              <input
+                type="tel"
+                name="phoneNumber"
+                placeholder="Phone Number (11 digits)"
+                value={formData.phoneNumber}
+                onChange={handlePhoneNumberChange}
+                required
+                pattern="[0-9]{11}"
+                maxLength={11}
+                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+              />
+              {formData.phoneNumber.length > 0 && (
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
+                  {formData.phoneNumber.length}/11
+                </span>
+              )}
+            </div>
+            
             <label className="flex items-center space-x-2 text-lg">
               <input
                 type="checkbox"
