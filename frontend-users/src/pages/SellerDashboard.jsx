@@ -21,6 +21,22 @@ const SellerDashboard = () => {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
+  const calculateAge = (birthdate) => {
+    if (!birthdate) return "N/A";
+    
+    const today = new Date();
+    const birthDate = new Date(birthdate);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
+
   const buttonBase =
     "relative bg-white border border-lime-200 p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer";
 
@@ -313,7 +329,7 @@ const SellerDashboard = () => {
           <div className="text-left text-md space-y-3 text-gray-700 bg-white p-5 rounded-xl shadow-sm">
             <p><strong>Owner:</strong> {seller.firstName} {seller.middleName} {seller.lastName}</p>
             <p><strong>Sex:</strong> {seller.sex}</p>
-            <p><strong>Age:</strong> {seller.age}</p>
+            <p><strong>Age:</strong> {calculateAge(seller.birthdate)} years old</p>
             <p><strong>Birthdate:</strong> {new Date(seller.birthdate).toLocaleDateString()}</p>
             <p><strong>Nationality:</strong> {seller.nationality}</p>
             <p><strong>Status:</strong> <span className="text-lime-600 font-medium">{seller.status}</span></p>

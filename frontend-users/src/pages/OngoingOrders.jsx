@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 
 const OngoingOrdersPage = () => {
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,6 +17,7 @@ const OngoingOrdersPage = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setOrders(res.data.data);
+        setFilteredOrders(res.data.data);
       } catch (error) {
         console.error('Error fetching ongoing orders:', error.message);
       } finally {
@@ -24,11 +27,20 @@ const OngoingOrdersPage = () => {
     fetchOrders();
   }, []);
 
+  const filterOrdersByStatus = (status) => {
+    setSelectedStatus(status);
+    if (status === 'all') {
+      setFilteredOrders(orders);
+    } else {
+      setFilteredOrders(orders.filter(order => order.status === status));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-lime-50 p-6">
       <button
         onClick={() => navigate("/marketplace")}
-        className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition"
+        className="py-2 px-4 bg-lime-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition mb-6"
       >
         ⬅ Back to Marketplace
       </button>
@@ -37,13 +49,62 @@ const OngoingOrdersPage = () => {
         Your Ongoing Orders
       </h2>
 
+      {/* Status Filter Buttons */}
+      <div className="flex flex-wrap justify-center gap-3 mb-6">
+        <button
+          onClick={() => filterOrdersByStatus('all')}
+          className={`py-2 px-4 rounded-lg transition ${
+            selectedStatus === 'all'
+              ? 'bg-lime-700 text-white'
+              : 'bg-lime-200 text-lime-800 hover:bg-lime-300'
+          }`}
+        >
+          All Orders
+        </button>
+        <button
+          onClick={() => filterOrdersByStatus('pending')}
+          className={`py-2 px-4 rounded-lg transition ${
+            selectedStatus === 'pending'
+              ? 'bg-lime-700 text-white'
+              : 'bg-lime-200 text-lime-800 hover:bg-lime-300'
+          }`}
+        >
+          Pending
+        </button>
+        <button
+          onClick={() => filterOrdersByStatus('shipped')}
+          className={`py-2 px-4 rounded-lg transition ${
+            selectedStatus === 'shipped'
+              ? 'bg-lime-700 text-white'
+              : 'bg-lime-200 text-lime-800 hover:bg-lime-300'
+          }`}
+        >
+          Shipped
+        </button>
+        <button
+          onClick={() => filterOrdersByStatus('out for delivery')}
+          className={`py-2 px-4 rounded-lg transition ${
+            selectedStatus === 'out for delivery'
+              ? 'bg-lime-700 text-white'
+              : 'bg-lime-200 text-lime-800 hover:bg-lime-300'
+          }`}
+        >
+          Out for Delivery
+        </button>
+      </div>
+
       {loading ? (
         <p className="text-center text-gray-600">Loading orders...</p>
-      ) : orders.length === 0 ? (
-        <p className="text-center text-gray-600">You have no ongoing orders.</p>
+      ) : filteredOrders.length === 0 ? (
+        <p className="text-center text-gray-600">
+          {selectedStatus === 'all' 
+            ? 'You have no ongoing orders.' 
+            : `You have no ${selectedStatus} orders.`
+          }
+        </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {orders.map(order => (
+          {filteredOrders.map(order => (
             <OrderCard key={order._id} order={order} />
           ))}
         </div>
@@ -53,10 +114,27 @@ const OngoingOrdersPage = () => {
 };
 
 const OrderCard = ({ order }) => {
-  const { sellerId, items, status, totalPrice } = order;
+  const { _id, sellerId, items, status, totalPrice } = order;
+  const navigate = useNavigate();
+
+  const handleViewDetails = () => {
+    navigate(`/customer/ongoing-order/${_id}`);
+  };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md border border-lime-300">
+      {/* View Details Button - Only show for "out for delivery" orders */}
+      {status === 'out for delivery' && (
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={handleViewDetails}
+            className="cursor-pointer py-1 px-3 bg-lime-600 text-white rounded-lg text-sm hover:bg-lime-500 transition"
+          >
+            View Order Details
+          </button>
+        </div>
+      )}
+
       {/* Seller Info */}
       <div className="flex items-center gap-4 mb-4">
         <img
@@ -72,8 +150,8 @@ const OrderCard = ({ order }) => {
 
       {/* Items List */}
       <div className="space-y-3">
-        {items.map(item => (
-          <div key={item._id} className="flex items-center gap-4">
+        {items.map((item, index) => (
+          <div key={index} className="flex items-center gap-4">
             <img
               src={item.productId?.productImage || '/default-product.png'}
               alt={item.productId?.productName || 'Product'}

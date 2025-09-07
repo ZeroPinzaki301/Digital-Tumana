@@ -8,6 +8,7 @@ export const registerUser = async (req, res) => {
   try {
     const {
       firstName,
+      middleName,
       lastName,
       email,
       password,
@@ -22,6 +23,7 @@ export const registerUser = async (req, res) => {
 
     const newUser = new User({
       firstName,
+      middleName,
       lastName,
       email,
       password,
@@ -64,7 +66,7 @@ export const verifyEmail = async (req, res) => {
     }
 
     user.isVerified = true;
-    user.verificationCode = null; // Clear the code after verification
+    user.verificationCode = null;
     await user.save();
 
     res.status(200).json({ message: "Email verified successfully" });
@@ -80,20 +82,17 @@ export const loginUser = async (req, res) => {
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Validate password FIRST
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    // THEN check verification status
     if (!user.isVerified) {
       return res.status(403).json({
         message: "Account not verified",
-        requiresVerification: true,  // New flag
-        email: user.email            // Include email
+        requiresVerification: true,
+        email: user.email 
       });
     }
 
-    // Generate token for verified users
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     res.status(200).json({
@@ -102,6 +101,7 @@ export const loginUser = async (req, res) => {
       user: {
         id: user._id,
         firstName: user.firstName,
+        middleName: user.middleName,
         lastName: user.lastName,
         email: user.email,
         phoneNumber: user.phoneNumber,
@@ -118,7 +118,7 @@ export const loginUser = async (req, res) => {
 
 export const getUserAccount = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password"); // Exclude password
+    const user = await User.findById(req.user.id).select("-password");
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -131,11 +131,11 @@ export const getUserAccount = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log("🔍 Forgot password request received for:", email);
+    console.log("Forgot password request received for:", email);
 
     const user = await User.findOne({ email });
     if (!user) {
-      console.warn("❌ No user found with email:", email);
+      console.warn("No user found with email:", email);
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -144,23 +144,23 @@ export const forgotPassword = async (req, res) => {
 
     try {
       await user.save();
-      console.log("✅ Code saved to user:", passChangeCode);
+      console.log("Code saved to user:", passChangeCode);
     } catch (saveErr) {
-      console.error("⚠️ Failed to save user:", saveErr);
+      console.error("Failed to save user:", saveErr);
       return res.status(500).json({ message: "Error saving reset code", error: saveErr.message });
     }
 
     try {
       await sendPasswordResetEmail(email, passChangeCode);
-      console.log("📬 Email sent successfully to", email);
+      console.log("Email sent successfully to", email);
     } catch (emailErr) {
-      console.error("📡 Email failed to send:", emailErr);
+      console.error("Email failed to send:", emailErr);
       return res.status(500).json({ message: "Failed to send reset email", error: emailErr.message });
     }
 
     res.status(200).json({ message: "Password reset code sent to email" });
   } catch (err) {
-    console.error("🔥 Unexpected forgotPassword error:", err);
+    console.error("Unexpected forgotPassword error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
@@ -176,7 +176,7 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid reset code" });
     }
 
-    user.password = newPassword; // ← Let the schema handle hashing
+    user.password = newPassword;
     user.passChangeCode = null;
     await user.save();
 
@@ -188,13 +188,13 @@ export const resetPassword = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName } = req.body;
+    const { firstName, middleName, lastName } = req.body;
     const user = await User.findById(req.user.id);
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Allow only permitted fields to be updated
     user.firstName = firstName || user.firstName;
+    user.middleName = middleName || user.middleName;
     user.lastName = lastName || user.lastName;
 
     await user.save();
@@ -215,13 +215,11 @@ export const updateProfilePicture = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // Limit file size to 10MB
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
     if (req.file.size > MAX_FILE_SIZE) {
       return res.status(413).json({ message: "File too large. Maximum allowed size is 10MB." });
     }
 
-    // Delete old profile picture if exists
     if (user.profilePicturePublicId) {
       try {
         await deleteFromCloudinary(user.profilePicturePublicId);
@@ -230,14 +228,12 @@ export const updateProfilePicture = async (req, res) => {
       }
     }
 
-    // Upload new profile picture
     const result = await uploadToCloudinary(
       req.file.path,
       'profile_pictures',
       `user_${user._id}_profile`
     );
 
-    // Update user with new profile picture
     user.profilePicture = result.secure_url;
     user.profilePicturePublicId = result.public_id;
     await user.save();

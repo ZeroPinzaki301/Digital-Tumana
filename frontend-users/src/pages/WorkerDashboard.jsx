@@ -13,6 +13,21 @@ const WorkerDashboard = () => {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
+  const calculateAge = (birthdate) => {
+    if (!birthdate) return "N/A";
+    
+    const today = new Date();
+    const birthDate = new Date(birthdate);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
   const buttonBase = "relative p-4 bg-white border border-lime-100 rounded-xl shadow hover:shadow-md transition-all duration-300 cursor-pointer hover:-translate-y-0.5 group";
 
   useEffect(() => {
@@ -212,7 +227,7 @@ const WorkerDashboard = () => {
           <div className="text-left text-sm space-y-3 text-gray-700 bg-white p-5 rounded-xl shadow">
             <p><strong>Full Name:</strong> {worker.firstName} {worker.middleName} {worker.lastName}</p>
             <p><strong>Sex:</strong> {worker.sex}</p>
-            <p><strong>Age:</strong> {worker.age}</p>
+            <p><strong>Age:</strong> {calculateAge(worker.birthdate)} years old</p>
             <p><strong>Birthdate:</strong> {new Date(worker.birthdate).toLocaleDateString()}</p>
             <p><strong>Nationality:</strong> {worker.nationality}</p>
             <p><strong>Status:</strong> <span className="text-lime-600 font-medium">{worker.status}</span></p>

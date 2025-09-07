@@ -5,7 +5,7 @@ const orderTrackingSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    default: () => generateSimpleCode() // Generate code by default
+    default: () => generateSimpleCode()
   },
   orderId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -23,18 +23,15 @@ const orderTrackingSchema = new mongoose.Schema({
   }
 });
 
-// Simple synchronous code generator for default value
 function generateSimpleCode() {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const digits = '0123456789';
   let code = '';
-  
-  // Generate 4 random letters
+
   for (let i = 0; i < 4; i++) {
     code += letters.charAt(Math.floor(Math.random() * letters.length));
   }
-  
-  // Generate 4 random digits
+
   for (let i = 0; i < 4; i++) {
     code += digits.charAt(Math.floor(Math.random() * digits.length));
   }
@@ -42,7 +39,6 @@ function generateSimpleCode() {
   return code;
 }
 
-// Async pre-save hook for uniqueness validation
 orderTrackingSchema.pre('save', async function(next) {
   if (!this.isNew || this.orderCode) return next();
   

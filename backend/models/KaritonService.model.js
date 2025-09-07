@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// 👤 Schema Definition (same as DeliveryCourier)
 const karitonServiceSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },

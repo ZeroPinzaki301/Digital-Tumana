@@ -2,7 +2,6 @@ import Order from "../models/Order.model.js";
 import Product from "../models/Product.model.js";
 import Seller from "../models/Seller.model.js";
 
-// 📋 Get all pending orders for seller
 export const getPendingOrdersForSeller = async (req, res) => {
   try {
     const seller = await Seller.findOne({ userId: req.user._id });
@@ -10,7 +9,6 @@ export const getPendingOrdersForSeller = async (req, res) => {
       return res.status(403).json({ message: "Seller not verified" });
     }
 
-    // Find orders where at least one item is pending and seller matches
     const orders = await Order.find({ 
       sellerId: seller._id,
       "items.itemStatus": "pending"
@@ -18,14 +16,13 @@ export const getPendingOrdersForSeller = async (req, res) => {
     .populate("buyerId")
     .populate("items.productId");
 
-    // Filter to only include pending items in the response
     const filteredOrders = orders.map(order => {
       const pendingItems = order.items.filter(item => item.itemStatus === "pending");
       return {
         ...order.toObject(),
         items: pendingItems
       };
-    }).filter(order => order.items.length > 0); // Only return orders with pending items
+    }).filter(order => order.items.length > 0);
 
     res.status(200).json({ orders: filteredOrders });
   } catch (err) {
@@ -33,7 +30,6 @@ export const getPendingOrdersForSeller = async (req, res) => {
   }
 };
 
-// 📖 View details of a single pending order
 export const getSingleOrderSummary = async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId)
@@ -44,7 +40,6 @@ export const getSingleOrderSummary = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Filter to only show pending items (or all items if needed)
     const pendingItems = order.items.filter(item => item.itemStatus === "pending");
     
     if (pendingItems.length === 0) {
@@ -62,7 +57,6 @@ export const getSingleOrderSummary = async (req, res) => {
   }
 };
 
-// ✅ Accept an order request (deduct stock) - UPDATED FOR ITEMS ARRAY
 export const acceptOrderRequest = async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId)
@@ -72,7 +66,6 @@ export const acceptOrderRequest = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check if any items are still pending
     const pendingItems = order.items.filter(item => item.itemStatus === "pending");
     if (pendingItems.length === 0) {
       return res.status(400).json({ message: "No pending items in this order" });
@@ -84,19 +77,16 @@ export const acceptOrderRequest = async (req, res) => {
       const product = item.productId;
       
       if (!product || product.stock < item.quantity) {
-        continue; // Skip this item but try others
+        continue;
       }
 
-      // Deduct stock
       product.stock -= item.quantity;
       await product.save();
 
-      // Update item status
       item.itemStatus = "confirmed";
       atLeastOneConfirmed = true;
     }
 
-    // Update order status if at least one item was confirmed
     if (atLeastOneConfirmed) {
       order.status = "confirmed";
     } else {
@@ -126,7 +116,6 @@ export const acceptOrderRequest = async (req, res) => {
   }
 };
 
-// ❌ Cancel a pending order request - UPDATED FOR ITEMS ARRAY
 export const cancelOrderRequest = async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId)
@@ -136,7 +125,6 @@ export const cancelOrderRequest = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check if any items are still pending or confirmed
     const cancellableItems = order.items.filter(item => 
       item.itemStatus === "pending" || item.itemStatus === "confirmed"
     );
@@ -145,7 +133,6 @@ export const cancelOrderRequest = async (req, res) => {
       return res.status(400).json({ message: "No cancellable items in this order" });
     }
 
-    // Mark items as cancelled (only for this seller's products)
     const seller = await Seller.findOne({ userId: req.user._id });
     let itemsCancelled = 0;
     
@@ -161,16 +148,13 @@ export const cancelOrderRequest = async (req, res) => {
       return res.status(400).json({ message: "No items belong to this seller to cancel" });
     }
 
-    // Check if all items are now cancelled
     const allCancelled = order.items.every(item => 
       item.itemStatus === "cancelled" || item.itemStatus === "completed"
     );
 
-    // Update order status if all items are cancelled
     if (allCancelled) {
       order.status = "cancelled";
     } else {
-      // Keep order as confirmed if at least one item is still confirmed
       order.status = "confirmed";
     }
 
@@ -191,7 +175,6 @@ export const cancelOrderRequest = async (req, res) => {
   }
 };
 
-// 📦 Get all completed and cancelled orders for seller
 export const getOrderHistory = async (req, res) => {
   try {
     const seller = await Seller.findOne({ userId: req.user._id });
@@ -206,7 +189,7 @@ export const getOrderHistory = async (req, res) => {
     .populate({
       path: "buyerId",
       populate: {
-        path: "userId", // This gives access to profilePicture
+        path: "userId",
         model: "User"
       }
     })

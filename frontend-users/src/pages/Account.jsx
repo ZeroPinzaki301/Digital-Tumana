@@ -329,9 +329,9 @@ const Account = () => {
               <h3 className="text-xl font-bold text-amber-800">TESDA Certification</h3>
             </div>
             <div className="bg-white p-4 rounded-lg border border-amber-200">
-              <h4 className="text-lg font-semibold text-amber-700 mb-2">CERTIFIED TUMANA BACHELOR</h4>
+              <h4 className="text-lg font-semibold text-amber-700 mb-2">CERTIFIED TUMANA GRADUATE</h4>
               <p className="text-gray-700">
-                This person has completed the TESDA NC1 course enrolled through Digital Tumana to Angel Tolits Integrated Farm.
+                This person has completed the TESDA NC1 agricultural course enrolled through Digital Tumana to Angel Tolits Integrated Farm.
               </p>
               <div className="mt-3 flex items-center text-sm text-amber-600">
                 <FaGraduationCap className="mr-1" />

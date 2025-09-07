@@ -68,13 +68,15 @@ const SellerOrderCard = ({ order }) => {
   return (
     <div className="border rounded-lg shadow-sm p-4 bg-white">
       {/* Buyer Info */}
-      <div className="flex items-center gap-4 mb-4">
+      <div className="bg-lime-500 py-2 px-5 flex items-center gap-4 mb-4 rounded-sm ">
+        <h3 className="text-lg font-medium">Customer:</h3>
         <img
           src={buyerId.userId?.profilePicture || '/default-user.png'}
           alt="Buyer"
           className="w-12 h-12 rounded-full object-cover"
         />
         <div>
+
           <h3 className="text-lg font-medium">{buyerId.fullName}</h3>
           <p className="text-sm text-gray-500">{buyerId.email}</p>
         </div>
@@ -83,7 +85,8 @@ const SellerOrderCard = ({ order }) => {
       {/* Items */}
       <div className="space-y-3">
         {items.map(item => (
-          <div key={item._id} className="flex items-center gap-4">
+          <div key={item._id} className="px-6 flex items-center gap-4">
+            <h3 className="text-lg font-medium">Items:</h3>
             <img
               src={item.productId?.productImage || '/default-product.png'}
               alt={item.productId?.productName || 'Product'}

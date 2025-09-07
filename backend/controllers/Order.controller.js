@@ -5,7 +5,6 @@ import Seller from "../models/Seller.model.js";
 import SellerAddress from "../models/SellerAddress.model.js";
 import Cart from "../models/Cart.model.js";
 
-// 📖 Preview single item before placing
 export const previewOrder = async (req, res) => {
   try {
     const customer = await Customer.findOne({ userId: req.user._id, isVerified: true });
@@ -63,10 +62,9 @@ export const previewOrder = async (req, res) => {
   }
 };
 
-// ✅ Place order (from preview) - UPDATED FOR ITEMS ARRAY
 export const createDirectOrder = async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
+    const { productId, quantity, deliveryAddress } = req.body;
 
     const customer = await Customer.findOne({ userId: req.user._id, isVerified: true });
     if (!customer) return res.status(403).json({ message: "Customer must be verified" });
@@ -85,6 +83,18 @@ export const createDirectOrder = async (req, res) => {
     const shippingFee = 50;
     const totalPrice = subtotal + shippingFee;
 
+    const finalDeliveryAddress = deliveryAddress || {
+      province: customer.province,
+      cityOrMunicipality: customer.cityOrMunicipality,
+      barangay: customer.barangay,
+      street: customer.street,
+      postalCode: customer.postalCode,
+      latitude: customer.latitude,
+      longitude: customer.longitude,
+      telephone: customer.telephone,
+      email: customer.email
+    };
+
     const order = await Order.create({
       buyerId: customer._id,
       sellerId: seller._id,
@@ -95,20 +105,8 @@ export const createDirectOrder = async (req, res) => {
         itemStatus: "pending"
       }],
       totalPrice,
-      deliveryAddress: {
-        region: customer.region,
-        province: customer.province,
-        cityOrMunicipality: customer.cityOrMunicipality,
-        barangay: customer.barangay,
-        street: customer.street,
-        postalCode: customer.postalCode,
-        latitude: customer.latitude,
-        longitude: customer.longitude,
-        telephone: customer.telephone,
-        email: customer.email
-      },
+      deliveryAddress: finalDeliveryAddress,
       sellerAddress: {
-        region: sellerAddress.region,
         province: sellerAddress.province,
         cityOrMunicipality: sellerAddress.cityOrMunicipality,
         barangay: sellerAddress.barangay,

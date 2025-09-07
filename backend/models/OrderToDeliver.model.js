@@ -21,7 +21,7 @@ const orderToDeliverSchema = new mongoose.Schema({
     default: false
   },
   deliveryProof: {
-    type: String, // URL or filename of image
+    type: String,
     default: ''
   }
 }, { timestamps: true });

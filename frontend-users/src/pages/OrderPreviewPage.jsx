@@ -1,6 +1,27 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix for default markers in react-leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+// Map click handler component
+function MapClickHandler({ onMapClick }) {
+  useMapEvents({
+    click(e) {
+      onMapClick(e);
+    },
+  });
+  return null;
+}
 
 const OrderPreviewPage = () => {
   const { productId } = useParams();
@@ -10,6 +31,15 @@ const OrderPreviewPage = () => {
   const [preview, setPreview] = useState(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showPolicy, setShowPolicy] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [addressDetails, setAddressDetails] = useState(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [manualAddress, setManualAddress] = useState({
+    street: "",
+    barangay: "",
+  });
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false);
 
   useEffect(() => {
     const fetchPreview = async () => {
@@ -20,6 +50,14 @@ const OrderPreviewPage = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setPreview(res.data);
+        
+        // Pre-fill manual address with customer's current address
+        if (res.data.deliveryTo) {
+          setManualAddress({
+            street: res.data.deliveryTo.street || "",
+            barangay: res.data.deliveryTo.barangay || "",
+          });
+        }
       } catch (err) {
         console.error("Preview failed:", err.message);
       }
@@ -27,17 +65,109 @@ const OrderPreviewPage = () => {
     fetchPreview();
   }, [productId, quantity]);
 
+  const reverseGeocode = async (lat, lng) => {
+    setIsGeocoding(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+      const data = await response.json();
+      
+      if (data && data.address) {
+        const address = data.address;
+        
+        // Extract Philippine address components correctly
+        const province = address.state || address.province || "";
+        const cityOrMunicipality = address.city || address.town || address.municipality || "";
+        const barangay = address.village || address.hamlet || address.neighbourhood || "";
+        const street = address.road || address.footway || "";
+        
+        setAddressDetails({
+          province,
+          cityOrMunicipality,
+          barangay: manualAddress.barangay || barangay,
+          street: manualAddress.street || street,
+          latitude: lat,
+          longitude: lng,
+          telephone: preview?.deliveryTo?.telephone || "",
+          email: preview?.deliveryTo?.email || "",
+          postalCode: address.postcode || preview?.deliveryTo?.postalCode || "",
+        });
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      alert("Failed to get address details. Please try again.");
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
+  const handleMapClick = (e) => {
+    const { lat, lng } = e.latlng;
+    setSelectedLocation([lat, lng]);
+    reverseGeocode(lat, lng);
+  };
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsGeocoding(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setSelectedLocation([latitude, longitude]);
+        reverseGeocode(latitude, longitude);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        alert("Unable to retrieve your location. Please select manually on the map.");
+        setIsGeocoding(false);
+      }
+    );
+  };
+
   const handlePlaceOrder = async () => {
     if (!acceptedTerms) {
       alert("Please accept the terms and conditions to proceed with your order");
       return;
     }
+    
+    // Show map modal for address selection
+    setShowMapModal(true);
+  };
+
+  const confirmMapLocation = async () => {
+    if (!selectedLocation || !addressDetails) {
+      alert("Please select a location on the map or use your current location");
+      return;
+    }
+
+    // Validate manual address fields
+    if (!manualAddress.street || !manualAddress.barangay) {
+      alert("Please provide both street and barangay information");
+      return;
+    }
+
     try {
-      await axiosInstance.post(
+      // Create order with map-selected address
+      const res = await axiosInstance.post(
         "/api/orders/direct",
-        { productId, quantity },
+        { 
+          productId, 
+          quantity,
+          // Include the map-selected address details with manual inputs
+          deliveryAddress: {
+            ...addressDetails,
+            street: manualAddress.street,
+            barangay: manualAddress.barangay
+          }
+        },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
+      
       alert("Order placed successfully!");
       navigate("/customer/ongoing-orders");
     } catch (err) {
@@ -77,7 +207,7 @@ const OrderPreviewPage = () => {
             <div className="mb-4 text-sm text-gray-700">
               <h3 className="font-semibold text-lime-800 mb-2">Seller</h3>
               <p>{seller.storeName}</p>
-              <p>{seller.region}</p>
+              <p>{seller.province}</p>
               <p>Tel: {seller.telephone}</p>
             </div>
           </div>
@@ -88,7 +218,7 @@ const OrderPreviewPage = () => {
               <h3 className="font-semibold text-lime-800 mb-2">Delivery Address</h3>
               <p>{deliveryTo.fullName}</p>
               <p>{deliveryTo.street}, {deliveryTo.barangay}, {deliveryTo.cityOrMunicipality}</p>
-              <p>{deliveryTo.province}, {deliveryTo.region}</p>
+              <p>{deliveryTo.province}</p>
               <p>Tel: {deliveryTo.telephone}</p>
             </div>
 
@@ -145,7 +275,114 @@ const OrderPreviewPage = () => {
           </div>
         </div>
 
-         {/* Policy Modal */}
+        {/* Map Modal */}
+        {showMapModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-lime-900 mb-4">Select Delivery Location</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Please provide your exact delivery location. You can use your current location or select on the map.
+              </p>
+              
+              {/* Manual Address Inputs */}
+              <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Street</label>
+                  <input
+                    type="text"
+                    value={manualAddress.street}
+                    onChange={(e) => setManualAddress({...manualAddress, street: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Enter street name and number"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
+                  <input
+                    type="text"
+                    value={manualAddress.barangay}
+                    onChange={(e) => setManualAddress({...manualAddress, barangay: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Enter barangay"
+                  />
+                </div>
+              </div>
+              
+              {/* Location Options */}
+              <div className="flex flex-wrap gap-4 mb-4">
+                <button
+                  onClick={getCurrentLocation}
+                  disabled={isGeocoding}
+                  className={`px-4 py-2 rounded ${
+                    isGeocoding 
+                      ? "bg-gray-300 cursor-not-allowed" 
+                      : "bg-lime-600 text-white hover:bg-lime-700"
+                  }`}
+                >
+                  {isGeocoding && useCurrentLocation ? "Getting Location..." : "Use My Current Location"}
+                </button>
+                
+                <p className="text-sm text-gray-600 self-center">or click on the map to select a location</p>
+              </div>
+              
+              <div className="h-96 w-full mb-4 rounded-lg overflow-hidden">
+                <MapContainer 
+                  center={[14.5995, 120.9842]} // Manila coordinates
+                  zoom={11} 
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <MapClickHandler onMapClick={handleMapClick} />
+                  {selectedLocation && <Marker position={selectedLocation} />}
+                </MapContainer>
+              </div>
+              
+              {isGeocoding && (
+                <div className="text-center text-gray-600 mb-4">Getting address details...</div>
+              )}
+              
+              {addressDetails && !isGeocoding && (
+                <div className="mb-4 p-4 border border-lime-200 rounded-lg">
+                  <h4 className="font-semibold text-lime-800 mb-2">Selected Address:</h4>
+                  <p>{manualAddress.street}, {manualAddress.barangay}</p>
+                  <p>{addressDetails.cityOrMunicipality}, {addressDetails.province}</p>
+                  <p className="text-xs text-gray-500">Coordinates: {addressDetails.latitude?.toFixed(6)}, {addressDetails.longitude?.toFixed(6)}</p>
+                </div>
+              )}
+              
+              <div className="flex justify-between">
+                <button
+                  onClick={() => {
+                    setShowMapModal(false);
+                    setSelectedLocation(null);
+                    setAddressDetails(null);
+                    setUseCurrentLocation(false);
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                
+                <button
+                  onClick={confirmMapLocation}
+                  disabled={!selectedLocation || isGeocoding || !manualAddress.street || !manualAddress.barangay}
+                  className={`px-4 py-2 rounded text-white ${
+                    selectedLocation && !isGeocoding && manualAddress.street && manualAddress.barangay
+                      ? "bg-lime-700 hover:bg-lime-600"
+                      : "bg-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Confirm Delivery Location
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Policy Modal */}
         {showPolicy && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">

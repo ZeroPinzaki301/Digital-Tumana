@@ -6,7 +6,6 @@ const employerSchema = new mongoose.Schema({
   middleName: { type: String, trim: true },
   lastName: { type: String, required: true, trim: true },
   sex: { type: String, enum: ["Male", "Female", "Other"], required: true },
-  age: { type: Number, required: true, min: 18 },
   birthdate: { type: Date, required: true },
   nationality: { type: String, required: true },
   email: { type: String, required: true, lowercase: true, trim: true },

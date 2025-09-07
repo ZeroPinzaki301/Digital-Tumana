@@ -60,6 +60,7 @@ import EmployerOngoingJobs from "./pages/EmployerOngoingJobs";
 import WorkerOngoingJobs from "./pages/WorkerOngoingJobs";
 import OngoingJobDetails from "./pages/OngoingJobDetails";
 import WorkerJobHistory from "./pages/WorkerJobHistory";
+import OngoingOrderDetailsPage from "./pages/OngoingOrderDetails";
 
 import KaritonServiceLogin from "./kariton service/KaritonServiceLogin";
 import KaritonServiceDashboard from "./kariton service/KaritonServiceDashboard";
@@ -140,6 +141,7 @@ function AppContent() {
           <Route path="/seller-ongoing-order/:orderId" element={<SellerOngoingOrder />} />
           <Route path="/seller-ongoing-orders" element={<AllSellerOngoingOrders />} />
           <Route path="/customer/ongoing-orders" element={<OngoingOrdersPage />} />
+          <Route path="/customer/ongoing-order/:orderId" element={<OngoingOrderDetailsPage />} />
           <Route path="/customer/order-history" element={<OrderHistoryPage />} />
           <Route path="/worker/portfolio/create" element={<CreatePortfolio />} />
           <Route path="/worker/portfolio" element={<ViewPortfolio />} />

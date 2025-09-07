@@ -19,9 +19,7 @@ const orderSchema = new mongoose.Schema({
   
   totalPrice: { type: Number, required: true },
 
-  // 🏠 Delivery Snapshot (from Customer)
   deliveryAddress: {
-    region: String,
     province: String,
     cityOrMunicipality: String,
     barangay: String,
@@ -33,9 +31,7 @@ const orderSchema = new mongoose.Schema({
     email: String
   },
 
-  // 🛍 Seller Address Snapshot
   sellerAddress: {
-    region: String,
     province: String,
     cityOrMunicipality: String,
     barangay: String,

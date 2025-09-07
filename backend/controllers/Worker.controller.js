@@ -2,7 +2,6 @@ import Worker from "../models/Worker.model.js";
 import WorkerAddress from "../models/WorkerAddress.model.js";
 import { uploadToCloudinary } from "../config/cloudinary.js";
 
-// 📩 Register Worker
 export const registerWorker = async (req, res) => {
   try {
     const user = req.user;
@@ -17,7 +16,6 @@ export const registerWorker = async (req, res) => {
       middleName,
       lastName,
       sex,
-      age,
       birthdate,
       nationality,
       agreedToPolicy,
@@ -39,7 +37,6 @@ export const registerWorker = async (req, res) => {
       middleName,
       lastName,
       sex,
-      age,
       birthdate,
       nationality,
       validIdImage: validIdResult.secure_url,

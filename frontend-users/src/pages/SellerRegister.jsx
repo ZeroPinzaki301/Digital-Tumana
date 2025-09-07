@@ -9,7 +9,6 @@ const SellerRegister = () => {
     middleName: "",
     lastName: "",
     sex: "",
-    age: "",
     birthdate: "",
     nationality: "",
     agreedToPolicy: false,
@@ -27,6 +26,22 @@ const SellerRegister = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const navigate = useNavigate();
 
+  // Check if all required fields are filled
+  const isFormValid = () => {
+    return (
+      formData.firstName &&
+      formData.lastName &&
+      formData.sex &&
+      formData.birthdate &&
+      formData.nationality &&
+      formData.agreedToPolicy &&
+      formData.agreedToTerms &&
+      formData.validId &&
+      formData.dtiCert &&
+      formData.birCert
+    );
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -34,6 +49,15 @@ const SellerRegister = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setUser(res.data);
+        
+        // Pre-fill form with user data
+        setFormData(prev => ({
+          ...prev,
+          firstName: res.data.firstName || "",
+          middleName: res.data.middleName || "",
+          lastName: res.data.lastName || "",
+          nationality: "Filipino",
+        }));
       } catch (err) {
         navigate("/login");
       }
@@ -64,7 +88,9 @@ const SellerRegister = () => {
     try {
       const payload = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        payload.append(key, value);
+        if (value !== null && value !== undefined) {
+          payload.append(key, value);
+        }
       });
 
       const res = await axiosInstance.post("/api/sellers/register", payload, {
@@ -87,6 +113,31 @@ const SellerRegister = () => {
 
   const getFileName = (file) => (file ? file.name : "No file selected");
 
+  // Get today's date in YYYY-MM-DD format for the max date attribute
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Function to calculate age from birthdate
+  const calculateAge = (birthdate) => {
+    if (!birthdate) return "";
+    
+    const today = new Date();
+    const birthDate = new Date(birthdate);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
   return (
     <div className="min-h-screen bg-bg-50 flex flex-col items-center justify-center px-4 py-6">
       <div className="w-full max-w-lg mb-4">
@@ -105,18 +156,93 @@ const SellerRegister = () => {
         <h2 className="text-2xl font-bold text-lime-900 mb-4 text-center">Seller Registration</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleChange} className="input cursor-pointer" />
-          <input name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleChange} className="input cursor-pointer" />
-          <input name="lastName" placeholder="Last Name" required value={formData.lastName} onChange={handleChange} className="input cursor-pointer" />
-          <select name="sex" required value={formData.sex} onChange={handleChange} className="input cursor-pointer">
-            <option value="">Select Sex</option>
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
-          </select>
-          <input type="number" name="age" placeholder="Age" required value={formData.age} onChange={handleChange} className="input cursor-pointer" />
-          <input type="date" name="birthdate" required value={formData.birthdate} onChange={handleChange} className="input cursor-pointer" />
-          <input name="nationality" placeholder="Nationality" required value={formData.nationality} onChange={handleChange} className="input cursor-pointer" />
+          <div>
+            <label htmlFor="firstName" className="text-sm font-medium text-sky-900">First Name</label>
+            <input 
+              id="firstName"
+              name="firstName" 
+              placeholder="First Name" 
+              required 
+              value={formData.firstName} 
+              onChange={handleChange} 
+              className="mx-2 w-[80%] bg-lime-300/50 py-1 px-1.5 rounded-sm input cursor-pointer mt-1" 
+            />
+          </div>
+
+          <div>
+            <label htmlFor="middleName" className="text-sm font-medium text-sky-900">Middle Name (Optional)</label>
+            <input 
+              id="middleName"
+              name="middleName" 
+              placeholder="Middle Name" 
+              value={formData.middleName} 
+              onChange={handleChange} 
+              className="mx-2 w-[80%] bg-lime-300/50 py-1 px-1.5 rounded-sm input cursor-pointer mt-1" 
+            />
+          </div>
+
+          <div>
+            <label htmlFor="lastName" className="text-sm font-medium text-sky-900">Last Name</label>
+            <input 
+              id="lastName"
+              name="lastName" 
+              placeholder="Last Name" 
+              required 
+              value={formData.lastName} 
+              onChange={handleChange} 
+              className="mx-2 w-[80%] bg-lime-300/50 py-1 px-1.5 rounded-sm input cursor-pointer mt-1" 
+            />
+          </div>
+
+          <div className="flex">
+            <label htmlFor="sex" className="text-sm font-medium text-sky-900">Sex</label>
+            <select 
+              id="sex"
+              name="sex" 
+              required 
+              value={formData.sex} 
+              onChange={handleChange} 
+              className="mx-2 input cursor-pointer mt-6"
+            >
+              <option value="">Select Sex</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="birthdate" className="text-sm font-medium text-sky-900">Birthdate</label>
+            <input 
+              type="date" 
+              id="birthdate"
+              name="birthdate" 
+              required 
+              value={formData.birthdate} 
+              onChange={handleChange} 
+              className="mx-2 w-[80%] bg-lime-300/50 py-1 px-1.5 rounded-sm input cursor-pointer mt-1"
+              max={getTodayDate()} 
+            />
+            {formData.birthdate && (
+              <p className="text-sm text-gray-600 mt-1">
+                Age: {calculateAge(formData.birthdate)} years old
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="nationality" className="text-sm font-medium text-sky-900">Nationality</label>
+            <input 
+              id="nationality"
+              name="nationality" 
+              placeholder="Nationality" 
+              required 
+              value={formData.nationality} 
+              onChange={handleChange} 
+              className="mx-2 w-[80%] bg-lime-300/50 py-1 px-1.5 rounded-sm input cursor-pointer mt-1" 
+            />
+          </div>
+
         </div>
 
         <hr className="my-4" />
@@ -159,9 +285,9 @@ const SellerRegister = () => {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={!isFormValid() || isSubmitting}
           className={`w-full mt-4 py-2 rounded-lg transition ${
-            isSubmitting ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-lime-700 text-white hover:bg-lime-500/75 hover:text-lime-900 cursor-pointer"
+            (!isFormValid() || isSubmitting) ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-lime-700 text-white hover:bg-lime-500/75 hover:text-lime-900 cursor-pointer"
           }`}
         >
           {isSubmitting ? "Submitting..." : "Submit Application"}
