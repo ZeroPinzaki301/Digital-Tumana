@@ -31,7 +31,7 @@ const EmployerJobDetail = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axiosInstance.delete(`/api/jobs/employer/${jobId}`, {
+      await axiosInstance.delete(`/api/employer/jobs/${jobId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       navigate("/employer-jobs");

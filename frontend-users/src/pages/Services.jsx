@@ -8,11 +8,24 @@ const Services = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [minSalary, setMinSalary] = useState("");
   const [maxSalary, setMaxSalary] = useState("");
+  const [selectedSkillTypes, setSelectedSkillTypes] = useState([]);
   const [workerVerified, setWorkerVerified] = useState(false);
   const [hasPortfolio, setHasPortfolio] = useState(false);
   const [pendingWorker, setPendingWorker] = useState(false);
+  const [userSkillTypes, setUserSkillTypes] = useState([]);
 
   const navigate = useNavigate();
+
+  const skillOptions = [
+    "Plants",
+    "Fertilizers",
+    "Animals",
+    "Machinery",
+    "Irrigation",
+    "Harvesting",
+    "Storage",
+    "Other"
+  ];
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -42,6 +55,10 @@ const Services = () => {
 
             if (portfolioRes.status === 200 && portfolioRes.data?.workerId) {
               setHasPortfolio(true);
+              // Set user's skill types from portfolio
+              if (portfolioRes.data.skillTypes && portfolioRes.data.skillTypes.length > 0) {
+                setUserSkillTypes(portfolioRes.data.skillTypes);
+              }
             }
           } catch (portfolioErr) {
             if (portfolioErr.response?.status === 404) {
@@ -69,12 +86,40 @@ const Services = () => {
     fetchWorkerStatus();
   }, []);
 
+  const handleSkillTypeChange = (skillType) => {
+    setSelectedSkillTypes(prev =>
+      prev.includes(skillType)
+        ? prev.filter(skill => skill !== skillType)
+        : [...prev, skillType]
+    );
+  };
+
+  const applyRecommendedFilter = () => {
+    if (userSkillTypes.length > 0) {
+      setSelectedSkillTypes(userSkillTypes);
+    }
+  };
+
+  const clearFilters = () => {
+    setSelectedSkillTypes([]);
+    setSearchTerm("");
+    setMinSalary("");
+    setMaxSalary("");
+  };
+
   const filteredJobs = jobs
     .filter((job) => {
       const nameMatches = job.jobName.toLowerCase().includes(searchTerm.toLowerCase());
       const salaryMin = minSalary === "" || job.minSalary >= parseFloat(minSalary);
       const salaryMax = maxSalary === "" || job.maxSalary <= parseFloat(maxSalary);
-      return nameMatches && salaryMin && salaryMax;
+      
+      // Skill type filtering - show all if none selected, otherwise filter by selected skills
+      const skillMatches = selectedSkillTypes.length === 0 || 
+        (job.skillTypes && job.skillTypes.some(skill => 
+          selectedSkillTypes.includes(skill)
+        ));
+      
+      return nameMatches && salaryMin && salaryMax && skillMatches;
     })
     .sort(() => Math.random() - 0.5);
 
@@ -110,6 +155,24 @@ const Services = () => {
               Show Filters
             </summary>
             <div className="mt-2 bg-white border border-sky-300 rounded-lg p-4">
+              {/* Recommended Filter Button for Mobile */}
+              {hasPortfolio && userSkillTypes.length > 0 && (
+                <div className="mb-4">
+                  <button
+                    onClick={applyRecommendedFilter}
+                    className="w-full cursor-pointer py-2 bg-green-600 text-white font-medium rounded hover:bg-green-500 transition mb-2"
+                  >
+                    Show Recommended Jobs
+                  </button>
+                  <button
+                    onClick={clearFilters}
+                    className="w-full cursor-pointer py-2 bg-gray-500 text-white font-medium rounded hover:bg-gray-400 transition"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              )}
+              
               <label className="text-sm font-semibold text-sky-700 mb-2 block">Salary Range (₱):</label>
               <div className="flex gap-2 mb-4">
                 <input
@@ -127,6 +190,22 @@ const Services = () => {
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-300"
                 />
               </div>
+              
+              {/* Mobile Skill Types Filter */}
+              <label className="text-sm font-semibold text-sky-700 mb-2 block">Skill Types:</label>
+              <div className="grid grid-cols-2 gap-2">
+                {skillOptions.map(skill => (
+                  <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedSkillTypes.includes(skill)}
+                      onChange={() => handleSkillTypeChange(skill)}
+                      className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                    />
+                    <span className="text-sm font-semibold text-gray-700">{skill}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </details>
         </div>
@@ -136,6 +215,24 @@ const Services = () => {
         {/* ✅ Desktop Sidebar */}
         <aside className="hidden md:block w-64 bg-white border border-sky-300 rounded-lg shadow-md p-4 h-fit">
           <h2 className="text-lg font-bold text-sky-800 mb-4">Filters</h2>
+
+          {/* Recommended Filter Button for Desktop */}
+          {hasPortfolio && userSkillTypes.length > 0 && (
+            <div className="mb-4">
+              <button
+                onClick={applyRecommendedFilter}
+                className="w-full cursor-pointer py-2 bg-green-600 text-white font-medium rounded hover:bg-green-500 transition mb-2"
+              >
+                Show Recommended Jobs
+              </button>
+              <button
+                onClick={clearFilters}
+                className="w-full cursor-pointer py-2 bg-gray-500 text-white font-medium rounded hover:bg-gray-400 transition"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
 
           <input
             type="text"
@@ -161,6 +258,24 @@ const Services = () => {
               onChange={(e) => setMaxSalary(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-300"
             />
+          </div>
+
+          {/* Skill Types Filter */}
+          <div className="mb-6">
+            <label className="text-sm font-semibold text-sky-700 mb-2 block">Skill Types:</label>
+            <div className="grid grid-cols-1 gap-2">
+              {skillOptions.map(skill => (
+                <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedSkillTypes.includes(skill)}
+                    onChange={() => handleSkillTypeChange(skill)}
+                    className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  />
+                  <span className="text-sm font-semibold text-gray-700">{skill}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Worker Status Section */}
@@ -238,6 +353,12 @@ const Services = () => {
                     <p className="text-sm text-gray-700">
                       ₱{job.minSalary} – ₱{job.maxSalary} / {job.salaryFrequency}
                     </p>
+                    {job.skillTypes && job.skillTypes.length > 0 && (
+                      <div className="text-xs text-gray-600">
+                        <span className="font-semibold">Skills: </span>
+                        {job.skillTypes.join(", ")}
+                      </div>
+                    )}
                     <p className="text-xs font-semibold">
                       Status:{" "}
                       <span className={job.isAvailable ? "text-green-700" : "text-red-700"}>

@@ -30,6 +30,16 @@ export const registerWorker = async (req, res) => {
       ? await uploadToCloudinary(req.files.resumeFile[0].path, "resume_files")
       : null;
 
+    // Upload second valid ID if provided
+    let secondValidIdImageUrl = null;
+    if (req.files?.secondValidId && req.files.secondValidId[0]) {
+      const secondValidIdResult = await uploadToCloudinary(
+        req.files.secondValidId[0].path, 
+        "valid_id_images"
+      );
+      secondValidIdImageUrl = secondValidIdResult.secure_url;
+    }
+
     const newWorker = new Worker({
       userId: user._id,
       email: user.email,
@@ -40,6 +50,7 @@ export const registerWorker = async (req, res) => {
       birthdate,
       nationality,
       validIdImage: validIdResult.secure_url,
+      secondValidIdImage: secondValidIdImageUrl,
       resumeFile: resumeResult?.secure_url || null,
       agreedToPolicy,
       status: "pending",
@@ -142,7 +153,14 @@ export const addWorkerAddressByUser = async (req, res) => {
     if (worker.status !== "verified") return res.status(403).json({ message: "Worker is not verified" });
 
     if (worker.workerAddress) {
-      return res.status(400).json({ message: "Worker address already exists. Use PUT to update." });
+      const existingAddress = await WorkerAddress.findById(worker.workerAddress);
+      if (!existingAddress) {
+        // Clean up the broken reference
+        worker.workerAddress = null;
+        await worker.save();
+      } else {
+        return res.status(400).json({ message: "Worker address already exists. Use PUT to update." });
+      }
     }
 
     const newAddress = await WorkerAddress.create({

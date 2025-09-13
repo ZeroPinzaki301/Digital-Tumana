@@ -31,6 +31,9 @@ import workerPortfolioRoutes from "./routes/WorkerPortfolio.route.js"
 import jobApplicationRoutes from "./routes/JobApplication.route.js"
 import adminUserManagementRoutes from "./routes/AdminUserManagement.route.js"
 import feedbackRoutes from "./routes/Feedback.route.js"
+import riderVehicleDetailsRoutes from "./routes/RiderVehicleDetails.route.js";
+import riderRatingRoutes from "./routes/RiderRating.route.js";
+import notificationRoutes from "./routes/Notification.route.js"
 
 // ES module equivalents of __filename and __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -47,6 +50,7 @@ const allowedOrigins = [
   'https://digitaltumana.netlify.app',
   'https://tumanaadmin.netlify.app',
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://localhost:3000'
 ];
 
@@ -83,7 +87,8 @@ app.use("/api/customer/order", customerOrderRoutes);
 app.use("/api/carts", cartRoutes);
 app.use("/api/order-tracking", orderTrackingRoutes);
 app.use("/api/order-tracking/admin", adminOrderTrackingRoutes);
-app.use("/api/kariton/", karitonServiceRoutes);
+app.use("/api/kariton", karitonServiceRoutes);
+app.use("/api/kariton/vehicle", riderVehicleDetailsRoutes);
 app.use("/api/order-to-deliver/", orderToDeliverRoutes);
 app.use("/api/seller-balance/", sellerBalanceRoutes);
 app.use("/api/admin/seller-balance", adminSellerBalanceRoutes);
@@ -94,6 +99,9 @@ app.use("/api/jobs", jobsAndServicesRoutes);
 app.use("/api/worker/portfolio", workerPortfolioRoutes);
 app.use("/api/job-applications", jobApplicationRoutes)
 app.use("/api/feedbacks", feedbackRoutes);
+app.use("/api/rider/rating", riderRatingRoutes);
+
+app.use("/api/notification", notificationRoutes);
 
 // Health check endpoint for Render
 app.get('/health', (req, res) => {

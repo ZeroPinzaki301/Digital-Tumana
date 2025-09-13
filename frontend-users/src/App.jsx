@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import Notification from "./components/Notification";
 
 import Register from "./pages/Register";
 import VerifyEmail from "./pages/VerifyEmail";
@@ -61,13 +62,21 @@ import WorkerOngoingJobs from "./pages/WorkerOngoingJobs";
 import OngoingJobDetails from "./pages/OngoingJobDetails";
 import WorkerJobHistory from "./pages/WorkerJobHistory";
 import OngoingOrderDetailsPage from "./pages/OngoingOrderDetails";
+import SalesAnalytics from "./pages/SalesAnalytics";
+import OrderHistoryDetailsPage from "./pages/OrderHistoryDetails";
+import ConfirmationEmployerApplications from "./pages/EmployerApplicationConfirmation";
 
 import KaritonServiceLogin from "./kariton service/KaritonServiceLogin";
 import KaritonServiceDashboard from "./kariton service/KaritonServiceDashboard";
 import RiderDeliveryRequests from "./kariton service/RiderDeliveryRequests";
 import RiderDeliveryDetails from "./kariton service/RiderDeliveryDetail";
 import RiderDeliveryHistory from "./kariton service/RiderDeliveryHistory";
+import KaritonResetLoginCode from "./kariton service/KaritonResetLoginCode";
+import KaritonVerifyResetCode from "./kariton service/KaritonVerifyResetCode";
+import KaritonNewLoginCode from "./kariton service/KaritonNewLoginCode";
+
 import SellerOrderHistory from "./pages/SellerOrderHistory";
+
 import FeedbackForm from "./pages/FeedbackForm";
 
 import "./App.css";
@@ -80,7 +89,10 @@ function AppContent() {
     "/kariton-service/rider/dashboard",
     "/kariton-service/rider/delivery-requests",
     "/kariton/order/:orderId",
-    "/kariton-service/rider/delivery-history"
+    "/kariton-service/rider/delivery-history",
+    "/kariton/forgot-login-code",
+    "/kariton/verify-reset",
+    "/kariton/reset-login-code"
   ];
 
   const showNavbar = !hiddenNavbarRoutes.includes(location.pathname);
@@ -90,6 +102,8 @@ function AppContent() {
       {showNavbar && <Navbar />}
       <div className={showNavbar ? "pt-16 min-h-screen" : "min-h-screen"}>
         <Routes>
+          <Route path="/notifications" element={<Notification />} />
+          
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/learn" element={<Learn />} />
@@ -116,6 +130,7 @@ function AppContent() {
           <Route path="/worker-dashboard" element={<WorkerDashboard />} />
           <Route path="/employer-dashboard" element={<EmployerDashboard />} />
           <Route path="/employer/job-applications/pending" element={<PendingEmployerApplications />} />
+          <Route path="/employer/job-applications/confirmation" element={<ConfirmationEmployerApplications />} />
           <Route path="/employer/jobs/ongoing" element={<EmployerOngoingJobs />} />
           <Route path="/employer/job-application/applicant-details/:workerId" element={<ViewApplicantDetails />} />
           <Route path="/seller-address" element={<SellerAddressPage />} />
@@ -126,6 +141,7 @@ function AppContent() {
           <Route path="/seller-add-product" element={<SellerAddProduct />} />
           <Route path="/seller-edit-product/:productId" element={<SellerEditProduct />} />
           <Route path="/seller-order-history" element={<SellerOrderHistory />} />
+          <Route path="/seller-sales-analytics" element={<SalesAnalytics />} />
           <Route path="/employer-jobs" element={<EmployerJobs />} />
           <Route path="/employer-add-job" element={<EmployerAddJob />} />
           <Route path="/employer-job/:jobId" element={<EmployerJobDetail />} />
@@ -143,6 +159,7 @@ function AppContent() {
           <Route path="/customer/ongoing-orders" element={<OngoingOrdersPage />} />
           <Route path="/customer/ongoing-order/:orderId" element={<OngoingOrderDetailsPage />} />
           <Route path="/customer/order-history" element={<OrderHistoryPage />} />
+          <Route path="/customer/order-history/:orderId" element={<OrderHistoryDetailsPage />} />
           <Route path="/worker/portfolio/create" element={<CreatePortfolio />} />
           <Route path="/worker/portfolio" element={<ViewPortfolio />} />
           <Route path="/jobs/:jobId" element={<JobDetail />} />
@@ -160,6 +177,9 @@ function AppContent() {
           <Route path="/kariton-service/rider/delivery-requests" element={<RiderDeliveryRequests />} />
           <Route path="/kariton-service/rider/delivery-history" element={<RiderDeliveryHistory />} />
           <Route path="/kariton/order/:orderId" element={<RiderDeliveryDetails />} />
+          <Route path="/kariton/forgot-login-code" element={<KaritonResetLoginCode />} />
+          <Route path="/kariton/verify-reset" element={<KaritonVerifyResetCode />} />
+          <Route path="/kariton/reset-login-code" element={<KaritonNewLoginCode />} />
         </Routes>
       </div>
     </>

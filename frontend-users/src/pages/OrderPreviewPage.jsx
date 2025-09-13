@@ -38,8 +38,16 @@ const OrderPreviewPage = () => {
   const [manualAddress, setManualAddress] = useState({
     street: "",
     barangay: "",
+    cityOrMunicipality: "",
+    province: "",
+    region: ""
   });
   const [useCurrentLocation, setUseCurrentLocation] = useState(false);
+  const [useDefaultAddress, setUseDefaultAddress] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchPreview = async () => {
@@ -56,14 +64,53 @@ const OrderPreviewPage = () => {
           setManualAddress({
             street: res.data.deliveryTo.street || "",
             barangay: res.data.deliveryTo.barangay || "",
+            cityOrMunicipality: res.data.deliveryTo.cityOrMunicipality || "",
+            province: res.data.deliveryTo.province || "",
+            region: res.data.deliveryTo.region || ""
           });
         }
       } catch (err) {
         console.error("Preview failed:", err.message);
+        setAlertMessage("Failed to load order preview. Please try again.");
+        setShowAlertModal(true);
       }
     };
     fetchPreview();
   }, [productId, quantity]);
+
+  const useCustomerDefaultAddress = () => {
+    if (preview && preview.deliveryTo) {
+      const deliveryTo = preview.deliveryTo;
+      
+      // Set manual address fields
+      setManualAddress({
+        street: deliveryTo.street || "",
+        barangay: deliveryTo.barangay || "",
+        cityOrMunicipality: deliveryTo.cityOrMunicipality || "",
+        province: deliveryTo.province || "",
+        region: deliveryTo.region || ""
+      });
+      
+      setAddressDetails({
+        province: deliveryTo.province || "",
+        cityOrMunicipality: deliveryTo.cityOrMunicipality || "",
+        barangay: deliveryTo.barangay || "",
+        street: deliveryTo.street || "",
+        region: deliveryTo.region || "",
+        latitude: deliveryTo.latitude || null,
+        longitude: deliveryTo.longitude || null,
+        telephone: deliveryTo.telephone || "",
+        email: deliveryTo.email || "",
+        postalCode: deliveryTo.postalCode || "",
+        fullName: deliveryTo.fullName || ""
+      });
+      
+      setSelectedLocation(null);
+      setUseDefaultAddress(true);
+      setSuccessMessage("Default customer address loaded. You can proceed to confirm.");
+      setShowSuccessModal(true);
+    }
+  };
 
   const reverseGeocode = async (lat, lng) => {
     setIsGeocoding(true);
@@ -80,23 +127,35 @@ const OrderPreviewPage = () => {
         const province = address.state || address.province || "";
         const cityOrMunicipality = address.city || address.town || address.municipality || "";
         const barangay = address.village || address.hamlet || address.neighbourhood || "";
-        const street = address.road || address.footway || "";
+        const region = address.region || "";
+        
+        // Update manual address with geocoded data
+        setManualAddress(prev => ({
+          ...prev,
+          barangay: barangay || prev.barangay,
+          cityOrMunicipality: cityOrMunicipality || prev.cityOrMunicipality,
+          province: province || prev.province,
+          region: region || prev.region
+        }));
         
         setAddressDetails({
           province,
           cityOrMunicipality,
-          barangay: manualAddress.barangay || barangay,
-          street: manualAddress.street || street,
+          barangay,
+          street: manualAddress.street, // Keep the manually entered street
+          region,
           latitude: lat,
           longitude: lng,
           telephone: preview?.deliveryTo?.telephone || "",
           email: preview?.deliveryTo?.email || "",
           postalCode: address.postcode || preview?.deliveryTo?.postalCode || "",
+          fullName: preview?.deliveryTo?.fullName || ""
         });
       }
     } catch (error) {
       console.error("Geocoding error:", error);
-      alert("Failed to get address details. Please try again.");
+      setAlertMessage("Failed to get address details. Please try again.");
+      setShowAlertModal(true);
     } finally {
       setIsGeocoding(false);
     }
@@ -105,16 +164,20 @@ const OrderPreviewPage = () => {
   const handleMapClick = (e) => {
     const { lat, lng } = e.latlng;
     setSelectedLocation([lat, lng]);
+    setUseDefaultAddress(false);
     reverseGeocode(lat, lng);
   };
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      setAlertMessage("Geolocation is not supported by your browser");
+      setShowAlertModal(true);
       return;
     }
 
     setIsGeocoding(true);
+    setUseCurrentLocation(true);
+    setUseDefaultAddress(false);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
@@ -123,15 +186,18 @@ const OrderPreviewPage = () => {
       },
       (error) => {
         console.error("Error getting location:", error);
-        alert("Unable to retrieve your location. Please select manually on the map.");
+        setAlertMessage("Unable to retrieve your location. Please select manually on the map.");
+        setShowAlertModal(true);
         setIsGeocoding(false);
+        setUseCurrentLocation(false);
       }
     );
   };
 
   const handlePlaceOrder = async () => {
     if (!acceptedTerms) {
-      alert("Please accept the terms and conditions to proceed with your order");
+      setAlertMessage("Please accept the terms and conditions to proceed with your order");
+      setShowAlertModal(true);
       return;
     }
     
@@ -140,39 +206,71 @@ const OrderPreviewPage = () => {
   };
 
   const confirmMapLocation = async () => {
-    if (!selectedLocation || !addressDetails) {
-      alert("Please select a location on the map or use your current location");
+    // If using default address, skip validation for selected location
+    if (!useDefaultAddress && (!selectedLocation || !addressDetails)) {
+      setAlertMessage("Please select a location on the map or use your current location");
+      setShowAlertModal(true);
       return;
     }
 
     // Validate manual address fields
-    if (!manualAddress.street || !manualAddress.barangay) {
-      alert("Please provide both street and barangay information");
+    if (!manualAddress.street || !manualAddress.barangay || !manualAddress.cityOrMunicipality || !manualAddress.province) {
+      setAlertMessage("Please provide complete address information (street, barangay, city/municipality, province)");
+      setShowAlertModal(true);
       return;
     }
 
     try {
-      // Create order with map-selected address
-      const res = await axiosInstance.post(
-        "/api/orders/direct",
+      const token = localStorage.getItem("token");
+      
+      // Prepare the delivery address object
+      const deliveryAddressData = useDefaultAddress ? 
+        // Use the customer's default address
+        {
+          ...addressDetails,
+          street: manualAddress.street,
+          barangay: manualAddress.barangay,
+          cityOrMunicipality: manualAddress.cityOrMunicipality,
+          province: manualAddress.province,
+          region: manualAddress.region,
+          fullName: preview?.deliveryTo?.fullName || "",
+          telephone: preview?.deliveryTo?.telephone || "",
+          email: preview?.deliveryTo?.email || ""
+        } :
+        // Use the map-selected address
+        {
+          ...addressDetails,
+          street: manualAddress.street,
+          barangay: manualAddress.barangay,
+          cityOrMunicipality: manualAddress.cityOrMunicipality,
+          province: manualAddress.province,
+          region: manualAddress.region,
+          fullName: preview?.deliveryTo?.fullName || "",
+          telephone: preview?.deliveryTo?.telephone || "",
+          email: preview?.deliveryTo?.email || ""
+        };
+      
+      // Create order with the selected address
+      await axiosInstance.post("/api/orders/direct", 
         { 
           productId, 
           quantity,
-          // Include the map-selected address details with manual inputs
-          deliveryAddress: {
-            ...addressDetails,
-            street: manualAddress.street,
-            barangay: manualAddress.barangay
-          }
+          deliveryAddress: deliveryAddressData
         },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
       );
-      
-      alert("Order placed successfully!");
-      navigate("/customer/ongoing-orders");
+
+      setSuccessMessage("Order placed successfully!");
+      setShowSuccessModal(true);
+      setTimeout(() => {
+        navigate("/customer/ongoing-orders");
+      }, 2000);
     } catch (err) {
       console.error("Order failed:", err.message);
-      alert("Something went wrong.");
+      setAlertMessage("Something went wrong during checkout.");
+      setShowAlertModal(true);
     }
   };
 
@@ -207,19 +305,21 @@ const OrderPreviewPage = () => {
             <div className="mb-4 text-sm text-gray-700">
               <h3 className="font-semibold text-lime-800 mb-2">Seller</h3>
               <p>{seller.storeName}</p>
-              <p>{seller.province}</p>
+              <p>{seller.region}</p>
               <p>Tel: {seller.telephone}</p>
+              <p>Email: {seller.email}</p>
             </div>
           </div>
 
           {/* Right Column */}
           <div>
             <div className="mb-4 text-sm text-gray-700">
-              <h3 className="font-semibold text-lime-800 mb-2">Delivery Address</h3>
+              <h3 className="font-semibold text-lime-800 mb-2">Current Delivery Address</h3>
               <p>{deliveryTo.fullName}</p>
               <p>{deliveryTo.street}, {deliveryTo.barangay}, {deliveryTo.cityOrMunicipality}</p>
-              <p>{deliveryTo.province}</p>
+              <p>{deliveryTo.province}, {deliveryTo.region}</p>
               <p>Tel: {deliveryTo.telephone}</p>
+              <p>Email: {deliveryTo.email}</p>
             </div>
 
             <div className="bg-lime-100 p-4 rounded-lg text-gray-900 font-semibold mb-4">
@@ -281,32 +381,9 @@ const OrderPreviewPage = () => {
             <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
               <h3 className="text-xl font-bold text-lime-900 mb-4">Select Delivery Location</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Please provide your exact delivery location. You can use your current location or select on the map.
+                Please provide your exact delivery location. You can use your current location, select on the map, or use your default address.
+                The street field must be filled manually, while other fields will be automatically filled when you select a location.
               </p>
-              
-              {/* Manual Address Inputs */}
-              <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Street</label>
-                  <input
-                    type="text"
-                    value={manualAddress.street}
-                    onChange={(e) => setManualAddress({...manualAddress, street: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    placeholder="Enter street name and number"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
-                  <input
-                    type="text"
-                    value={manualAddress.barangay}
-                    onChange={(e) => setManualAddress({...manualAddress, barangay: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    placeholder="Enter barangay"
-                  />
-                </div>
-              </div>
               
               {/* Location Options */}
               <div className="flex flex-wrap gap-4 mb-4">
@@ -322,7 +399,72 @@ const OrderPreviewPage = () => {
                   {isGeocoding && useCurrentLocation ? "Getting Location..." : "Use My Current Location"}
                 </button>
                 
+                <button
+                  onClick={useCustomerDefaultAddress}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Use My Default Address
+                </button>
+                
                 <p className="text-sm text-gray-600 self-center">or click on the map to select a location</p>
+              </div>
+              
+              {/* Manual Address Inputs */}
+              <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">House Number, and Street*</label>
+                  <input
+                    type="text"
+                    value={manualAddress.street}
+                    onChange={(e) => setManualAddress({...manualAddress, street: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Enter street name and number"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Barangay*</label>
+                  <input
+                    type="text"
+                    value={manualAddress.barangay}
+                    onChange={(e) => setManualAddress({...manualAddress, barangay: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Enter barangay"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">City/Municipality*</label>
+                  <input
+                    type="text"
+                    value={manualAddress.cityOrMunicipality}
+                    onChange={(e) => setManualAddress({...manualAddress, cityOrMunicipality: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Enter city or municipality"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Province*</label>
+                  <input
+                    type="text"
+                    value={manualAddress.province}
+                    onChange={(e) => setManualAddress({...manualAddress, province: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Enter province"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                  <input
+                    type="text"
+                    value={manualAddress.region}
+                    onChange={(e) => setManualAddress({...manualAddress, region: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Enter region"
+                  />
+                </div>
               </div>
               
               <div className="h-96 w-full mb-4 rounded-lg overflow-hidden">
@@ -344,14 +486,19 @@ const OrderPreviewPage = () => {
                 <div className="text-center text-gray-600 mb-4">Getting address details...</div>
               )}
               
-              {addressDetails && !isGeocoding && (
+              {(addressDetails && !isGeocoding) || useDefaultAddress ? (
                 <div className="mb-4 p-4 border border-lime-200 rounded-lg">
                   <h4 className="font-semibold text-lime-800 mb-2">Selected Address:</h4>
                   <p>{manualAddress.street}, {manualAddress.barangay}</p>
-                  <p>{addressDetails.cityOrMunicipality}, {addressDetails.province}</p>
-                  <p className="text-xs text-gray-500">Coordinates: {addressDetails.latitude?.toFixed(6)}, {addressDetails.longitude?.toFixed(6)}</p>
+                  <p>{manualAddress.cityOrMunicipality}, {manualAddress.province}</p>
+                  {addressDetails?.latitude && (
+                    <p className="text-xs text-gray-500">Coordinates: {addressDetails.latitude?.toFixed(6)}, {addressDetails.longitude?.toFixed(6)}</p>
+                  )}
+                  {useDefaultAddress && (
+                    <p className="text-xs text-blue-500 mt-2">Using your default customer address</p>
+                  )}
                 </div>
-              )}
+              ) : null}
               
               <div className="flex justify-between">
                 <button
@@ -360,6 +507,7 @@ const OrderPreviewPage = () => {
                     setSelectedLocation(null);
                     setAddressDetails(null);
                     setUseCurrentLocation(false);
+                    setUseDefaultAddress(false);
                   }}
                   className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
                 >
@@ -368,9 +516,9 @@ const OrderPreviewPage = () => {
                 
                 <button
                   onClick={confirmMapLocation}
-                  disabled={!selectedLocation || isGeocoding || !manualAddress.street || !manualAddress.barangay}
+                  disabled={(!selectedLocation && !useDefaultAddress) || isGeocoding || !manualAddress.street || !manualAddress.barangay || !manualAddress.cityOrMunicipality || !manualAddress.province}
                   className={`px-4 py-2 rounded text-white ${
-                    selectedLocation && !isGeocoding && manualAddress.street && manualAddress.barangay
+                    (selectedLocation || useDefaultAddress) && !isGeocoding && manualAddress.street && manualAddress.barangay && manualAddress.cityOrMunicipality && manualAddress.province
                       ? "bg-lime-700 hover:bg-lime-600"
                       : "bg-gray-400 cursor-not-allowed"
                   }`}
@@ -417,6 +565,47 @@ const OrderPreviewPage = () => {
                   className="px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-600/75 cursor-pointer"
                 >
                   I Understand
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Alert Modal */}
+        {showAlertModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold text-lime-900 mb-4">Notification</h3>
+              <p className="text-gray-700 mb-6">{alertMessage}</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowAlertModal(false)}
+                  className="px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-600/75 cursor-pointer"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold text-lime-900 mb-4">Success</h3>
+              <p className="text-gray-700 mb-6">{successMessage}</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    if (successMessage === "Order placed successfully!") {
+                      navigate("/customer/ongoing-orders");
+                    }
+                  }}
+                  className="px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-600/75 cursor-pointer"
+                >
+                  OK
                 </button>
               </div>
             </div>

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
@@ -6,6 +5,8 @@ import axiosInstance from '../utils/axiosInstance';
 const SellerBalanceOverview = () => {
   const [balance, setBalance] = useState(null);
   const [withdrawals, setWithdrawals] = useState([]);
+  const [paymentReceipts, setPaymentReceipts] = useState([]);
+  const [activeTab, setActiveTab] = useState('withdrawals'); // 'withdrawals' or 'receipts'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -15,17 +16,21 @@ const SellerBalanceOverview = () => {
       try {
         const token = localStorage.getItem('token');
 
-        const [balanceRes, historyRes] = await Promise.all([
+        const [balanceRes, historyRes, receiptsRes] = await Promise.all([
           axiosInstance.get('/api/seller-balance', {
             headers: { Authorization: `Bearer ${token}` }
           }),
           axiosInstance.get('/api/seller-balance/withdraw/history', {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axiosInstance.get('/api/seller-balance/payment-receipt', {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
 
         setBalance(balanceRes.data.data);
         setWithdrawals(historyRes.data.data || []);
+        setPaymentReceipts(receiptsRes.data.data || []);
       } catch (error) {
         const message = error.response?.data?.message || 'Failed to fetch data';
         if (message.toLowerCase().includes('balance record not found for this seller')) {
@@ -119,43 +124,114 @@ const SellerBalanceOverview = () => {
           </div>
         </div>
 
-        {/* Right: Withdrawal History */}
+        {/* Right: Withdrawal History & Payment Receipts */}
         <div className="bg-white shadow-lg rounded-xl p-6 overflow-y-auto max-h-[600px]">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Withdrawal History
-          </h2>
+          <div className="flex mb-4 border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('withdrawals')}
+              className={`px-4 py-2 font-medium ${
+                activeTab === 'withdrawals'
+                  ? 'border-b-2 border-lime-500 text-lime-700'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Withdrawal History
+            </button>
+            <button
+              onClick={() => setActiveTab('receipts')}
+              className={`px-4 py-2 font-medium ${
+                activeTab === 'receipts'
+                  ? 'border-b-2 border-lime-500 text-lime-700'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Payment Receipts
+            </button>
+          </div>
 
-          {withdrawals.length > 0 ? (
-            <ul className="space-y-3">
-              {withdrawals.map((item) => (
-                <li
-                  key={item._id}
-                  className="bg-gray-100 p-4 rounded-lg shadow-sm"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-800 font-medium">
-                      ₱{item.withdrawalAmount.toFixed(2)}
-                    </span>
-                    <span
-                      className={`text-sm px-3 py-1 rounded-full ${
-                        item.status === 'approved'
-                          ? 'bg-green-200 text-green-800'
-                          : item.status === 'rejected'
-                          ? 'bg-red-200 text-red-800'
-                          : 'bg-gray-200 text-gray-800'
-                      }`}
+          {activeTab === 'withdrawals' ? (
+            <>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                Withdrawal History
+              </h2>
+
+              {withdrawals.length > 0 ? (
+                <ul className="space-y-3">
+                  {withdrawals.map((item) => (
+                    <li
+                      key={item._id}
+                      className="bg-gray-100 p-4 rounded-lg shadow-sm"
                     >
-                      {item.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {new Date(item.createdAt).toLocaleString()}
-                  </p>
-                </li>
-              ))}
-            </ul>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-800 font-medium">
+                          ₱{item.withdrawalAmount.toFixed(2)}
+                        </span>
+                        <span
+                          className={`text-sm px-3 py-1 rounded-full ${
+                            item.status === 'approved'
+                              ? 'bg-green-200 text-green-800'
+                              : item.status === 'rejected'
+                              ? 'bg-red-200 text-red-800'
+                              : 'bg-gray-200 text-gray-800'
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-600">No withdrawal history yet.</p>
+              )}
+            </>
           ) : (
-            <p className="text-gray-600">No withdrawal history yet.</p>
+            <>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                Payment Receipts
+              </h2>
+
+              {paymentReceipts.length > 0 ? (
+                <ul className="space-y-3">
+                  {paymentReceipts
+                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                    .map((receipt) => {
+                      // Calculate the amount after deducting ₱50
+                      const sellerAmount = (receipt.orderId.totalPrice - 50).toFixed(2);
+                      
+                      return (
+                        <li
+                          key={receipt._id}
+                          className="bg-gray-100 p-4 rounded-lg shadow-sm"
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-800 font-medium">
+                              ₱{sellerAmount}
+                            </span>
+                            <span className="text-sm px-3 py-1 rounded-full bg-blue-200 text-blue-800">
+                              Paid
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mt-1">
+                            Order Code: {receipt.orderCode}
+                          </p>
+                          <p className="text-sm text-gray-700">
+                            Original Amount: ₱{receipt.orderId.totalPrice.toFixed(2)-50}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Received on: {new Date(receipt.updatedAt).toLocaleString()}
+                          </p>
+                        </li>
+                      );
+                    })}
+                </ul>
+              ) : (
+                <p className="text-gray-600">No payment receipts yet.</p>
+              )}
+            </>
           )}
         </div>
       </div>

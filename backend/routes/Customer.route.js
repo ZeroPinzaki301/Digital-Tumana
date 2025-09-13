@@ -11,7 +11,8 @@ import {
 const router = express.Router();
 
 const customerUpload = upload.fields([
-  { name: "idImage", maxCount: 1 }
+  { name: "idImage", maxCount: 1 },
+  { name: "secondIdImage", maxCount: 1 }
 ]);
 
 router.post("/register", protect, customerUpload, createCustomer);

@@ -54,7 +54,6 @@ const WorkerRegister = () => {
           lastName: res.data.lastName || "",
           middleName: res.data.middleName || "",
           nationality: "Filipino",
-          // Middle name is left blank intentionally
         }));
       } catch (err) {
         navigate("/login");
@@ -246,7 +245,8 @@ const WorkerRegister = () => {
 
         <div className="space-y-4">
           {[
-            { name: "validId", label: "Upload Valid ID", required: true }, 
+            { name: "validId", label: "Upload Valid ID (Primary)", required: true }, 
+            { name: "secondValidId", label: "Upload Another ID (Secondary)", required: true }, 
             { name: "resumeFile", label: "Upload Resume (Optional)", required: false }
           ].map(({ name, label, required }) => (
             <div key={name}>

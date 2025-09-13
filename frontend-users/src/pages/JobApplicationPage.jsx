@@ -9,7 +9,7 @@ const JobApplicationPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [alreadyApplied, setAlreadyApplied] = useState(false);
+  const [existingApplication, setExistingApplication] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -23,14 +23,14 @@ const JobApplicationPage = () => {
         const jobData = jobRes.data.job;
         setJob(jobData);
 
-        const checkRes = await axiosInstance.get(`/api/job-applications/check`, {
+        // Get detailed application info instead of just IDs
+        const checkRes = await axiosInstance.get(`/api/job-applications/check-details`, {
           headers: { Authorization: `Bearer ${token}` },
+          params: { jobId }
         });
-        const appliedJobIds = checkRes.data.appliedJobIds || [];
-
-        if (appliedJobIds.includes(jobData._id)) {
-          setAlreadyApplied(true);
-          setFeedback("You’ve already applied to this job.");
+        
+        if (checkRes.data.application) {
+          setExistingApplication(checkRes.data.application);
         }
       } catch (err) {
         console.error("Error loading job or checking application:", err);
@@ -58,13 +58,39 @@ const JobApplicationPage = () => {
       );
 
       setFeedback(res.data.message || "Application submitted successfully");
-      setShowModal(true); // Show modal instead of redirecting
+      setShowModal(true);
+      setExistingApplication(null); // Reset existing application state
     } catch (err) {
       const msg = err.response?.data?.message || "Failed to apply for job";
       setFeedback(msg);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Check if user can apply based on existing application status
+  const canApply = () => {
+    if (!existingApplication) return true;
+    
+    const allowedStatuses = ["completed", "cancelled"];
+    return allowedStatuses.includes(existingApplication.status);
+  };
+
+  // Get application status message
+  const getApplicationStatusMessage = () => {
+    if (!existingApplication) return null;
+    
+    const statusMessages = {
+      pending: "Your application is pending review.",
+      workerConfirmation: "Waiting for your confirmation.",
+      ongoingJob: "You're currently working on this job.",
+      completed: "You've completed this job. You can apply again.",
+      terminated: "Your application was terminated.",
+      rejected: "Your application was rejected.",
+      cancelled: "You cancelled this application. You can apply again."
+    };
+    
+    return statusMessages[existingApplication.status] || `Application status: ${existingApplication.status}`;
   };
 
   if (loading) {
@@ -111,19 +137,29 @@ const JobApplicationPage = () => {
         <p className="text-red-500">Job not found.</p>
       )}
 
+      {/* Application status information */}
+      {existingApplication && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-md border border-blue-200">
+          <p className="font-medium text-blue-800">Application Status:</p>
+          <p className="text-blue-700">{getApplicationStatusMessage()}</p>
+        </div>
+      )}
+
       <button
         onClick={handleApply}
-        disabled={submitting || alreadyApplied || !job?.isAvailable}
+        disabled={submitting || (!canApply() && existingApplication) || !job?.isAvailable}
         className={`w-full py-3 px-6 rounded-md text-white font-medium transition ${
-          submitting || alreadyApplied || !job?.isAvailable
+          submitting || (!canApply() && existingApplication) || !job?.isAvailable
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-sky-600 hover:bg-sky-500"
         }`}
       >
         {submitting
           ? "Submitting..."
-          : alreadyApplied
+          : existingApplication && !canApply()
           ? "Already Applied"
+          : existingApplication && canApply()
+          ? "Apply Again"
           : !job?.isAvailable
           ? "Job Closed"
           : "Confirm Application"}

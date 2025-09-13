@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const karitonServiceSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
+  middleName: { type: String },
   lastName: { type: String, required: true },
-  age: { type: Number, required: true, min: 18 },
   birthdate: { type: Date, required: true },
   houseNo: { type: String, required: true },
   street: { type: String, required: true },
@@ -14,6 +14,7 @@ const karitonServiceSchema = new mongoose.Schema({
   facebookLink: { type: String },
   profilePicture: { type: String, default: "default-profile.png" },
   loginCode: { type: String, required: true, unique: true },
+  loginChangeCode: { type: String, default: null },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
   telephone: { type: String }

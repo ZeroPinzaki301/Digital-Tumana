@@ -36,6 +36,10 @@ const KaritonServiceLogin = () => {
     }
   };
 
+  const handleForgotLoginCode = () => {
+    navigate("/kariton/forgot-login-code");
+  };
+
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-center bg-white px-4 py-8">
       <style>
@@ -119,9 +123,18 @@ const KaritonServiceLogin = () => {
 
         <button
           type="submit"
-          className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition cursor-pointer text-base sm:text-lg"
+          className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition cursor-pointer text-base sm:text-lg mb-3"
         >
           Login
+        </button>
+
+        {/* Forgot Login Code Button */}
+        <button
+          type="button"
+          onClick={handleForgotLoginCode}
+          className="w-full py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer text-sm sm:text-base border border-gray-300"
+        >
+          Forgot Login Code?
         </button>
       </form>
     </div>

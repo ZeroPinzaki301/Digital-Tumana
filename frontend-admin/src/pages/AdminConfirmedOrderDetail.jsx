@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
-import { FaArrowLeft, FaTruck, FaTimesCircle, FaCheckCircle, FaBox, FaMapMarkerAlt, FaUser, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { FaArrowLeft, FaTruck, FaTimesCircle, FaCheckCircle, FaBox, FaMapMarkerAlt, FaUser, FaPhone, FaEnvelope, FaTimes } from 'react-icons/fa';
 
 const AdminConfirmedOrderDetail = () => {
   const { orderId } = useParams();
@@ -9,6 +9,11 @@ const AdminConfirmedOrderDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusUpdate, setStatusUpdate] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,13 +38,19 @@ const AdminConfirmedOrderDetail = () => {
   }, [orderId, statusUpdate]);
 
   const handleStatusUpdate = async (newStatus) => {
-    if (!window.confirm(`Are you sure you want to mark this order as ${newStatus}?`)) return;
+    setSelectedStatus(newStatus);
+    setModalMessage(`Are you sure you want to mark this order as ${newStatus}?`);
+    setShowConfirmModal(true);
+  };
+
+  const confirmStatusUpdate = async () => {
+    setShowConfirmModal(false);
     
     try {
       const token = localStorage.getItem('adminToken');
       await axiosInstance.put(
         `/api/order-tracking/admin/orders/${orderId}/status`,
-        { status: newStatus },
+        { status: selectedStatus },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -49,26 +60,29 @@ const AdminConfirmedOrderDetail = () => {
       );
       
       // Show success message
-      alert(`Order has been successfully marked as ${newStatus}`);
+      setModalMessage(`Order has been successfully marked as ${selectedStatus}`);
+      setShowSuccessModal(true);
       
       // Navigate back to ongoing orders if status is 'shipped'
-      if (newStatus === 'shipped') {
-        navigate('/admin-ongoing-orders');
+      if (selectedStatus === 'shipped') {
+        setTimeout(() => {
+          navigate('/admin-ongoing-orders');
+        }, 2000);
       } else {
-        setStatusUpdate(newStatus); // Triggers re-fetch for other status changes
+        setStatusUpdate(selectedStatus); // Triggers re-fetch for other status changes
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      setError(error.response?.data?.message || 'Failed to update status');
+      setModalMessage(error.response?.data?.message || 'Failed to update status');
+      setShowErrorModal(true);
     }
   };
 
-  // ... rest of your component remains exactly the same ...
   if (loading) {
     return (
       <div className="min-h-screen p-6 bg-gray-50 flex justify-center items-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sky-500 mx-auto mb-4"></div>
           <p className="text-gray-700">Loading order details...</p>
         </div>
       </div>
@@ -84,7 +98,7 @@ const AdminConfirmedOrderDetail = () => {
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center mx-auto"
+            className="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 flex items-center justify-center mx-auto"
           >
             <FaArrowLeft className="mr-2" />
             Back to Orders
@@ -105,7 +119,7 @@ const AdminConfirmedOrderDetail = () => {
           <p className="text-gray-600 mb-6">The requested order could not be found.</p>
           <button
             onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center mx-auto"
+            className="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 flex items-center justify-center mx-auto"
           >
             <FaArrowLeft className="mr-2" />
             Back to Orders
@@ -121,10 +135,81 @@ const AdminConfirmedOrderDetail = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Confirm Status Change</h3>
+            <p className="text-gray-600 mb-6">{modalMessage}</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmStatusUpdate}
+                className="px-4 py-2 bg-sky-500 text-white rounded hover:bg-sky-600"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <div className="text-sky-500 text-4xl mb-4 flex justify-center">
+              <FaCheckCircle className="bg-sky-100 p-2 rounded-full" size={48} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Success!</h3>
+            <p className="text-gray-600 mb-6 text-center">{modalMessage}</p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  if (selectedStatus === 'shipped') {
+                    navigate('/admin-ongoing-orders');
+                  }
+                }}
+                className="px-4 py-2 bg-sky-500 text-white rounded hover:bg-sky-600"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <div className="text-red-500 text-4xl mb-4 flex justify-center">
+              <FaTimes className="bg-red-100 p-2 rounded-full" size={48} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Error</h3>
+            <p className="text-gray-600 mb-6 text-center">{modalMessage}</p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowErrorModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
+          className="flex items-center text-sky-600 hover:text-sky-800 mb-6"
         >
           <FaArrowLeft className="mr-2" />
           Back to Confirmed Orders
@@ -151,8 +236,8 @@ const AdminConfirmedOrderDetail = () => {
             </div>
             <div className="flex items-center">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                order.status === 'shipped' ? 'bg-yellow-100 text-yellow-800' :
+                order.status === 'confirmed' ? 'bg-sky-100 text-sky-800' :
+                order.status === 'shipped' ? 'bg-amber-100 text-amber-800' :
                 order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
                 'bg-gray-100 text-gray-800'
               }`}>
@@ -165,7 +250,7 @@ const AdminConfirmedOrderDetail = () => {
             {/* Buyer Information */}
             <div className="border border-gray-200 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                <FaUser className="mr-2 text-blue-500" />
+                <FaUser className="mr-2 text-sky-500" />
                 Buyer Information
               </h2>
               <div className="space-y-2">
@@ -187,7 +272,7 @@ const AdminConfirmedOrderDetail = () => {
             {/* Delivery Address */}
             <div className="border border-gray-200 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                <FaMapMarkerAlt className="mr-2 text-green-500" />
+                <FaMapMarkerAlt className="mr-2 text-sky-500" />
                 Delivery Address
               </h2>
               <div className="space-y-2">
@@ -309,7 +394,7 @@ const AdminConfirmedOrderDetail = () => {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => handleStatusUpdate('shipped')}
-                    className="flex-1 flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    className="flex-1 flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
                   >
                     <FaTruck className="mr-2" />
                     Mark as Shipped

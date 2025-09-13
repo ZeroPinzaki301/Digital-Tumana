@@ -19,7 +19,7 @@ export const createCustomer = async (req, res) => {
     } = req.body;
 
     if (!req.files?.idImage) {
-      return res.status(400).json({ message: "ID image is required" });
+      return res.status(400).json({ message: "Primary ID image is required" });
     }
 
     const existing = await Customer.findOne({ userId: req.user._id });
@@ -27,10 +27,19 @@ export const createCustomer = async (req, res) => {
       return res.status(409).json({ message: "Verification already submitted" });
     }
 
-    const imageUpload = await uploadToCloudinary(
+    const idImageUpload = await uploadToCloudinary(
       req.files.idImage[0].path,
       "customer_ids"
     );
+
+    let secondIdImageUrl = null;
+    if (req.files?.secondIdImage) {
+      const secondIdImageUpload = await uploadToCloudinary(
+        req.files.secondIdImage[0].path,
+        "customer_ids"
+      );
+      secondIdImageUrl = secondIdImageUpload.secure_url;
+    }
 
     const newCustomer = await Customer.create({
       userId: req.user._id,
@@ -46,7 +55,8 @@ export const createCustomer = async (req, res) => {
       email,
       telephone,
       idType,
-      idImage: imageUpload.secure_url,
+      idImage: idImageUpload.secure_url,
+      secondIdImage: secondIdImageUrl,
       isVerified: false
     });
 

@@ -1,4 +1,11 @@
 import TesdaEnrollment from "../models/TesdaEnrollment.model.js";
+import User from "../models/User.model.js";
+import {
+  sendTesdaEligibilityEmail,
+  sendTesdaReservationEmail,
+  sendTesdaEnrollmentEmail,
+  sendTesdaGraduationEmail
+} from "../utils/emailSender.js";
 
 // ✅ Get TESDA enrollments by status
 export const getTesdaEnrollmentsByStatus = async (req, res) => {
@@ -51,17 +58,35 @@ export const updateTesdaEnrollmentStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status value." });
     }
 
-    const updated = await TesdaEnrollment.findByIdAndUpdate(
-      enrollmentId,
-      { status },
-      { new: true }
-    );
-
-    if (!updated) {
+    const enrollment = await TesdaEnrollment.findById(enrollmentId).populate('userId');
+    if (!enrollment) {
       return res.status(404).json({ message: "Enrollment not found." });
     }
 
-    res.status(200).json({ message: "Status updated successfully.", enrollment: updated });
+    enrollment.status = status;
+    await enrollment.save();
+
+    const { email, firstName } = enrollment.userId;
+
+    switch (status) {
+      case 'eligible':
+        await sendTesdaEligibilityEmail(email, firstName);
+        break;
+      case 'reserved':
+        await sendTesdaReservationEmail(email, firstName);
+        break;
+      case 'enrolled':
+        await sendTesdaEnrollmentEmail(email, firstName);
+        break;
+      case 'graduated':
+        await sendTesdaGraduationEmail(email, firstName);
+        break;
+      default:
+        // No email for 'pending' or 'cancelled'
+        break;
+    }
+
+    res.status(200).json({ message: "Status updated and email sent.", enrollment });
   } catch (error) {
     console.error("Error updating enrollment status:", error);
     res.status(500).json({ message: "Failed to update enrollment status." });

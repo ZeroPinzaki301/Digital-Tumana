@@ -139,7 +139,16 @@ const AdminCustomerRequests = () => {
                         className="flex items-center text-sm text-sky-700 hover:text-sky-900 transition-colors"
                       >
                         <FaIdCard className="mr-2" />
-                        View {customer.idType} ID
+                        View Valid ID
+                      </a>
+                      <a
+                        href={customer.secondIdImage}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center text-sm text-sky-700 hover:text-sky-900 transition-colors"
+                      >
+                        <FaIdCard className="mr-2" />
+                        View Secondary ID
                       </a>
                     </div>
                   </div>

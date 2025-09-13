@@ -29,6 +29,7 @@ import AdminTesdaEnrollments from "./pages/AdminTesdaEnrollments";
 import AdminTesdaEnrollmentDetail from "./pages/AdminTesdaEnrollmentDetail";
 import AdminUserManagement from "./pages/AdminUserManagement";
 import AdminFeedbackManagement from "./pages/AdminFeedbackManagement";
+import AdminRiderVehicleDetails from "./pages/AdminRiderVehicleDetails";
 
 import "./App.css";
 
@@ -56,6 +57,7 @@ const AppRoutes = () => {
         <Route path="/admin-kariton-service" element={<AdminKaritonService />} />
         <Route path="/admin/create-kariton-rider" element={<AdminCreateKaritonRider />} />
         <Route path="/admin/kariton-rider/:id" element={<AdminKaritonRiderDetails />} />
+        <Route path="/admin/kariton/vehicle/:riderId" element={<AdminRiderVehicleDetails />} />
         <Route path="/admin/orders/:orderId/assign-rider" element={<AdminAssignRider />} />
         <Route path="/admin/orders/ongoing-delivery" element={<AdminOngoingDeliveries />} />
         <Route path="/admin/orders/delivered" element={<AdminDeliveredOrders />} />

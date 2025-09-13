@@ -32,6 +32,32 @@ export const getEmployerJobApplications = async (req, res) => {
   }
 };
 
+export const getEmployerWorkerConfirmationJobs = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const employer = await Employer.findOne({ userId });
+    if (!employer) {
+      return res.status(403).json({ message: "User is not registered as an employer" });
+    }
+
+    const employerId = employer._id;
+
+    const applications = await JobApplication.find({
+      employerId,
+      status: "workerConfirmation"
+    })
+      .populate("jobId", "jobName jobImage jobCode minSalary maxSalary")
+      .populate("applicantId", "firstName lastName profilePicture email")
+      .populate("workerPortfolioId", "skillTypes portfolioStatus");
+
+    return res.status(200).json({ applications });
+  } catch (error) {
+    console.error("Error fetching pending job applications:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const getEmployerOngoingJobs = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -125,10 +151,11 @@ export const updateJobApplicationStatus = async (req, res) => {
   try {
     const userId = req.user.id;
     const { applicationId } = req.params;
-    const { status } = req.body;
+    const { status, interviewDate } = req.body;
 
     const validStatuses = [
       "workerConfirmation",
+      "ongoingJob",
       "rejected",
       "cancelled",
       "terminated",
@@ -157,7 +184,7 @@ export const updateJobApplicationStatus = async (req, res) => {
 
     const allowedTransitions = {
       pending: ["workerConfirmation", "rejected", "completed","cancelled"],
-      workerConfirmation: [],
+      workerConfirmation: ["ongoingJob", "rejected"],
       ongoingJob: ["cancelled", "completed"],
     };
 
@@ -170,7 +197,12 @@ export const updateJobApplicationStatus = async (req, res) => {
       });
     }
 
+    // Update the application with new status and interview date if provided
     application.status = status;
+    if (interviewDate) {
+      application.interviewDate = new Date(interviewDate);
+    }
+    
     await application.save();
 
     return res.status(200).json({

@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
-import { FaUser, FaBars, FaTimes } from "react-icons/fa";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { FaUser, FaBars, FaTimes, FaBell } from "react-icons/fa";
 import digitalTumanaIcon from "../assets/digital-tumana-icon.png";
 import karitonServiceIcon from "../assets/KaritonServiceIcon.png";
 import axiosInstance from "../utils/axiosInstance";
@@ -10,15 +10,25 @@ const Navbar = () => {
   const [showModal, setShowModal] = useState(false);
   const [showKaritonDropdown, setShowKaritonDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasNotifications, setHasNotifications] = useState(false);
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  
   const navigate = useNavigate();
   const location = useLocation();
-
   const profileRef = useRef(null);
+  
+  // Cache for notification status to prevent excessive API calls
+  const notificationCacheRef = useRef({ 
+    timestamp: 0, 
+    data: false,
+    CACHE_DURATION: 5 * 60 * 1000 // 5 minutes
+  });
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) {
       setUser(null);
+      setHasNotifications(false);
       return;
     }
 
@@ -34,22 +44,129 @@ const Navbar = () => {
       });
     } catch (err) {
       setUser(null);
+      setHasNotifications(false);
       console.error("Failed to fetch user in Navbar:", err);
     }
-  };
+  }, []);
 
+  // Optimized notification fetching with caching and debouncing
+  const fetchNotificationStatus = useCallback(async (force = false) => {
+    const token = localStorage.getItem("token");
+    if (!token || notificationLoading) return;
+
+    // Check cache first
+    const now = Date.now();
+    const cache = notificationCacheRef.current;
+    
+    if (!force && (now - cache.timestamp) < cache.CACHE_DURATION) {
+      setHasNotifications(cache.data);
+      return;
+    }
+
+    try {
+      setNotificationLoading(true);
+      
+      // Use Promise.allSettled to handle partial failures gracefully
+      // Now includes all notification types: TESDA, orders, job applications, and worker job applications
+      const results = await Promise.allSettled([
+        axiosInstance.get("/api/notification/tesda", {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axiosInstance.get("/api/notification/order", {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axiosInstance.get("/api/notification/job-applications", {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axiosInstance.get("/api/notification/worker-job-applications", {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      
+      let hasTesdaNotifications = false;
+      let hasOrderNotifications = false;
+      let hasJobApplicationNotifications = false;
+      let hasWorkerJobApplicationNotifications = false;
+      
+      // Handle TESDA notifications
+      if (results[0].status === 'fulfilled' && results[0].value.data.success) {
+        hasTesdaNotifications = results[0].value.data.data?.length > 0;
+      }
+      
+      // Handle Order notifications
+      if (results[1].status === 'fulfilled' && results[1].value.data.success) {
+        hasOrderNotifications = results[1].value.data.data?.length > 0;
+      }
+      
+      // Handle Job Application notifications (for employers)
+      if (results[2].status === 'fulfilled' && results[2].value.data.success) {
+        hasJobApplicationNotifications = results[2].value.data.data?.length > 0;
+      }
+      
+      // Handle Worker Job Application notifications (for workers)
+      if (results[3].status === 'fulfilled' && results[3].value.data.success) {
+        hasWorkerJobApplicationNotifications = results[3].value.data.data?.length > 0;
+      }
+      
+      const hasAnyNotifications = hasTesdaNotifications || 
+                                 hasOrderNotifications || 
+                                 hasJobApplicationNotifications || 
+                                 hasWorkerJobApplicationNotifications;
+      
+      // Update cache
+      notificationCacheRef.current = {
+        timestamp: now,
+        data: hasAnyNotifications,
+        CACHE_DURATION: cache.CACHE_DURATION
+      };
+      
+      setHasNotifications(hasAnyNotifications);
+    } catch (err) {
+      console.error("Error checking notifications:", err);
+      setHasNotifications(false);
+    } finally {
+      setNotificationLoading(false);
+    }
+  }, [notificationLoading]);
+
+  // Debounced notification refresh
+  const refreshNotifications = useCallback(() => {
+    fetchNotificationStatus(true);
+  }, [fetchNotificationStatus]);
+
+  // Initial data fetch
   useEffect(() => {
     fetchUserData();
+  }, [fetchUserData]);
 
-    const handleStorageChange = () => {
-      fetchUserData();
+  // Fetch notifications only when user changes (login/logout)
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotificationStatus();
+    } else {
+      setHasNotifications(false);
+      // Clear cache when user logs out
+      notificationCacheRef.current = { 
+        timestamp: 0, 
+        data: false,
+        CACHE_DURATION: 5 * 60 * 1000 
+      };
+    }
+  }, [user?.id, fetchNotificationStatus]);
+
+  // Handle storage changes (for login/logout from other tabs)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'token') {
+        fetchUserData();
+      }
     };
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, [location.pathname]);
+  }, [fetchUserData]);
 
-  // ✅ Only close modal if click is outside profile
+  // Handle clicks outside profile menu
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -57,36 +174,51 @@ const Navbar = () => {
         setShowModal(false);
       }
     };
-    window.addEventListener("click", handleClickOutside);
-    return () => window.removeEventListener("click", handleClickOutside);
+    
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("userFirstName");
     setUser(null);
+    setHasNotifications(false);
     setShowModal(false);
+    
+    // Clear notification cache
+    notificationCacheRef.current = { 
+      timestamp: 0, 
+      data: false,
+      CACHE_DURATION: 5 * 60 * 1000 
+    };
+    
     navigate("/login");
-  };
+  }, [navigate]);
 
-  // Function to handle logo click
-  const handleLogoClick = (e) => {
+  // Handle logo and home clicks
+  const handleLogoClick = useCallback((e) => {
     if (location.pathname === "/") {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    // If not on home page, the Link component will handle navigation normally
-  };
+  }, [location.pathname]);
 
-  // Function to handle Home link click
-  const handleHomeClick = (e) => {
+  const handleHomeClick = useCallback((e) => {
     if (location.pathname === "/") {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
     setMobileMenuOpen(false);
-  };
+  }, [location.pathname]);
+
+  // Handle notification bell click
+  const handleNotificationClick = useCallback(() => {
+    navigate("/notifications");
+    // Refresh notifications when viewing them
+    setTimeout(() => refreshNotifications(), 100);
+  }, [navigate, refreshNotifications]);
 
   const showProfileIcon =
     !user?.profilePicture ||
@@ -140,6 +272,22 @@ const Navbar = () => {
 
       {/* Right Side */}
       <div className="hidden sm:flex relative items-center space-x-4">
+        {/* Notification Bell */}
+        {user && (
+          <div className="relative">
+            <button
+              onClick={handleNotificationClick}
+              className="p-2 text-white cursor-pointer hover:text-green-300 transition relative"
+              disabled={notificationLoading}
+            >
+              <FaBell className={`text-xl ${notificationLoading ? 'animate-pulse' : ''}`} />
+              {hasNotifications && (
+                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-lime-800 animate-pulse"></span>
+              )}
+            </button>
+          </div>
+        )}
+
         {/* Kariton Service Direct Link */}
         <button
           onClick={() => navigate("/kariton-service/login")}
@@ -176,6 +324,7 @@ const Navbar = () => {
                 <Link
                   to="/account"
                   className="block px-4 py-2 text-gray-700 hover:bg-lime-100"
+                  onClick={() => setShowModal(false)}
                 >
                   My Account
                 </Link>
@@ -230,6 +379,25 @@ const Navbar = () => {
             >
               Learn
             </Link>
+
+            {/* Mobile Notification Bell */}
+            {user && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleNotificationClick();
+                }}
+                className="flex items-center font-medium text-white hover:text-green-300 py-2 border-b border-lime-700 cursor-pointer"
+                disabled={notificationLoading}
+              >
+                <span className={notificationLoading ? 'animate-pulse' : ''}>
+                  Notifications
+                </span>
+                {hasNotifications && (
+                  <span className="ml-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                )}
+              </button>
+            )}
 
             {/* Mobile Kariton Service Link */}
             <button

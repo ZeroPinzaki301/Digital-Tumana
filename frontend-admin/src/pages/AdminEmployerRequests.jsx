@@ -9,6 +9,21 @@ const AdminEmployerRequests = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const calculateAge = (birthdate) => {
+    const birth = new Date(birthdate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const hasHadBirthdayThisYear =
+      today.getMonth() > birth.getMonth() ||
+      (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+
+    if (!hasHadBirthdayThisYear) {
+      age--;
+    }
+
+    return age;
+  };
+
   useEffect(() => {
     const fetchEmployers = async () => {
       try {
@@ -108,7 +123,7 @@ const AdminEmployerRequests = () => {
                       <span className="font-medium w-24">Sex:</span> {employer.sex}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium w-24">Age:</span> {employer.age}
+                      <span className="font-medium w-24">Age:</span> {calculateAge(employer.birthdate)}
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium w-24">Birthdate:</span> {new Date(employer.birthdate).toLocaleDateString()}
@@ -129,6 +144,15 @@ const AdminEmployerRequests = () => {
                       >
                         <FaIdCard className="mr-2" />
                         View Valid ID
+                      </a>
+                      <a
+                        href={employer.secondValidIdImage}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center text-sm text-sky-700 hover:text-sky-900 transition-colors"
+                      >
+                        <FaIdCard className="mr-2" />
+                        Secondary ID image
                       </a>
                       {employer.dtiCertificateImage && (
                         <a

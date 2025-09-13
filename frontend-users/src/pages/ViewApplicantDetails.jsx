@@ -59,7 +59,7 @@ const ViewApplicantDetails = () => {
           <h2 className="text-xl font-bold text-blue-800 mb-2">Applicant Not Found</h2>
           <p className="text-gray-700 mb-4">We couldn't find details for this applicant.</p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/employer/job-applications/pending")}
             className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
           >
             Back
@@ -78,7 +78,7 @@ const ViewApplicantDetails = () => {
         <div className="bg-white p-6 rounded-lg shadow-md border border-blue-300">
           <div className="mb-4">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/employer/job-applications/pending")}
               className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
               Back
@@ -105,7 +105,7 @@ const ViewApplicantDetails = () => {
               <div className="mt-2 flex items-center gap-3">
                 {isTumanaBachelor ? (
                   <span className="text-green-800 text-sm font-semibold bg-green-100 px-3 py-1 rounded-full border border-green-300">
-                    🎓 Certified Tumana Bachelor
+                    TESDA NC1 Agricultural course graduate
                   </span>
                 ) : (
                   <span className="text-gray-500 text-sm italic">Not yet certified</span>

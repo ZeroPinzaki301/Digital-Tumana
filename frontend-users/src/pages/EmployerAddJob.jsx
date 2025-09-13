@@ -13,14 +13,13 @@ const EmployerAddJob = () => {
     minSalary: "",
     maxSalary: "",
     salaryFrequency: "daily",
-    jobCode: "",
+    skillTypes: [],
     jobImage: "",
   });
   const [imageError, setImageError] = useState("");
   const [modalError, setModalError] = useState("");
 
   const navigate = useNavigate();
-  const jobCodeRef = useRef(null);
 
   useEffect(() => {
     const checkAddress = async () => {
@@ -42,21 +41,30 @@ const EmployerAddJob = () => {
   }, []);
 
   const handleChange = (e) => {
-  const { name, value, files } = e.target;
-  if (name === "jobImage") {
-    const file = files[0];
-    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
-      setImageError("Main job image must be less than 4MB.");
-      return;
+    const { name, value, files, type, checked } = e.target;
+    
+    if (name === "jobImage") {
+      const file = files[0];
+      if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+        setImageError("Main job image must be less than 4MB.");
+        return;
+      }
+      setImageError("");
+      setFormData({ ...formData, jobImage: file });
+    } else if (name.startsWith("skill-")) {
+      const skill = name.replace("skill-", "");
+      setFormData(prev => {
+        const currentSkills = prev.skillTypes;
+        if (checked) {
+          return { ...prev, skillTypes: [...currentSkills, skill] };
+        } else {
+          return { ...prev, skillTypes: currentSkills.filter(s => s !== skill) };
+        }
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
     }
-    setImageError("");
-    setFormData({ ...formData, jobImage: file });
-  } else {
-    const transformedValue =
-      name === "jobCode" && typeof value === "string" ? value.toUpperCase() : value;
-    setFormData({ ...formData, [name]: transformedValue });
-  }
-};
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,12 +77,31 @@ const EmployerAddJob = () => {
       return;
     }
 
+    if (formData.skillTypes.length === 0) {
+      alert("Please select at least one skill type.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const payload = new FormData();
+      
+      // Append all form data except jobImage (handled separately)
       Object.entries(formData).forEach(([key, value]) => {
-        payload.append(key, value);
+        if (key === "skillTypes") {
+          // Append each skill type individually
+          value.forEach(skill => {
+            payload.append("skillTypes", skill);
+          });
+        } else if (key !== "jobImage") {
+          payload.append(key, value);
+        }
       });
+      
+      // Append the image file
+      if (formData.jobImage) {
+        payload.append("jobImage", formData.jobImage);
+      }
 
       await axiosInstance.post("/api/employer/jobs", payload, {
         headers: {
@@ -86,21 +113,24 @@ const EmployerAddJob = () => {
       navigate("/employer-jobs");
     } catch (err) {
       console.error("Job creation failed:", err);
-      if (
-        err.response &&
-        err.response.status === 500 &&
-        err.response.data.error &&
-        err.response.data.error.includes("duplicate key error")
-      ) {
-        setModalError("Job code is already used. Please choose a different one.");
-      }
+      setModalError("Failed to create job. Please try again.");
     }
   };
 
   const closeModal = () => {
     setModalError("");
-    setTimeout(() => jobCodeRef.current?.focus(), 100);
   };
+
+  const skillOptions = [
+    "Plants",
+    "Fertilizers",
+    "Animals",
+    "Machinery",
+    "Irrigation",
+    "Harvesting",
+    "Storage",
+    "Other"
+  ];
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -192,16 +222,33 @@ const EmployerAddJob = () => {
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
           </select>
-          <input
-            ref={jobCodeRef}
-            type="text"
-            name="jobCode"
-            placeholder="Job Code"
-            value={formData.jobCode}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 border rounded font-bold uppercase"
-          />
+          
+          {/* Skill Types Checkboxes */}
+          <div className="border rounded p-4">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Required Skills *
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {skillOptions.map(skill => (
+                <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name={`skill-${skill}`}
+                    checked={formData.skillTypes.includes(skill)}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  />
+                  <span className="text-sm font-bold text-gray-700">{skill}</span>
+                </label>
+              ))}
+            </div>
+            {formData.skillTypes.length === 0 && (
+              <p className="text-red-600 text-sm font-bold mt-2">
+                Please select at least one skill type
+              </p>
+            )}
+          </div>
+          
           <input
             type="file"
             name="jobImage"
@@ -223,7 +270,7 @@ const EmployerAddJob = () => {
       {modalError && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center border border-red-400">
-            <h3 className="text-lg font-bold text-red-700 mb-2">🚫 Job Code Error</h3>
+            <h3 className="text-lg font-bold text-red-700 mb-2">🚫 Error</h3>
             <p className="text-gray-800 font-semibold mb-4">{modalError}</p>
             <button
               onClick={closeModal}

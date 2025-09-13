@@ -8,7 +8,6 @@ const customerSchema = new mongoose.Schema({
   },
   fullName: { type: String, required: true },
 
-  // 🏠 Address Breakdown
   region: { type: String, required: true },
   province: { type: String, required: true },
   cityOrMunicipality: { type: String, required: true },
@@ -18,17 +17,18 @@ const customerSchema = new mongoose.Schema({
   latitude: { type: Number },
   longitude: { type: Number },
 
-  // 📬 Contact
   email: { type: String, required: true },
   telephone: { type: String, required: true },
 
-  // 🧾 Identity Verification
   idType: {
     type: String,
     enum: ["National ID", "Passport", "Driver's License"],
     required: true
   },
-  idImage: { type: String, required: true }, // Cloudinary-secured URL
+  idImage: { type: String, required: true },
+  
+  secondIdImage: { type: String },
+  
   isVerified: { type: Boolean, default: false }
 
 }, { timestamps: true });

@@ -6,25 +6,42 @@ import { protectRider } from "../middlewares/KaritonAuthMiddleware.js";
 import {
   createKaritonService,
   getAllKaritonServices,
+  getInactiveRiders,
   getKaritonServiceById,
   getActiveKaritonServices,
-  loginKaritonService
+  loginKaritonService,
+  validateKaritonRider,
+  adminUpdateKaritonServiceStatus,
+  forgotLoginCode,
+  verifyLoginResetCode,
+  resetLoginCode
 } from "../controllers/KaritonService.controller.js";
 
 import { 
   getDeliveryRequests,
   getDeliveryDetailsByOrderId,
   updateDeliveryStatus,
-  getDeliveryHistory
+  getDeliveryHistory,
+  updateKaritonServiceStatus
  } from "../controllers/KaritonRider.controller.js";
 
 const router = express.Router();
 
 router.post("/login", loginKaritonService);
 
+router.post("/forgot-login-code", forgotLoginCode);
+
+router.post("/verify-login-reset-code", verifyLoginResetCode);
+
+router.post("/reset-login-code", resetLoginCode);
+
+router.post('/validate', validateKaritonRider);
+
 router.post("/", protectSuperAdmin, upload.single("profilePicture"), createKaritonService);
 
 router.get("/kariton-riders", getAllKaritonServices);
+
+router.get("/inactive-riders", getInactiveRiders);
 
 router.get("/delivery-requests", protectRider, getDeliveryRequests);
 
@@ -39,10 +56,12 @@ router.put(
 
 router.get("/delivery-history", protectRider, getDeliveryHistory);
 
+router.patch("/update-status", protectRider, updateKaritonServiceStatus);
+
+router.patch("/admin/update-status/:id", protectSuperAdmin, adminUpdateKaritonServiceStatus);
+
 router.get("/:id", getKaritonServiceById);
 
 router.get("/active-riders", getActiveKaritonServices);
-
-
 
 export default router;

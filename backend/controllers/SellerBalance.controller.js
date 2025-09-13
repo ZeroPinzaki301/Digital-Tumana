@@ -1,6 +1,50 @@
 import SellerBalance from '../models/SellerBalance.model.js';
 import Seller from '../models/Seller.model.js';
 import SellerBalanceWithdrawal from '../models/SellerBalanceWithdrawal.model.js';
+import OrderTracking from "../models/OrderTracking.model.js";
+
+export const getPaidOrderTrackings = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming user ID is available in req.user after authentication
+    
+    // First, find the seller associated with the logged-in user
+    const seller = await Seller.findOne({ userId: userId });
+    
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+    
+    // Find all order tracking records with payment status "Paid"
+    const paidOrderTrackings = await OrderTracking.find({ 
+      paymentStatus: "Paid" 
+    }).populate({
+      path: "orderId",
+      match: { sellerId: seller._id }, // Only include orders where sellerId matches
+      select: "items totalPrice status createdAt updatedAt", // Include updatedAt
+      populate: {
+        path: "items.productId",
+        select: "name images" // Include product details if needed
+      }
+    });
+    
+    // Filter out order trackings where the orderId is null (due to the match condition)
+    const filteredOrderTrackings = paidOrderTrackings.filter(
+      tracking => tracking.orderId !== null
+    );
+    
+    res.status(200).json({
+      success: true,
+      count: filteredOrderTrackings.length,
+      data: filteredOrderTrackings
+    });
+  } catch (error) {
+    console.error("Error fetching paid order trackings:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error while fetching order trackings" 
+    });
+  }
+};
 
 const generateUniqueBankNumber = async () => {
   let bankNumber;

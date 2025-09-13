@@ -65,22 +65,24 @@ const WorkerConfirmationApplications = () => {
 };
 
 const ApplicationCard = ({ application }) => {
-  const { _id: id, jobId, employerId, status, createdAt } = application;
+  const { _id: id, jobId, employerId, status, interviewDate, createdAt } = application;
   const [currentStatus, setCurrentStatus] = useState(status);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [actionType, setActionType] = useState(null);
+  const navigate = useNavigate();
 
-  const handleStatusUpdate = async () => {
+  const handleCardClick = () => {
+    navigate(`/jobs/job-application/ongoing-job/${id}`);
+  };
+
+  const handleStatusUpdate = async (e) => {
+    if (e) e.stopPropagation(); // Prevent card click when button is clicked
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const endpoint =
-        actionType === 'accept'
-          ? `/api/job-applications/confirm/${id}`
-          : `/api/job-applications/cancel/${id}`;
-
-      const newStatus = actionType === 'accept' ? 'ongoingJob' : 'cancelled';
+      const endpoint = `/api/job-applications/cancel/${id}`;
+      const newStatus = 'cancelled';
 
       await axiosInstance.put(
         endpoint,
@@ -97,13 +99,32 @@ const ApplicationCard = ({ application }) => {
     }
   };
 
-  const openModal = (type) => {
+  const openModal = (type, e) => {
+    if (e) e.stopPropagation(); // Prevent card click when button is clicked
     setActionType(type);
     setShowModal(true);
   };
 
+  // Format the interview date for display
+  const formatInterviewDate = (dateString) => {
+    if (!dateString) return 'Not scheduled';
+    
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
-    <div className="border rounded-lg shadow-sm p-4 bg-white hover:shadow-md transition">
+    <div 
+      className="border rounded-lg shadow-sm p-4 bg-white hover:shadow-md transition cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Employer Info */}
       <div className="flex items-center gap-4 mb-4">
         <img
@@ -136,6 +157,16 @@ const ApplicationCard = ({ application }) => {
         </div>
       </div>
 
+      {/* Interview Date */}
+      {interviewDate && (
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+          <h4 className="text-sm font-medium text-blue-800 mb-1">Scheduled Interview</h4>
+          <p className="text-sm text-blue-600">
+            {formatInterviewDate(interviewDate)}
+          </p>
+        </div>
+      )}
+
       {/* Status + Date */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 border-t gap-2 sm:gap-0">
         <span
@@ -150,20 +181,13 @@ const ApplicationCard = ({ application }) => {
         </span>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons - Only show Cancel button now */}
       {currentStatus === 'workerConfirmation' && (
-        <div className="mt-4 flex flex-wrap gap-3">
+        <div className="mt-4 flex flex-wrap gap-3" onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={() => openModal('accept')}
+            onClick={(e) => openModal('cancel', e)}
             disabled={loading}
-            className="px-4 py-2 bg-green-100 cursor-pointer shadow-lg border border-lime-700 text-green-800 rounded hover:bg-green-200 transition"
-          >
-            Accept Job
-          </button>
-          <button
-            onClick={() => openModal('cancel')}
-            disabled={loading}
-            className="px-4 py-2 bg-red-100 cursor-pointer shadow-lg border border-lime-700 text-red-800 rounded hover:bg-red-200 transition"
+            className="px-4 py-2 bg-red-100 cursor-pointer shadow-lg border border-red-300 text-red-800 rounded hover:bg-red-200 transition"
           >
             Cancel Application
           </button>
@@ -175,11 +199,15 @@ const ApplicationCard = ({ application }) => {
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h3 className="text-lg font-semibold mb-4">
-              {actionType === 'accept' ? 'Confirm Job Acceptance' : 'Confirm Cancellation'}
+              Confirm Cancellation
             </h3>
             <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to{' '}
-              {actionType === 'accept' ? 'accept this job and begin work' : 'cancel this application'}?
+              Are you sure you want to cancel this application?
+              {interviewDate && (
+                <span className="block mt-2 text-red-600 font-medium">
+                  Note: You have an interview scheduled for {formatInterviewDate(interviewDate)}
+                </span>
+              )}
             </p>
             <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
@@ -190,13 +218,9 @@ const ApplicationCard = ({ application }) => {
               </button>
               <button
                 onClick={handleStatusUpdate}
-                className={`px-4 py-2 rounded transition ${
-                  actionType === 'accept'
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-red-600 text-white hover:bg-red-700'
-                }`}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
               >
-                Yes, Confirm
+                Yes, Cancel
               </button>
             </div>
           </div>

@@ -18,6 +18,7 @@ const router = express.Router();
 
 const sellerUploads = upload.fields([
   { name: "validId", maxCount: 1 },
+  { name: "secondValidId", maxCount: 1 },
   { name: "dtiCert", maxCount: 1 },
   { name: "birCert", maxCount: 1 },
   { name: "storePicture", maxCount: 1 }

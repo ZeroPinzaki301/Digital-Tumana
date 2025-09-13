@@ -352,7 +352,8 @@ const SellerDashboard = () => {
               { label: "My Address", path: "/seller-address", desc: "Edit your store's pickup or delivery address." },
               { label: "Orders", path: "/order-requests", badge: hasPendingOrders, desc: "Handle incoming order requests." },
               { label: "Ongoing Orders", path: "/seller-ongoing-orders", desc: "Track and fulfill current orders." },
-              { label: "Order History", path: "/seller-order-history", desc: "Review past orders and sales." },
+              { label: "Order History", path: "/seller-order-history", desc: "Review past orders" },
+              { label: "Sales Analytics", path: "/seller-sales-analytics", desc: "Analyze the records of orders per product." },
               { label: "Seller Balance", path: "/seller-balance", desc: "Monitor your earnings and payouts." },
             ].map(({ label, path, badge, desc }) => (
               <div

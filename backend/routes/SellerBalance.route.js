@@ -4,7 +4,8 @@ import {
   getSellerBalance,
   createSellerBalanceWithdrawal,
   getPendingSellerBalanceWithdrawal,
-  getSellerBalanceWithdrawalHistory 
+  getSellerBalanceWithdrawalHistory,
+  getPaidOrderTrackings 
 } from '../controllers/SellerBalance.controller.js';
 
 import protect from "../middlewares/authMiddleware.js";
@@ -16,6 +17,9 @@ router.post('/create', protect, createSellerBalance);
 
 // Get balance for the logged-in seller
 router.get('/', protect, getSellerBalance);
+
+// Get the record of payment receipt to the seller's bank
+router.get('/payment-receipt', protect, getPaidOrderTrackings);
 
 // Create a withdrawal request for the logged-in seller
 router.post('/withdraw', protect, createSellerBalanceWithdrawal);

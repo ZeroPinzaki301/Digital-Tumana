@@ -1,7 +1,17 @@
 import Seller from "../models/Seller.model.js";
 import Worker from "../models/Worker.model.js";
 import Employer from "../models/Employer.model.js";
-import Customer from "../models/Customer.model.js"
+import Customer from "../models/Customer.model.js";
+import {
+  sendSellerApprovalEmail,
+  sendSellerRejectionEmail,
+  sendEmployerApprovalEmail,
+  sendEmployerRejectionEmail,
+  sendWorkerApprovalEmail,
+  sendWorkerRejectionEmail,
+  sendCustomerApprovalEmail,
+  sendCustomerRejectionEmail
+} from "../utils/emailSender.js";
 
 // Get all sellers pending approval
 export const getPendingSellerApplications = async (req, res) => {
@@ -20,17 +30,25 @@ export const getPendingSellerApplications = async (req, res) => {
 export const approveOrRejectSeller = async (req, res) => {
   try {
     const { sellerId } = req.params;
-    const { status } = req.body;
+    const { status, reason } = req.body;
 
     if (!["verified", "deleted"].includes(status)) {
       return res.status(400).json({ message: "Invalid status. Use 'verified' or 'deleted'" });
     }
 
-    const seller = await Seller.findById(sellerId);
+    const seller = await Seller.findById(sellerId).populate("userId", "email");
     if (!seller) return res.status(404).json({ message: "Seller not found" });
 
+    const previousStatus = seller.status;
     seller.status = status;
     await seller.save();
+
+    // Send email notification based on status change
+    if (status === "verified" && previousStatus === "pending") {
+      await sendSellerApprovalEmail(seller.userId.email, `${seller.firstName} ${seller.lastName}`, seller.storeName);
+    } else if (status === "deleted" && previousStatus === "pending") {
+      await sendSellerRejectionEmail(seller.userId.email, `${seller.firstName} ${seller.lastName}`, seller.storeName, reason || "");
+    }
 
     res.status(200).json({ message: `Seller has been ${status}`, seller });
   } catch (err) {
@@ -58,17 +76,25 @@ export const getPendingWorkerApplications = async (req, res) => {
 export const approveOrRejectWorker = async (req, res) => {
   try {
     const { workerId } = req.params;
-    const { status } = req.body;
+    const { status, reason } = req.body;
 
     if (!["verified", "deleted"].includes(status)) {
       return res.status(400).json({ message: "Invalid status. Use 'verified' or 'deleted'" });
     }
 
-    const worker = await Worker.findById(workerId);
+    const worker = await Worker.findById(workerId).populate("userId", "email");
     if (!worker) return res.status(404).json({ message: "Worker not found" });
 
+    const previousStatus = worker.status;
     worker.status = status;
     await worker.save();
+
+    // Send email notification based on status change
+    if (status === "verified" && previousStatus === "pending") {
+      await sendWorkerApprovalEmail(worker.userId.email, `${worker.firstName} ${worker.lastName}`);
+    } else if (status === "deleted" && previousStatus === "pending") {
+      await sendWorkerRejectionEmail(worker.userId.email, `${worker.firstName} ${worker.lastName}`, reason || "");
+    }
 
     res.status(200).json({ message: `Worker has been ${status}`, worker });
   } catch (err) {
@@ -96,17 +122,25 @@ export const getPendingEmployerApplications = async (req, res) => {
 export const approveOrRejectEmployer = async (req, res) => {
   try {
     const { employerId } = req.params;
-    const { status } = req.body;
+    const { status, reason } = req.body;
 
     if (!["verified", "deleted"].includes(status)) {
       return res.status(400).json({ message: "Invalid status. Use 'verified' or 'deleted'" });
     }
 
-    const employer = await Employer.findById(employerId);
+    const employer = await Employer.findById(employerId).populate("userId", "email");
     if (!employer) return res.status(404).json({ message: "Employer not found" });
 
+    const previousStatus = employer.status;
     employer.status = status;
     await employer.save();
+
+    // Send email notification based on status change
+    if (status === "verified" && previousStatus === "pending") {
+      await sendEmployerApprovalEmail(employer.userId.email, `${employer.firstName} ${employer.lastName}`, employer.companyName);
+    } else if (status === "deleted" && previousStatus === "pending") {
+      await sendEmployerRejectionEmail(employer.userId.email, `${employer.firstName} ${employer.lastName}`, employer.companyName, reason || "");
+    }
 
     res.status(200).json({ message: `Employer has been ${status}`, employer });
   } catch (err) {
@@ -135,13 +169,19 @@ export const approveCustomer = async (req, res) => {
   try {
     const { customerId } = req.params;
 
-    const customer = await Customer.findById(customerId);
+    const customer = await Customer.findById(customerId).populate("userId", "email");
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
 
+    const wasVerified = customer.isVerified;
     customer.isVerified = true;
     await customer.save();
+
+    // Send approval email only if the customer wasn't already verified
+    if (!wasVerified) {
+      await sendCustomerApprovalEmail(customer.userId.email, customer.fullName);
+    }
 
     res.status(200).json({ message: "Customer has been verified", customer });
   } catch (err) {
@@ -156,11 +196,17 @@ export const approveCustomer = async (req, res) => {
 export const rejectCustomer = async (req, res) => {
   try {
     const { customerId } = req.params;
+    const { reason } = req.body;
 
-    const customer = await Customer.findByIdAndDelete(customerId);
+    const customer = await Customer.findById(customerId).populate("userId", "email");
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
+
+    // Send rejection email before deleting
+    await sendCustomerRejectionEmail(customer.userId.email, customer.fullName, reason || "");
+
+    await Customer.findByIdAndDelete(customerId);
 
     res.status(200).json({ message: "Customer verification has been rejected" });
   } catch (err) {

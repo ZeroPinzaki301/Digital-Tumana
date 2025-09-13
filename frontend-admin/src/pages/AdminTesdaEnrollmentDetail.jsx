@@ -5,11 +5,25 @@ import axiosInstance from '../utils/axiosInstance';
 const AdminTesdaEnrollmentDetail = () => {
   const { enrollmentId } = useParams();
   const navigate = useNavigate();
-
   const [enrollment, setEnrollment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [error, setError] = useState('');
+
+  const calculateAge = (birthdate) => {
+    const birth = new Date(birthdate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const hasHadBirthdayThisYear =
+      today.getMonth() > birth.getMonth() ||
+      (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+
+    if (!hasHadBirthdayThisYear) {
+      age--;
+    }
+
+    return age;
+  };
 
   useEffect(() => {
     const fetchEnrollment = async () => {
@@ -111,7 +125,7 @@ const AdminTesdaEnrollmentDetail = () => {
         <div className="grid grid-cols-2 gap-4 text-gray-700">
           <p><strong>Name:</strong> {enrollment.firstName} {enrollment.lastName}</p>
           <p><strong>Email:</strong> {enrollment.userId?.email || 'N/A'}</p>
-          <p><strong>Age:</strong> {enrollment.age}</p>
+          <p><strong>Age:</strong> {calculateAge(enrollment.birthdate)}</p>
           <p><strong>Birthdate:</strong> {new Date(enrollment.birthdate).toLocaleDateString()}</p>
           <p><strong>Status:</strong> {enrollment.status}</p>
           <p><strong>Submitted:</strong> {new Date(enrollment.createdAt).toLocaleDateString()}</p>
@@ -133,6 +147,14 @@ const AdminTesdaEnrollmentDetail = () => {
               <img
                 src={enrollment.validIdImage}
                 alt="Valid ID"
+                className="w-full h-64 object-cover rounded border"
+              />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Secondary ID</p>
+              <img
+                src={enrollment.secondValidIdImage}
+                alt="Secondary ID"
                 className="w-full h-64 object-cover rounded border"
               />
             </div>

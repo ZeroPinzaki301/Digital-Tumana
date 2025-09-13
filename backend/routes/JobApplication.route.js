@@ -9,7 +9,8 @@ import {
   confirmJobApplication,
   terminateApplication,
   getOngoingJobDetails,
-  getJobHistory
+  getJobHistory,
+  checkApplicationDetails
 } from "../controllers/JobApplication.controller.js";
 
 import protect from "../middlewares/authMiddleware.js";
@@ -26,6 +27,7 @@ router.put("/confirm/:applicationId", protect, confirmJobApplication);
 router.put("/cancel/:applicationId", protect, cancelApplication);
 router.patch("/terminate/:applicationId", protect, terminateApplication);
 router.get("/details/:applicationId", protect, getOngoingJobDetails);
+router.get('/check-details', protect, checkApplicationDetails);
 
 
 export default router;

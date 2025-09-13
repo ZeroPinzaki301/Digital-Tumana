@@ -30,6 +30,16 @@ export const registerSeller = async (req, res) => {
     const dtiResult = await uploadToCloudinary(req.files.dtiCert[0].path, "dti_cert_images");
     const birResult = await uploadToCloudinary(req.files.birCert[0].path, "bir_cert_images");
 
+    // Upload second valid ID if provided
+    let secondValidIdImageUrl = null;
+    if (req.files?.secondValidId && req.files.secondValidId[0]) {
+      const secondValidIdResult = await uploadToCloudinary(
+        req.files.secondValidId[0].path, 
+        "valid_id_images"
+      );
+      secondValidIdImageUrl = secondValidIdResult.secure_url;
+    }
+
     const newSeller = new Seller({
       userId: user._id,
       email: user.email,
@@ -40,6 +50,7 @@ export const registerSeller = async (req, res) => {
       birthdate,
       nationality,
       validIdImage: validIdResult.secure_url,
+      secondValidIdImage: secondValidIdImageUrl,
       dtiCertificateImage: dtiResult.secure_url,
       birCertificateImage: birResult.secure_url,
       agreedToPolicy,
@@ -190,7 +201,14 @@ export const addSellerAddressByUser = async (req, res) => {
     if (seller.status !== "verified") return res.status(403).json({ message: "Seller is not verified" });
 
     if (seller.sellerAddress) {
-      return res.status(400).json({ message: "Seller address already exists. Use PUT to update." });
+      const existingAddress = await SellerAddress.findById(seller.sellerAddress);
+      if (!existingAddress) {
+        // Clean up the broken reference
+        seller.sellerAddress = null;
+        await seller.save();
+      } else {
+        return res.status(400).json({ message: "Seller address already exists. Use PUT to update." });
+      }
     }
 
     const newAddress = await SellerAddress.create({

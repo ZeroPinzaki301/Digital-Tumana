@@ -14,6 +14,7 @@ const SellerRegister = () => {
     agreedToPolicy: false,
     agreedToTerms: false,
     validId: null,
+    secondValidId: null, // Added second valid ID field
     dtiCert: null,
     birCert: null,
   });
@@ -249,7 +250,8 @@ const SellerRegister = () => {
 
         <div className="space-y-4">
           {[
-            { name: "validId", label: "Upload Valid ID", required: true },
+            { name: "validId", label: "Upload Valid ID (Primary)", required: true },
+            { name: "secondValidId", label: "Upload Second Valid ID (Optional)", required: false }, // Added second valid ID
             { name: "dtiCert", label: "Upload DTI Certificate", required: true },
             { name: "birCert", label: "Upload BIR Certificate", required: true },
           ].map(({ name, label, required }) => (

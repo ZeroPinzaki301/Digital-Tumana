@@ -49,7 +49,10 @@ export const previewOrder = async (req, res) => {
         barangay: customer.barangay,
         street: customer.street,
         telephone: customer.telephone,
-        email: customer.email
+        email: customer.email,
+        postalCode: customer.postalCode,
+        latitude: customer.latitude,
+        longitude: customer.longitude
       },
       summary: {
         subtotal,
@@ -182,6 +185,9 @@ export const previewCartOrder = async (req, res) => {
         cityOrMunicipality: customer.cityOrMunicipality,
         barangay: customer.barangay,
         street: customer.street,
+        postalCode: customer.postalCode,
+        latitude: customer.latitude,
+        longitude: customer.longitude,
         telephone: customer.telephone,
         email: customer.email
       },
@@ -195,6 +201,8 @@ export const previewCartOrder = async (req, res) => {
 // 🧺 Cart-based batch checkout - UPDATED FOR ITEMS ARRAY
 export const checkoutCart = async (req, res) => {
   try {
+    const { selectedItems, deliveryAddress } = req.body; // Add deliveryAddress to destructuring
+    
     const customer = await Customer.findOne({ userId: req.user._id, isVerified: true });
     if (!customer) return res.status(403).json({ message: "Customer must be verified" });
 
@@ -202,12 +210,24 @@ export const checkoutCart = async (req, res) => {
     if (!cart || cart.items.length === 0)
       return res.status(400).json({ message: "Cart is empty" });
 
+    // Filter cart items based on selected items
+    let cartItemsToProcess = cart.items;
+    if (selectedItems && selectedItems.length > 0) {
+      cartItemsToProcess = cart.items.filter(item => 
+        selectedItems.includes(item._id.toString())
+      );
+    }
+
+    if (cartItemsToProcess.length === 0) {
+      return res.status(400).json({ message: "No valid items selected for checkout" });
+    }
+
     // Group cart items by seller
     const ordersBySeller = {};
 
-    for (const item of cart.items) {
+    for (const item of cartItemsToProcess) {
       const product = await Product.findById(item.productId);
-      if (!product || product.durationEnd ||product.stock < item.quantity) continue;
+      if (!product || product.durationEnd || product.stock < item.quantity) continue;
 
       const seller = await Seller.findById(product.sellerId);
       if (!seller) continue;
@@ -241,25 +261,27 @@ export const checkoutCart = async (req, res) => {
       const shippingFee = 50;
       const totalPrice = subtotal + shippingFee;
 
+      // Use the new delivery address if provided, otherwise fall back to customer's address
+      const deliveryAddr = deliveryAddress || {
+        province: customer.province,
+        cityOrMunicipality: customer.cityOrMunicipality,
+        barangay: customer.barangay,
+        street: customer.street,
+        postalCode: customer.postalCode,
+        latitude: customer.latitude,
+        longitude: customer.longitude,
+        telephone: customer.telephone,
+        email: customer.email,
+        fullName: customer.fullName
+      };
+
       const order = await Order.create({
         buyerId: customer._id,
         sellerId: seller._id,
         items,
         totalPrice,
-        deliveryAddress: {
-          region: customer.region,
-          province: customer.province,
-          cityOrMunicipality: customer.cityOrMunicipality,
-          barangay: customer.barangay,
-          street: customer.street,
-          postalCode: customer.postalCode,
-          latitude: customer.latitude,
-          longitude: customer.longitude,
-          telephone: customer.telephone,
-          email: customer.email
-        },
+        deliveryAddress: deliveryAddr, // Use the new address
         sellerAddress: {
-          region: sellerAddress.region,
           province: sellerAddress.province,
           cityOrMunicipality: sellerAddress.cityOrMunicipality,
           barangay: sellerAddress.barangay,
@@ -275,8 +297,16 @@ export const checkoutCart = async (req, res) => {
       createdOrders.push(order);
     }
 
-    // Clear cart only if all items were processed successfully
-    cart.items = [];
+    // Remove only the processed items from the cart
+    if (selectedItems && selectedItems.length > 0) {
+      cart.items = cart.items.filter(item => 
+        !selectedItems.includes(item._id.toString())
+      );
+    } else {
+      // If no specific items selected, clear the entire cart
+      cart.items = [];
+    }
+    
     await cart.save();
 
     res.status(201).json({ message: "Cart checked out", orders: createdOrders });

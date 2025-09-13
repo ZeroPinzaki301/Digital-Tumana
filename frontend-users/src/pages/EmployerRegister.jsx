@@ -260,9 +260,10 @@ const EmployerRegister = () => {
 
         <div className="space-y-4">
           {[
-            { name: "validId", label: "Upload Valid ID", required: true },
-            { name: "dtiCert", label: "Upload DTI Certificate (Optional)", required: false },
-            { name: "birCert", label: "Upload BIR Certificate (Optional)", required: false },
+            { name: "validId", label: "Upload Valid ID (Primary)", required: true },
+            { name: "secondValidId", label: "Upload another ID (Secondary))", required: true },
+            { name: "dtiCert", label: "Upload DTI Certificate", required: false },
+            { name: "birCert", label: "Upload BIR Certificate", required: false },
           ].map(({ name, label, required }) => (
             <div key={name}>
               <label htmlFor={name} className="block w-full text-center py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-500/75 cursor-pointer transition">

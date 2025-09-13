@@ -17,6 +17,7 @@ const sellerSchema = new mongoose.Schema(
       default: "pending",
     },
     validIdImage: { type: String, required: true }, // store file path or URL
+    secondValidIdImage: { type: String }, // Added second valid ID (optional)
     dtiCertificateImage: { type: String, required: true },
     birCertificateImage: { type: String, required: true },
     agreedToPolicy: { type: Boolean, default: false, required: true },

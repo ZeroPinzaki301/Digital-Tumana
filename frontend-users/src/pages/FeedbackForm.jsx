@@ -13,6 +13,10 @@ const FeedbackForm = () => {
     message: "",
     email: "",
   });
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -55,7 +59,8 @@ const FeedbackForm = () => {
       await axiosInstance.post("/api/feedbacks", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Feedback submitted!");
+      setSuccessMessage("Feedback submitted successfully!");
+      setShowSuccessModal(true);
       setFormData({
         senderName: formData.senderName,
         subject: "Report",
@@ -63,10 +68,10 @@ const FeedbackForm = () => {
         message: "",
         email: formData.email,
       });
-      navigate("/account");
     } catch (err) {
       console.error("Submission failed", err);
-      alert("Failed to submit feedback.");
+      setAlertMessage("Failed to submit feedback. Please try again.");
+      setShowAlertModal(true);
     }
   };
 
@@ -146,6 +151,45 @@ const FeedbackForm = () => {
           Submit Feedback
         </button>
       </form>
+
+      {/* Alert Modal */}
+      {showAlertModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-lime-900 mb-4">Notification</h3>
+            <p className="text-gray-700 mb-6">{alertMessage}</p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowAlertModal(false)}
+                className="px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-600/75 cursor-pointer"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-lime-900 mb-4">Success</h3>
+            <p className="text-gray-700 mb-6">{successMessage}</p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate("/account");
+                }}
+                className="px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-600/75 cursor-pointer"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

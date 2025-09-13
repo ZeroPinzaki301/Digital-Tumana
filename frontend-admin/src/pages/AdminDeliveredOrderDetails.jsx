@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
 import { FaBoxOpen } from 'react-icons/fa';
+import Modal from 'react-modal';
+
+// Set app element for accessibility
+Modal.setAppElement('#root');
 
 const AdminDeliveredOrderDetails = () => {
   const { deliveryId } = useParams();
@@ -11,6 +15,11 @@ const AdminDeliveredOrderDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [completed, setCompleted] = useState(false);
+  
+  // Modal states
+  const [errorModalIsOpen, setErrorModalIsOpen] = useState(false);
+  const [completionErrorModalIsOpen, setCompletionErrorModalIsOpen] = useState(false);
+  const [completionSuccessModalIsOpen, setCompletionSuccessModalIsOpen] = useState(false);
 
   useEffect(() => {
     const fetchDeliveryDetails = async () => {
@@ -28,6 +37,7 @@ const AdminDeliveredOrderDetails = () => {
         console.error('Error fetching delivery details:', error);
         setError(error.response?.data?.message || 'Failed to load delivery data');
         setLoading(false);
+        setErrorModalIsOpen(true);
       }
     };
 
@@ -50,9 +60,32 @@ const AdminDeliveredOrderDetails = () => {
         }
       }));
       setCompleted(true);
+      setCompletionSuccessModalIsOpen(true);
     } catch (error) {
       console.error('Error marking as completed:', error);
-      alert(error.response?.data?.message || 'Failed to mark order as completed');
+      setCompletionErrorModalIsOpen(true);
+    }
+  };
+
+  // Modal styles that match your color scheme
+  const customModalStyles = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      backgroundColor: 'white',
+      borderRadius: '0.5rem',
+      padding: '1.5rem',
+      border: 'none',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      maxWidth: '32rem',
+      width: '90%'
+    },
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.5)'
     }
   };
 
@@ -187,6 +220,75 @@ const AdminDeliveredOrderDetails = () => {
           </div>
         )}
       </div>
+
+      {/* Error Modal */}
+      <Modal
+        isOpen={errorModalIsOpen}
+        onRequestClose={() => setErrorModalIsOpen(false)}
+        style={customModalStyles}
+        contentLabel="Error Modal"
+      >
+        <div className="p-4">
+          <h2 className="text-xl font-bold text-red-600 mb-3">Error</h2>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <div className="flex justify-end">
+            <button
+              onClick={() => setErrorModalIsOpen(false)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Completion Error Modal */}
+      <Modal
+        isOpen={completionErrorModalIsOpen}
+        onRequestClose={() => setCompletionErrorModalIsOpen(false)}
+        style={customModalStyles}
+        contentLabel="Completion Error Modal"
+      >
+        <div className="p-4">
+          <h2 className="text-xl font-bold text-red-600 mb-3">Error</h2>
+          <p className="text-gray-700 mb-4">Failed to mark order as completed. Please try again.</p>
+          <div className="flex justify-end">
+            <button
+              onClick={() => setCompletionErrorModalIsOpen(false)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Completion Success Modal */}
+      <Modal
+        isOpen={completionSuccessModalIsOpen}
+        onRequestClose={() => setCompletionSuccessModalIsOpen(false)}
+        style={customModalStyles}
+        contentLabel="Completion Success Modal"
+      >
+        <div className="p-4">
+          <h2 className="text-xl font-bold text-green-600 mb-3">Success</h2>
+          <p className="text-gray-700 mb-4">Order has been successfully marked as completed!</p>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setCompletionSuccessModalIsOpen(false)}
+              className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded"
+            >
+              Stay Here
+            </button>
+            <button
+              onClick={() => navigate('/admin/orders/delivered')}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+            >
+              Back to Orders
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

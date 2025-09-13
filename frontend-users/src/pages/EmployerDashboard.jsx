@@ -10,6 +10,7 @@ const EmployerDashboard = () => {
   const [uploadStatus, setUploadStatus] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [hasPendingApplications, setHasPendingApplications] = useState(false);
+  const [hasPendingInterview, setHasPendingInterview] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -60,8 +61,19 @@ const EmployerDashboard = () => {
       } catch {}
     };
 
+    const checkPendingInterview = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axiosInstance.get("/api/employer/jobs/applications/confirmation", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setHasPendingInterview(res.data.applications?.length > 0);
+      } catch {}
+    };
+
     fetchEmployer();
     checkPendingApplications();
+    checkPendingInterview();
   }, []);
 
   const handleProfileClick = () => fileInputRef.current?.click();
@@ -239,6 +251,7 @@ const EmployerDashboard = () => {
               { label: "My Address", path: "/employer-address", desc: "Manage your address info" },
               { label: "Job Postings", path: "/employer-jobs", desc: "Create or update jobs" },
               { label: "Pending Applications", path: "/employer/job-applications/pending", desc: "Review job applications", badge: hasPendingApplications },
+              { label: "Worker to Interview", path: "/employer/job-applications/confirmation", desc: "See all workers scheduled for an interview", badge: hasPendingInterview },
               { label: "Ongoing Workers", path: "/employer/jobs/ongoing", desc: "View ongoing contracts" },
             ].map(({ label, path, badge, desc }) => (
               <button

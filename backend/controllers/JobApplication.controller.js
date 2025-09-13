@@ -67,6 +67,32 @@ export const checkExisting = async (req, res) => {
   }
 };
 
+// New controller function to get application details
+export const checkApplicationDetails = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { jobId } = req.query;
+
+    const worker = await Worker.findOne({ userId });
+    if (!worker) {
+      return res.status(403).json({ message: "User is not registered as a worker" });
+    }
+
+    const applicantId = worker._id;
+
+    // Find application for this specific job
+    const application = await JobApplication.findOne({ 
+      applicantId, 
+      jobId 
+    });
+
+    return res.status(200).json({ application });
+  } catch (error) {
+    console.error("Error checking application details:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const getPendingApplications = async (req, res) => {
   try {
     const userId = req.user.id;

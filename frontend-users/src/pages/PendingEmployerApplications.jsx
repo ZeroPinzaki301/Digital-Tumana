@@ -50,7 +50,16 @@ const PendingEmployerApplications = () => {
         ) : (
           <div className="space-y-6">
             {applications.map(app => (
-              <ApplicationCard key={app._id} application={app} />
+              <ApplicationCard 
+                key={app._id} 
+                application={app} 
+                onStatusUpdate={(id, newStatus) => {
+                  // Update the application status in the parent state
+                  setApplications(prev => prev.map(item => 
+                    item._id === id ? {...item, status: newStatus} : item
+                  ));
+                }}
+              />
             ))}
           </div>
         )}
@@ -59,7 +68,7 @@ const PendingEmployerApplications = () => {
   );
 };
 
-const ApplicationCard = ({ application }) => {
+const ApplicationCard = ({ application, onStatusUpdate }) => {
   const {
     _id: applicationId,
     jobId,
@@ -70,19 +79,38 @@ const ApplicationCard = ({ application }) => {
   } = application;
 
   const [currentStatus, setCurrentStatus] = useState(status);
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [interviewDate, setInterviewDate] = useState('');
+  const [interviewTime, setInterviewTime] = useState('09:00');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleStatusUpdate = async (newStatus) => {
+  // Calculate minimum date (today) and time for the input constraints
+  const today = new Date().toISOString().split('T')[0];
+  const currentTime = new Date().toTimeString().substring(0, 5);
+
+  const handleStatusUpdate = async (newStatus, interviewDateTime = null) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      
+      const requestBody = { status: newStatus };
+      if (interviewDateTime) {
+        requestBody.interviewDate = interviewDateTime;
+      }
+      
       await axiosInstance.put(
         `/api/employer/jobs/application/${applicationId}/status`,
-        { status: newStatus },
+        requestBody,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
       setCurrentStatus(newStatus);
+      onStatusUpdate(applicationId, newStatus);
+      
+      if (newStatus === 'workerConfirmation') {
+        setShowInterviewModal(false);
+      }
     } catch (error) {
       console.error(`Error updating status to ${newStatus}:`, error.message);
     } finally {
@@ -90,83 +118,155 @@ const ApplicationCard = ({ application }) => {
     }
   };
 
-  return (
-    <div className="border rounded-lg shadow-sm p-4 bg-white hover:shadow-md transition">
-      {/* Applicant Info */}
-      <div className="flex items-center gap-4 mb-4">
-        <img
-          src={applicantId?.profilePicture || '/default-profile.png'}
-          alt="Applicant"
-          className="w-12 h-12 rounded-full object-cover"
-        />
-        <div>
-          <h3 className="text-lg font-medium">
-            {applicantId?.firstName} {applicantId?.lastName}
-          </h3>
-          <p className="text-sm text-gray-500">{applicantId?.email}</p>
-        </div>
-      </div>
+  const handleAcceptWithInterview = () => {
+    // Reset the interview date and time when opening the modal
+    setInterviewDate('');
+    setInterviewTime('09:00');
+    setShowInterviewModal(true);
+  };
 
-      {/* Job Info */}
-      <div className="flex items-center gap-4 mb-4">
-        <img
-          src={jobId?.jobImage || '/default-job.png'}
-          alt="Job"
-          className="w-14 h-14 rounded-md object-cover"
-        />
-        <div>
-          <p className="font-medium">{jobId?.jobName || 'Unnamed Job'}</p>
-          <p className="text-sm text-gray-600">Code: {jobId?.jobCode}</p>
+  const confirmInterview = () => {
+    if (!interviewDate) {
+      alert('Please select an interview date');
+      return;
+    }
+    
+    // Combine date and time into a single Date object
+    const interviewDateTime = new Date(`${interviewDate}T${interviewTime}`);
+    handleStatusUpdate('workerConfirmation', interviewDateTime);
+  };
+
+  return (
+    <>
+      <div className="border rounded-lg shadow-sm p-4 bg-white hover:shadow-md transition">
+        {/* Applicant Info */}
+        <div className="flex items-center gap-4 mb-4">
+          <img
+            src={applicantId?.profilePicture || '/default-profile.png'}
+            alt="Applicant"
+            className="w-12 h-12 rounded-full object-cover"
+          />
+          <div>
+            <h3 className="text-lg font-medium">
+              {applicantId?.firstName} {applicantId?.lastName}
+            </h3>
+            <p className="text-sm text-gray-500">{applicantId?.email}</p>
+          </div>
+        </div>
+
+        {/* Job Info */}
+        <div className="flex items-center gap-4 mb-4">
+          <img
+            src={jobId?.jobImage || '/default-job.png'}
+            alt="Job"
+            className="w-14 h-14 rounded-md object-cover"
+          />
+          <div>
+            <p className="font-medium">{jobId?.jobName || 'Unnamed Job'}</p>
+            <p className="text-sm text-gray-600">Code: {jobId?.jobCode}</p>
+            <p className="text-sm text-gray-600">
+              Salary: ₱{jobId?.minSalary} - ₱{jobId?.maxSalary}
+            </p>
+          </div>
+        </div>
+
+        {/* Portfolio Info */}
+        <div className="mb-4">
           <p className="text-sm text-gray-600">
-            Salary: ₱{jobId?.minSalary} - ₱{jobId?.maxSalary}
+            Skills: {workerPortfolioId?.skillTypes?.join(', ') || 'N/A'}
+          </p>
+          <p className="text-sm text-gray-600">
+            Portfolio Status: {workerPortfolioId?.portfolioStatus || 'N/A'}
           </p>
         </div>
+
+        {/* Status + Date */}
+        <div className="flex justify-between items-center mt-4 pt-4 border-t">
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(currentStatus)}`}>
+            {currentStatus}
+          </span>
+          <span className="text-sm text-gray-500">Applied on {new Date(createdAt).toLocaleDateString()}</span>
+        </div>
+
+        {/* Action Buttons */}
+        {currentStatus === 'pending' && (
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              onClick={() => navigate(`/employer/job-application/applicant-details/${applicantId?._id}`)}
+              className="px-4 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition cursor-pointer"
+            >
+              View Worker Details
+            </button>
+            <button
+              onClick={handleAcceptWithInterview}
+              disabled={loading}
+              className="px-4 py-2 bg-green-100 text-green-800 rounded hover:bg-green-200 transition cursor-pointer"
+            >
+              Accept
+            </button>
+            <button
+              onClick={() => handleStatusUpdate('rejected')}
+              disabled={loading}
+              className="px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200 transition cursor-pointer"
+            >
+              Reject
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Portfolio Info */}
-      <div className="mb-4">
-        <p className="text-sm text-gray-600">
-          Skills: {workerPortfolioId?.skillTypes?.join(', ') || 'N/A'}
-        </p>
-        <p className="text-sm text-gray-600">
-          Portfolio Status: {workerPortfolioId?.portfolioStatus || 'N/A'}
-        </p>
-      </div>
-
-      {/* Status + Date */}
-      <div className="flex justify-between items-center mt-4 pt-4 border-t">
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(currentStatus)}`}>
-          {currentStatus}
-        </span>
-        <span className="text-sm text-gray-500">Applied on {new Date(createdAt).toLocaleDateString()}</span>
-      </div>
-
-      {/* Action Buttons */}
-      {currentStatus === 'pending' && (
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            onClick={() => navigate(`/employer/job-application/applicant-details/${applicantId?._id}`)}
-            className="px-4 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition cursor-pointer"
-          >
-            View Worker Details
-          </button>
-          <button
-            onClick={() => handleStatusUpdate('workerConfirmation')}
-            disabled={loading}
-            className="px-4 py-2 bg-green-100 text-green-800 rounded hover:bg-green-200 transition cursor-pointer"
-          >
-            Accept
-          </button>
-          <button
-            onClick={() => handleStatusUpdate('rejected')}
-            disabled={loading}
-            className="px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200 transition cursor-pointer"
-          >
-            Reject
-          </button>
+      {/* Interview Date Modal */}
+      {showInterviewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-semibold mb-4">Schedule Interview</h3>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Interview Date
+              </label>
+              <input
+                type="date"
+                min={today}
+                value={interviewDate}
+                onChange={(e) => setInterviewDate(e.target.value)}
+                className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Interview Time
+              </label>
+              <input
+                type="time"
+                value={interviewTime}
+                onChange={(e) => setInterviewTime(e.target.value)}
+                className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
+            </div>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowInterviewModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmInterview}
+                disabled={loading || !interviewDate}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50"
+              >
+                {loading ? 'Scheduling...' : 'Confirm Interview'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

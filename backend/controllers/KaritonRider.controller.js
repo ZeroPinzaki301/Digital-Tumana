@@ -1,4 +1,5 @@
 import OrderToDeliver from '../models/OrderToDeliver.model.js';
+import KaritonService from '../models/KaritonService.model.js';
 import OrderTracking from '../models/OrderTracking.model.js';
 import Order from '../models/Order.model.js';
 import Customer from '../models/Customer.model.js';
@@ -172,3 +173,37 @@ export const updateDeliveryStatus = async (req, res) => {
     res.status(500).json({ error: 'Failed to update delivery status.' });
   }
 };
+
+export const updateKaritonServiceStatus = async (req, res) => {
+  try {
+    const { riderId } = req.user; // Get riderId from authenticated user like other controllers
+    const { isActive } = req.body;
+
+    // Validate input
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({ 
+        error: 'isActive must be a boolean value (true or false)' 
+      });
+    }
+
+    // Find and update the current rider's document using riderId
+    const updatedService = await KaritonService.findByIdAndUpdate(
+      riderId, // Use riderId like the other controllers
+      { isActive },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedService) {
+      return res.status(404).json({ error: 'Rider not found' });
+    }
+
+    res.status(200).json({
+      message: 'Your account status updated successfully',
+      data: updatedService
+    });
+  } catch (error) {
+    console.error('[Update KaritonService Status Error]', error);
+    res.status(500).json({ error: 'Failed to update rider status' });
+  }
+};
+

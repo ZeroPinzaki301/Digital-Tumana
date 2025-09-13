@@ -13,16 +13,15 @@ const tesdaEnrollmentSchema = new mongoose.Schema({
     trim: true
   },
 
+  middleName: {
+    type: String,
+    trim: true
+  },
+
   lastName: {
     type: String,
     required: true,
     trim: true
-  },
-
-  age: {
-    type: Number,
-    required: true,
-    min: 15 // TESDA minimum age varies by course, adjust as needed
   },
 
   birthdate: {
@@ -36,6 +35,11 @@ const tesdaEnrollmentSchema = new mongoose.Schema({
   },
 
   validIdImage: {
+    type: String,
+    required: true
+  },
+
+  secondValidIdImage: {
     type: String,
     required: true
   },

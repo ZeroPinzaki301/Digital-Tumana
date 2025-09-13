@@ -7,6 +7,14 @@ const OrderRequestSummaryPage = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [selectedItemIndex, setSelectedItemIndex] = useState(0);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info", // info, success, error
+    onConfirm: null,
+    showCancelButton: false
+  });
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -18,10 +26,33 @@ const OrderRequestSummaryPage = () => {
         setOrder(res.data.order);
       } catch (err) {
         console.error("Failed to fetch order summary:", err.message);
+        showModal("Error", "Failed to load order details. Please try again.", "error");
       }
     };
     fetchOrder();
   }, [orderId]);
+
+  const showModal = (title, message, type = "info", onConfirm = null, showCancelButton = false) => {
+    setModal({
+      isOpen: true,
+      title,
+      message,
+      type,
+      onConfirm,
+      showCancelButton
+    });
+  };
+
+  const closeModal = () => {
+    setModal({
+      isOpen: false,
+      title: "",
+      message: "",
+      type: "info",
+      onConfirm: null,
+      showCancelButton: false
+    });
+  };
 
   const handleAccept = async () => {
     try {
@@ -57,22 +88,44 @@ const OrderRequestSummaryPage = () => {
       }
     } catch (acceptError) {
       console.error("Order acceptance failed:", acceptError);
-      alert(`Order acceptance failed: ${acceptError.response?.data?.message || acceptError.message}`);
+      showModal(
+        "Order Acceptance Failed", 
+        acceptError.response?.data?.message || acceptError.message, 
+        "error"
+      );
     }
   };
 
-  const handleCancel = async () => {
+  const handleCancel = () => {
+    showModal(
+      "Confirm Cancellation",
+      "Are you sure you want to cancel this order? This action cannot be undone.",
+      "error",
+      confirmCancel,
+      true
+    );
+  };
+
+  const confirmCancel = async () => {
     try {
       const token = localStorage.getItem("token");
       await axiosInstance.delete(`/api/orders/seller/cancel/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      alert("Order cancelled.");
-      navigate("/order-requests");
+      showModal(
+        "Order Cancelled", 
+        "The order has been successfully cancelled.", 
+        "success",
+        () => navigate("/order-requests")
+      );
     } catch (err) {
       console.error("Cancel failed:", err.message);
-      alert("Could not cancel order.");
+      showModal(
+        "Cancellation Failed", 
+        "Could not cancel the order. Please try again.", 
+        "error"
+      );
     }
   };
 
@@ -86,6 +139,39 @@ const OrderRequestSummaryPage = () => {
 
   return (
     <div className="min-h-screen bg-orange-50 p-6">
+      {/* Modal Component */}
+      {modal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden">
+            <div className={`p-4 ${modal.type === "error" ? "bg-red-500" : modal.type === "success" ? "bg-green-500" : "bg-orange-500"} text-white`}>
+              <h3 className="text-xl font-bold">{modal.title}</h3>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 mb-6">{modal.message}</p>
+              <div className="flex justify-end space-x-3">
+                {modal.showCancelButton && (
+                  <button
+                    onClick={closeModal}
+                    className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 transition"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (modal.onConfirm) modal.onConfirm();
+                    closeModal();
+                  }}
+                  className={`px-4 py-2 rounded text-white ${modal.type === "error" ? "bg-red-500 hover:bg-red-600" : modal.type === "success" ? "bg-green-500 hover:bg-green-600" : "bg-orange-500 hover:bg-orange-600"} transition`}
+                >
+                  {modal.type === "error" && modal.showCancelButton ? "Confirm" : "OK"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md border border-orange-300">
         <h2 className="text-2xl font-bold text-orange-800 mb-6 text-center">Order Request Summary</h2>
 

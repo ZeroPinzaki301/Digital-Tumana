@@ -34,6 +34,10 @@ const jobApplicationSchema = new mongoose.Schema(
         "cancelled"
       ],
       default: "pending"
+    },
+    interviewDate: {
+      type: Date,
+      default: null
     }
   },
   { timestamps: true }

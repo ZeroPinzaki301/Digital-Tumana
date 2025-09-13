@@ -10,6 +10,7 @@ const employerSchema = new mongoose.Schema({
   nationality: { type: String, required: true },
   email: { type: String, required: true, lowercase: true, trim: true },
   validIdImage: { type: String, required: true },
+  secondValidIdImage: { type: String },
   dtiCertificateImage: { type: String }, // optional
   birCertificateImage: { type: String }, // optional
   companyName: { type: String, required: true },

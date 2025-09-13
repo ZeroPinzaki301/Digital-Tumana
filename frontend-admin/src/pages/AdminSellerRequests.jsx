@@ -9,6 +9,21 @@ const AdminSellerRequests = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const calculateAge = (birthdate) => {
+    const birth = new Date(birthdate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const hasHadBirthdayThisYear =
+      today.getMonth() > birth.getMonth() ||
+      (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+
+    if (!hasHadBirthdayThisYear) {
+      age--;
+    }
+
+    return age;
+  };
+
   useEffect(() => {
     const fetchSellers = async () => {
       try {
@@ -107,7 +122,7 @@ const AdminSellerRequests = () => {
                       <span className="font-medium w-24">Sex:</span> {seller.sex}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium w-24">Age:</span> {seller.age}
+                      <span className="font-medium w-24">Age:</span> {calculateAge(seller.birthdate)}
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium w-24">Birthdate:</span> {new Date(seller.birthdate).toLocaleDateString()}
@@ -128,6 +143,15 @@ const AdminSellerRequests = () => {
                       >
                         <FaIdCard className="mr-2" />
                         View Valid ID
+                      </a>
+                      <a
+                        href={seller.secondValidIdImage}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center text-sm text-sky-700 hover:text-sky-900 transition-colors"
+                      >
+                        <FaIdCard className="mr-2" />
+                        Secondary ID image
                       </a>
                       <a
                         href={seller.dtiCertificateImage}

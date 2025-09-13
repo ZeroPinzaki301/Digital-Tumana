@@ -1,6 +1,7 @@
 import Cart from "../models/Cart.model.js";
 import Customer from "../models/Customer.model.js";
 import Product from "../models/Product.model.js";
+import Seller from "../models/Seller.model.js";
 
 export const addToCart = async (req, res) => {
   try {
@@ -51,6 +52,79 @@ export const getCartItems = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch cart", error: err.message });
+  }
+};
+
+export const getCartPreview = async (req, res) => {
+  try {
+    const { selectedItems } = req.body; // Array of selected item IDs
+    
+    const customer = await Customer.findOne({ userId: req.user._id });
+    if (!customer) return res.status(403).json({ message: "Customer not found" });
+
+    const cart = await Cart.findOne({ customerId: customer._id }).populate({
+      path: "items.productId",
+      match: {
+        durationEnd: false,
+        stock: { $gt: 0 }
+      }
+    });
+
+    // Filter cart items based on selected items
+    let availableItems = cart ? cart.items.filter(item => item.productId !== null) : [];
+    
+    // If specific items are selected, filter to only those
+    if (selectedItems && selectedItems.length > 0) {
+      availableItems = availableItems.filter(item => 
+        selectedItems.includes(item._id.toString())
+      );
+    }
+
+    // Format the response for preview
+    const items = await Promise.all(availableItems.map(async (item) => {
+      const product = item.productId;
+      const seller = await Seller.findById(product.sellerId);
+      
+      return {
+        product: {
+          name: product.productName,
+          type: product.category,
+          unit: product.unitType,
+          quantity: item.quantity,
+          price: product.pricePerUnit,
+          image: product.productImage
+        },
+        seller: {
+          storeName: seller.storeName,
+          region: seller.region,
+          telephone: seller.telephone,
+          email: seller.email
+        },
+        summary: {
+          subtotal: item.quantity * product.pricePerUnit,
+          total: item.quantity * product.pricePerUnit
+        }
+      };
+    }));
+
+    // Get customer delivery address
+    const deliveryTo = {
+      fullName: customer.fullName,
+      street: customer.street,
+      barangay: customer.barangay,
+      cityOrMunicipality: customer.cityOrMunicipality,
+      province: customer.province,
+      region: customer.region,
+      telephone: customer.telephone,
+      email: customer.email,
+      latitude: customer.latitude,
+      longitude: customer.longitude,
+      postalCode: customer.postalCode
+    };
+
+    res.status(200).json({ items, deliveryTo });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch cart preview", error: err.message });
   }
 };
 

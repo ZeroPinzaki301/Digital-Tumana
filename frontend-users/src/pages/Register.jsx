@@ -8,9 +8,12 @@ const Register = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   const [formData, setFormData] = useState({
     firstName: "",
+    middleName: "",
     lastName: "",
     email: "",
     password: "",
@@ -23,35 +26,31 @@ const Register = () => {
     setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
   };
 
-  // Special handler for phone number to only allow numbers and limit to 11 digits
   const handlePhoneNumberChange = (e) => {
     const input = e.target.value;
-    
-    // Remove any non-digit characters
-    const numbersOnly = input.replace(/\D/g, '');
-    
-    // Limit to 11 digits
+    const numbersOnly = input.replace(/\D/g, "");
     const limitedNumbers = numbersOnly.slice(0, 11);
-    
     setFormData({ ...formData, phoneNumber: limitedNumbers });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Additional validation for phone number length
+
     if (formData.phoneNumber.length !== 11) {
-      alert("Phone number must be exactly 11 digits");
+      setModalMessage("Phone number must be exactly 11 digits");
+      setShowMessageModal(true);
       return;
     }
-    
+
     try {
       const response = await axiosInstance.post("/api/users/register", formData);
-      alert(response.data.message);
+      setModalMessage(response.data.message);
+      setShowMessageModal(true);
       localStorage.setItem("emailForVerification", formData.email);
-      navigate("/verify-email");
+      setTimeout(() => navigate("/verify-email"), 2000);
     } catch (error) {
-      alert(error.response?.data?.message || "Registration failed");
+      setModalMessage(error.response?.data?.message || "Registration failed");
+      setShowMessageModal(true);
     }
   };
 
@@ -73,37 +72,66 @@ const Register = () => {
         <div className="w-full md:w-1/2 p-6">
           <h2 className="text-xl font-bold text-lime-700 text-center mb-4">Create an Account</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              name="firstName"
-              placeholder="First Name"
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
-            />
-            <input
-              type="text"
-              name="lastName"
-              placeholder="Last Name"
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
-            />
+            {/* First Name */}
+            <div>
+              <label htmlFor="firstName" className="block text-lg font-medium text-gray-700">First Name</label>
+              <input
+                type="text"
+                name="firstName"
+                id="firstName"
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+              />
+            </div>
 
-            {/* Password with Eye Toggle */}
+            {/* Middle Name (Optional) */}
+            <div>
+              <label htmlFor="middleName" className="block text-lg font-medium text-gray-700">
+                Middle Name <span className="text-sm text-gray-500">(optional)</span>
+              </label>
+              <input
+                type="text"
+                name="middleName"
+                id="middleName"
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+              />
+            </div>
+
+            {/* Last Name */}
+            <div>
+              <label htmlFor="lastName" className="block text-lg font-medium text-gray-700">Last Name</label>
+              <input
+                type="text"
+                name="lastName"
+                id="lastName"
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="block text-lg font-medium text-gray-700">Email</label>
+              <input
+                type="email"
+                name="email"
+                id="email"
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+              />
+            </div>
+
+            {/* Password */}
             <div className="relative">
+              <label htmlFor="password" className="block text-lg font-medium text-gray-700">Password</label>
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="Password"
+                id="password"
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 pr-10 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
@@ -111,18 +139,19 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-lime-700"
+                className="mt-3.5 absolute right-3 top-9 transform -translate-y-1/2 text-lime-700"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
 
-            {/* Phone Number Input with Validation */}
+            {/* Phone Number */}
             <div className="relative">
+              <label htmlFor="phoneNumber" className="block text-lg font-medium text-gray-700">Phone Number</label>
               <input
                 type="tel"
                 name="phoneNumber"
-                placeholder="Phone Number (11 digits)"
+                id="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handlePhoneNumberChange}
                 required
@@ -131,12 +160,13 @@ const Register = () => {
                 className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
               />
               {formData.phoneNumber.length > 0 && (
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
+                <span className="absolute right-3 top-9 transform -translate-y-1/2 text-sm text-gray-500">
                   {formData.phoneNumber.length}/11
                 </span>
               )}
             </div>
-            
+
+            {/* Policy Agreement */}
             <label className="flex items-center space-x-2 text-lg">
               <input
                 type="checkbox"
@@ -149,6 +179,8 @@ const Register = () => {
                 I agree to the policy
               </span>
             </label>
+
+            {/* Submit Button */}
             <button
               type="submit"
               className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition text-lg cursor-pointer"
@@ -156,6 +188,7 @@ const Register = () => {
               Register
             </button>
           </form>
+
           <p className="mt-4 text-lg text-gray-700 text-center">
             Already have an account?{" "}
             <Link to="/login" className="text-lime-700 font-bold hover:underline">
@@ -165,7 +198,7 @@ const Register = () => {
         </div>
       </div>
 
-      {/* Modal for Digital Tumana Privacy Policy */}
+      {/* Modal for Privacy Policy */}
       {showPolicyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
@@ -190,6 +223,21 @@ const Register = () => {
             <button
               onClick={() => setShowPolicyModal(false)}
               className="mt-6 px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800 cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Success/Error Messages */}
+      {showMessageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white max-w-md w-full p-6 rounded-lg shadow-lg text-center">
+            <p className="text-lg text-gray-800">{modalMessage}</p>
+            <button
+              onClick={() => setShowMessageModal(false)}
+              className="mt-4 px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800"
             >
               Close
             </button>

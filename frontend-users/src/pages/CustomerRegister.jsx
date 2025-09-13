@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
+import geoData from "../data/ph-geodata.json";
 
 const idTypes = ["National ID", "Passport", "Driver's License"];
 
@@ -21,8 +21,14 @@ const CustomerRegister = () => {
     telephone: "",
     idType: "",
     idImage: null,
+    secondIdImage: null, // Added second ID image field
     agreedToPolicy: false
   });
+
+  const [regionList, setRegionList] = useState([]);
+  const [provinceList, setProvinceList] = useState([]);
+  const [municipalityList, setMunicipalityList] = useState([]);
+  const [barangayList, setBarangayList] = useState([]);
 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -39,12 +45,60 @@ const CustomerRegister = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
         setUser(res.data);
+        
+        // Pre-fill form with user data
+        const { firstName, middleName, lastName, email, phoneNumber } = res.data;
+        const fullName = middleName 
+          ? `${firstName} ${middleName} ${lastName}` 
+          : `${firstName} ${lastName}`;
+          
+        setFormData(prev => ({
+          ...prev,
+          fullName,
+          email,
+          telephone: phoneNumber
+        }));
       } catch {
         navigate("/login");
       }
     };
     fetchUser();
+
+    const regions = Object.entries(geoData).map(([code, region]) => ({
+      code,
+      name: region.region_name
+    }));
+    setRegionList(regions);
   }, [navigate]);
+
+  useEffect(() => {
+    const selectedRegion = Object.values(geoData).find(r => r.region_name === formData.region);
+    if (selectedRegion) {
+      const provinces = Object.keys(selectedRegion.province_list);
+      setProvinceList(provinces);
+      setFormData(prev => ({ ...prev, province: "", cityOrMunicipality: "", barangay: "" }));
+    }
+  }, [formData.region]);
+
+  useEffect(() => {
+    const selectedRegion = Object.values(geoData).find(r => r.region_name === formData.region);
+    const selectedProvince = selectedRegion?.province_list?.[formData.province];
+    if (selectedProvince) {
+      const municipalities = Object.keys(selectedProvince.municipality_list);
+      setMunicipalityList(municipalities);
+      setFormData(prev => ({ ...prev, cityOrMunicipality: "", barangay: "" }));
+    }
+  }, [formData.province]);
+
+  useEffect(() => {
+    const selectedRegion = Object.values(geoData).find(r => r.region_name === formData.region);
+    const selectedProvince = selectedRegion?.province_list?.[formData.province];
+    const selectedMunicipality = selectedProvince?.municipality_list?.[formData.cityOrMunicipality];
+    if (selectedMunicipality) {
+      setBarangayList(selectedMunicipality.barangay_list);
+      setFormData(prev => ({ ...prev, barangay: "" }));
+    }
+  }, [formData.cityOrMunicipality]);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -88,7 +142,7 @@ const CustomerRegister = () => {
     try {
       const payload = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== "") payload.append(key, value);
+        if (value !== "" && value !== null) payload.append(key, value);
       });
 
       const res = await axiosInstance.post("/api/customers/register", payload, {
@@ -112,53 +166,214 @@ const CustomerRegister = () => {
   const inputClass = "input cursor-pointer";
   const buttonClass = "py-2 px-4 bg-lime-600 text-white rounded hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer";
 
+  // Function to format text with proper capitalization
+  const formatText = (text) => {
+    return text.split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   return (
-    <div className="min-h-screen bg-orange-50 flex items-center justify-center px-4 relative">
-      
+    <div className="mt-7 min-h-screen bg-orange-50 flex items-center justify-center px-4 relative">
       <form
         onSubmit={handleSubmit}
         className="bg-white w-full max-w-2xl rounded-lg p-6 shadow-xl border border-orange-300"
       >
-        <h2 className="text-2xl font-bold text-lime-900 mb-4 text-center">Customer Verification</h2>
+        <h2 className="text-2xl font-bold text-lime-900 mb-6 text-center">Customer Verification</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input name="fullName" placeholder="Full Name" required value={formData.fullName} onChange={handleChange} className={inputClass} />
-          <input name="email" placeholder="Email" required value={formData.email} onChange={handleChange} className={inputClass} />
-          <input name="telephone" placeholder="Telephone" required value={formData.telephone} onChange={handleChange} className={inputClass} />
-          <input name="region" placeholder="Region" required value={formData.region} onChange={handleChange} className={inputClass} />
-          <input name="province" placeholder="Province" required value={formData.province} onChange={handleChange} className={inputClass} />
-          <input name="cityOrMunicipality" placeholder="City or Municipality" required value={formData.cityOrMunicipality} onChange={handleChange} className={inputClass} />
-          <input name="barangay" placeholder="Barangay" required value={formData.barangay} onChange={handleChange} className={inputClass} />
-          <input name="street" placeholder="Street" required value={formData.street} onChange={handleChange} className={inputClass} />
-          <input name="postalCode" placeholder="Postal Code" required value={formData.postalCode} onChange={handleChange} className={inputClass} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-lime-900 mb-1">Full Name</label>
+            <input 
+              name="fullName" 
+              placeholder="Enter your full name" 
+              required 
+              value={formData.fullName} 
+              onChange={handleChange} 
+              className={inputClass} 
+            />
+          </div>
+          
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-lime-900 mb-1">Email</label>
+            <input 
+              name="email" 
+              placeholder="Enter your email" 
+              required 
+              value={formData.email} 
+              onChange={handleChange} 
+              className={inputClass} 
+            />
+          </div>
+          
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-lime-900 mb-1">Telephone</label>
+            <input 
+              name="telephone" 
+              placeholder="Enter your telephone number" 
+              required 
+              value={formData.telephone} 
+              onChange={handleChange} 
+              className={inputClass} 
+            />
+          </div>
         </div>
 
-        <hr className="my-4" />
-        <label className="text-sm font-semibold text-lime-900 block mb-1">Location:</label>
-        <div className="grid grid-cols-2 gap-4 mb-2">
-          <input name="latitude" value={formData.latitude} readOnly className="input bg-lime-100 cursor-pointer p-2 rounded-sm" placeholder="Latitude" />
-          <input name="longitude" value={formData.longitude} readOnly className="input bg-lime-100 cursor-pointer p-2 rounded-sm" placeholder="Longitude" />
+        {/* Address Section */}
+        <div className="mb-6 p-4 border border-lime-300 rounded-lg bg-lime-50">
+          <h3 className="text-lg font-semibold text-lime-900 mb-4">Default Delivery Address</h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-lime-900 mb-1">Region</label>
+              <select name="region" required value={formData.region} onChange={handleChange} className={inputClass}>
+                <option value="">Select Region</option>
+                {regionList.map((r) => (
+                  <option key={r.code} value={r.name}>{formatText(r.name)}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-lime-900 mb-1">Province</label>
+              <select name="province" required value={formData.province} onChange={handleChange} className={inputClass}>
+                <option value="">Select Province</option>
+                {provinceList.map((p) => (
+                  <option key={p} value={p}>{formatText(p)}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-lime-900 mb-1">Municipality/City</label>
+              <select name="cityOrMunicipality" required value={formData.cityOrMunicipality} onChange={handleChange} className={inputClass}>
+                <option value="">Select Municipality</option>
+                {municipalityList.map((m) => (
+                  <option key={m} value={m}>{formatText(m)}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-lime-900 mb-1">Barangay</label>
+              <select name="barangay" required value={formData.barangay} onChange={handleChange} className={inputClass}>
+                <option value="">Select Barangay</option>
+                {barangayList.map((b) => (
+                  <option key={b} value={b}>{formatText(b)}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-lime-900 mb-1">Street Address</label>
+              <input 
+                name="street" 
+                placeholder="Enter your street address" 
+                required 
+                value={formData.street} 
+                onChange={handleChange} 
+                className={inputClass} 
+              />
+            </div>
+            
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-lime-900 mb-1">Postal Code</label>
+              <input 
+                name="postalCode" 
+                placeholder="Enter postal code" 
+                required 
+                value={formData.postalCode} 
+                onChange={handleChange} 
+                className={inputClass} 
+              />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="text-sm font-semibold text-lime-900 block mb-2">Location Coordinates:</label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <label className="text-sm text-lime-700 mb-1">Latitude</label>
+                <input 
+                  name="latitude" 
+                  value={formData.latitude} 
+                  readOnly 
+                  className="input bg-lime-100 cursor-pointer p-2 rounded-sm" 
+                  placeholder="Latitude" 
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-sm text-lime-700 mb-1">Longitude</label>
+                <input 
+                  name="longitude" 
+                  value={formData.longitude} 
+                  readOnly 
+                  className="input bg-lime-100 cursor-pointer p-2 rounded-sm" 
+                  placeholder="Longitude" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <button type="button" onClick={handleLocation} className={buttonClass + " mt-4"}>
+            Get My Location
+          </button>
         </div>
 
-        <button type="button" onClick={handleLocation} className={buttonClass + " mb-4"}>
-          Get My Location
-        </button>
+        <div className="flex flex-col mb-4">
+          <label className="text-sm font-semibold text-lime-900 mb-1">Primary ID Type</label>
+          <select 
+            name="idType" 
+            required 
+            value={formData.idType} 
+            onChange={handleChange} 
+            className={inputClass + " border p-2.5 rounded-sm"}
+          >
+            <option value="">Select ID Type</option>
+            {idTypes.map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+        </div>
 
-        <select name="idType" required value={formData.idType} onChange={handleChange} className={inputClass + " mb-4 ml-5 border p-2.5 rounded-sm "}>
-          <option value="">Select ID Type</option>
-          {idTypes.map((type) => (
-            <option key={type} value={type}>{type}</option>
-          ))}
-        </select>
+        <div className="flex flex-col mb-4">
+          <label className="text-sm font-semibold text-lime-900 mb-1">Upload Valid ID (Primary)</label>
+          <label className="cursor-pointer border p-3 rounded-md">
+            <input 
+              type="file" 
+              name="idImage" 
+              onChange={handleChange} 
+              required 
+              className="cursor-pointer" 
+            />
+          </label>
+        </div>
 
-        <label className="block mb-4 cursor-pointer border p-1 rounded-md">
-          Upload Valid ID:{" "}
-          <input type="file" name="idImage" onChange={handleChange} required className="cursor-pointer" />
-        </label>
+        {/* Added second ID image field */}
+        <div className="flex flex-col mb-4">
+          <label className="text-sm font-semibold text-lime-900 mb-1">Upload Second ID (Secondary)</label>
+          <label className="cursor-pointer border p-3 rounded-md">
+            <input 
+              type="file" 
+              name="secondIdImage" 
+              onChange={handleChange} 
+              className="cursor-pointer" 
+            />
+          </label>
+          <p className="text-xs text-gray-500 mt-1">Additional identification document</p>
+        </div>
 
-        <label className="flex items-center mt-2 mb-4 cursor-pointer">
-          <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
-          <span onClick={() => setShowPolicyModal(true)} className="text-lime-700 underline">I agree to the Customer Policy</span>
+        <label className="flex items-center mt-2 mb-6 cursor-pointer">
+          <input 
+            type="checkbox" 
+            name="agreedToPolicy" 
+            checked={formData.agreedToPolicy} 
+            onChange={handleChange} 
+            className="mr-2 cursor-pointer" 
+          />
+          <span onClick={() => setShowPolicyModal(true)} className="text-lime-700 underline">
+            I agree to the Customer Policy
+          </span>
         </label>
 
         {error && <p className="text-red-600 text-sm mb-3 text-center">{error}</p>}
@@ -175,6 +390,7 @@ const CustomerRegister = () => {
         >
           {isSubmitting ? "Submitting..." : "Submit Verification"}
         </button>
+        
         <button
           type="button"
           onClick={() => navigate('/marketplace')}
@@ -182,7 +398,6 @@ const CustomerRegister = () => {
         >
           Cancel
         </button>
-
       </form>
 
       {showSuccessModal && (
@@ -190,7 +405,7 @@ const CustomerRegister = () => {
           <div className="bg-white w-full max-w-sm mx-auto rounded-lg p-6 shadow-lg relative text-center border border-orange-700">
             <h3 className="text-xl font-bold text-orange-700 mb-2">Verification Submitted</h3>
             <p className="text-gray-700 mb-4">
-              Thanks for submitting your info. We’ll review your documents shortly. Please check your dashboard for updates.
+              Thanks for submitting your info. We'll review your documents shortly. Please check your dashboard for updates.
             </p>
             <button
               onClick={() => navigate("/marketplace")}

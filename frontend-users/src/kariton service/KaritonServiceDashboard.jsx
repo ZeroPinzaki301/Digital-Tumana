@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 
 const KaritonServiceDashboard = () => {
   const [rider, setRider] = useState(null);
+  const [ratings, setRatings] = useState([]);
+  const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -11,6 +13,29 @@ const KaritonServiceDashboard = () => {
     localStorage.removeItem("karitonId");
     localStorage.removeItem("karitonFirstName");
     navigate("/kariton-service/login");
+  };
+
+  const toggleStatus = async () => {
+    try {
+      setIsUpdating(true);
+      const token = localStorage.getItem("karitonToken");
+      const id = localStorage.getItem("karitonId");
+
+      const response = await axiosInstance.patch(
+        `/api/kariton/update-status`,
+        { isActive: !rider.isActive },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setRider(response.data.data);
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("Failed to update status. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   useEffect(() => {
@@ -30,8 +55,28 @@ const KaritonServiceDashboard = () => {
       }
     };
 
+    const fetchRatings = async () => {
+      try {
+        const token = localStorage.getItem("karitonToken");
+
+        const response = await axiosInstance.get(`/api/rider/rating/my-ratings`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setRatings(response.data.data);
+      } catch (error) {
+        console.error("Failed to fetch ratings:", error);
+      }
+    };
+
     fetchRider();
+    fetchRatings();
   }, [navigate]);
+
+  const totalRatings = ratings.length;
+  const averageRating = totalRatings > 0
+    ? (ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings).toFixed(2)
+    : null;
 
   if (!rider) {
     return (
@@ -45,19 +90,17 @@ const KaritonServiceDashboard = () => {
 
   return (
     <div className="min-h-screen bg-lime-50 flex flex-col items-center p-4 sm:p-6 relative">
-      {/* Back Button - Top Left */}
+      {/* Top Buttons */}
       <div className="w-full flex justify-between items-center mb-6">
         <button
           onClick={() => navigate('/')}
-          className="bg-lime-700 cursor-pointer border border-lime-700 text-white px-4 sm:px-5 py-2 rounded-lg shadow-md hover:bg-lime-800 transition"
+          className="bg-lime-700 border border-lime-700 text-white px-4 sm:px-5 py-2 rounded-lg shadow-md hover:bg-lime-800 transition"
         >
           ← Back
         </button>
-
-        {/* Logout Button - Top Right */}
         <button
           onClick={handleLogout}
-          className="bg-red-500 text-white px-4 cursor-pointer sm:px-5 py-2 rounded-lg shadow-md hover:bg-red-600 transition"
+          className="bg-red-500 text-white px-4 sm:px-5 py-2 rounded-lg shadow-md hover:bg-red-600 transition"
         >
           Logout
         </button>
@@ -78,6 +121,44 @@ const KaritonServiceDashboard = () => {
           Trusted Kariton Rider
         </p>
 
+        {/* Rating Summary */}
+        <div className="w-full max-w-md mb-6 sm:mb-8 text-center">
+          <h2 className="text-xl font-bold text-lime-700 mb-2">Your Rider Ratings</h2>
+          {totalRatings > 0 ? (
+            <>
+              <p className="text-lg text-gray-800">
+                ⭐ Average Rating: <span className="font-semibold text-lime-700">{averageRating}</span>
+              </p>
+              <p className="text-sm text-gray-600">
+                Based on <span className="font-semibold">{totalRatings}</span> rating{totalRatings > 1 ? "s" : ""}
+              </p>
+            </>
+          ) : (
+            <p className="text-gray-500 italic">No ratings yet.</p>
+          )}
+        </div>
+
+        {/* Status Toggle */}
+        <div className="w-full max-w-md mb-6 sm:mb-8">
+          <button
+            onClick={toggleStatus}
+            disabled={isUpdating}
+            className={`w-full py-3 rounded-lg text-lg font-semibold transition shadow-md ${
+              rider.isActive
+                ? "bg-red-500 hover:bg-red-600 text-white"
+                : "bg-green-500 hover:bg-green-600 text-white"
+            } ${isUpdating ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          >
+            {isUpdating ? "Updating..." : rider.isActive ? "Deactivate Account" : "Activate Account"}
+          </button>
+          <p className="text-center text-sm text-gray-500 mt-2">
+            Current status:{" "}
+            <span className={rider.isActive ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+              {rider.isActive ? "Active" : "Inactive"}
+            </span>
+          </p>
+        </div>
+
         {/* Info Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full mb-6 sm:mb-10">
           <div className="bg-white border border-lime-700 rounded-lg p-4 sm:p-5 shadow-sm text-center">
@@ -91,8 +172,7 @@ const KaritonServiceDashboard = () => {
           <div className="bg-white border border-lime-700 rounded-lg p-4 sm:p-5 shadow-sm sm:col-span-2 text-center">
             <p className="text-sm text-gray-500">Location</p>
             <p className="text-lg font-semibold text-gray-800">
-              {rider.houseNo}, {rider.street}, {rider.barangay}, {rider.municipality},{" "}
-              {rider.province}
+              {rider.houseNo}, {rider.street}, {rider.barangay}, {rider.municipality}, {rider.province}
             </p>
           </div>
           <div className="bg-white border border-lime-700 rounded-lg p-4 sm:p-5 shadow-sm sm:col-span-2 text-center">
@@ -103,18 +183,17 @@ const KaritonServiceDashboard = () => {
           </div>
         </div>
 
-        {/* Action Buttons at Bottom Center */}
+        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full justify-center">
           <button
             onClick={() => navigate("/kariton-service/rider/delivery-requests")}
-            className="flex-1 py-4 sm:py- cursor-pointer bg-lime-700 text-white rounded-lg text-lg sm:text-xl font-semibold hover:bg-lime-800 transition shadow-md"
+            className="flex-1 py-4 sm:py-5 bg-lime-700 text-white rounded-lg text-lg sm:text-xl font-semibold hover:bg-lime-800 transition shadow-md"
           >
             Delivery Requests
           </button>
-
           <button
             onClick={() => navigate("/kariton-service/rider/delivery-history")}
-            className="flex-1 py-4 sm:py-5 cursor-pointer bg-lime-700 text-white rounded-lg text-lg sm:text-xl font-semibold hover:bg-lime-800 transition shadow-md"
+            className="flex-1 py-4 sm:py-5 bg-lime-700 text-white rounded-lg text-lg sm:text-xl font-semibold hover:bg-lime-800 transition shadow-md"
           >
             Delivery History
           </button>

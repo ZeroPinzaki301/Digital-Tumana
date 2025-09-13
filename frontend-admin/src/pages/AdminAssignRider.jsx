@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
-import { FaArrowLeft, FaUser, FaCheck, FaMotorcycle } from 'react-icons/fa';
+import { FaArrowLeft, FaUser, FaCheck, FaMotorcycle, FaTimes } from 'react-icons/fa';
 
 const AdminAssignRider = () => {
   const { orderId } = useParams();
@@ -9,6 +9,10 @@ const AdminAssignRider = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRider, setSelectedRider] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,14 +38,17 @@ const AdminAssignRider = () => {
 
   const handleAssignRider = async () => {
     if (!selectedRider) {
-      alert('Please select a rider first');
+      setModalMessage('Please select a rider first');
+      setShowErrorModal(true);
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to assign this rider to the order?`)) {
-      return;
-    }
+    setShowConfirmModal(true);
+  };
 
+  const confirmAssignment = async () => {
+    setShowConfirmModal(false);
+    
     try {
       const token = localStorage.getItem('token');
       await axiosInstance.post(
@@ -56,14 +63,18 @@ const AdminAssignRider = () => {
       );
       
       // Show success message
-      alert('Rider has been successfully assigned! The order is now out for delivery.');
-      
-      // Navigate to shipped orders page
-      navigate('/admin-shipped-orders');
+      setModalMessage('Rider has been successfully assigned! The order is now out for delivery.');
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error assigning rider:', error);
-      setError(error.response?.data?.message || 'Failed to assign rider');
+      setModalMessage(error.response?.data?.message || 'Failed to assign rider');
+      setShowErrorModal(true);
     }
+  };
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
+    navigate('/admin-shipped-orders');
   };
   
   if (loading) {
@@ -98,6 +109,72 @@ const AdminAssignRider = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Confirm Rider Assignment</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to assign this rider to the order?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAssignment}
+                className="px-4 py-2 bg-sky-500 text-white rounded hover:bg-sky-600"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <div className="text-green-500 text-4xl mb-4 flex justify-center">
+              <FaCheck className="bg-green-100 p-2 rounded-full" size={48} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Success!</h3>
+            <p className="text-gray-600 mb-6 text-center">{modalMessage}</p>
+            <div className="flex justify-center">
+              <button
+                onClick={handleSuccessClose}
+                className="px-4 py-2 bg-sky-500 text-white rounded hover:bg-sky-600"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <div className="text-red-500 text-4xl mb-4 flex justify-center">
+              <FaTimes className="bg-red-100 p-2 rounded-full" size={48} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Error</h3>
+            <p className="text-gray-600 mb-6 text-center">{modalMessage}</p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowErrorModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate(-1)}
@@ -109,7 +186,7 @@ const AdminAssignRider = () => {
 
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-            <FaMotorcycle className="mr-3 text-orange-500" />
+            <FaMotorcycle className="mr-3 text-sky-500" />
             Assign Rider for Order #{orderId}
           </h1>
 
@@ -130,8 +207,8 @@ const AdminAssignRider = () => {
                     onClick={() => setSelectedRider(rider._id)}
                     className={`border rounded-lg p-4 cursor-pointer transition-colors ${
                       selectedRider === rider._id
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-gray-200 hover:border-orange-300'
+                        ? 'border-sky-500 bg-sky-50'
+                        : 'border-gray-200 hover:border-sky-300'
                     }`}
                   >
                     <div className="flex items-center">
@@ -158,7 +235,7 @@ const AdminAssignRider = () => {
                         </p>
                       </div>
                       {selectedRider === rider._id && (
-                        <div className="ml-auto text-orange-500">
+                        <div className="ml-auto text-sky-500">
                           <FaCheck />
                         </div>
                       )}
@@ -175,7 +252,7 @@ const AdminAssignRider = () => {
               disabled={!selectedRider}
               className={`px-4 py-2 rounded flex items-center ${
                 selectedRider
-                  ? 'bg-orange-500 text-white hover:bg-orange-600'
+                  ? 'bg-sky-500 text-white hover:bg-sky-600'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >

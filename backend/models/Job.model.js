@@ -38,15 +38,23 @@ const jobSchema = new mongoose.Schema(
       enum: ["hourly", "daily", "weekly", "monthly"],
       required: true,
     },
+    skillTypes: {
+      type: [String],
+      enum: [
+        "Plants",
+        "Fertilizers",
+        "Animals",
+        "Machinery",
+        "Irrigation",
+        "Harvesting",
+        "Storage",
+        "Other",
+      ],
+      default: [],
+    },
     isAvailable: {
       type: Boolean,
       default: true,
-    },
-    jobCode: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
     },
     jobImage: {
       type: String,

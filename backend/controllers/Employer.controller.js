@@ -34,6 +34,16 @@ export const registerEmployer = async (req, res) => {
       ? await uploadToCloudinary(req.files.birCert[0].path, "bir_cert_images")
       : null;
 
+    // Upload second valid ID if provided
+    let secondValidIdImageUrl = null;
+    if (req.files?.secondValidId && req.files.secondValidId[0]) {
+      const secondValidIdResult = await uploadToCloudinary(
+        req.files.secondValidId[0].path, 
+        "valid_id_images"
+      );
+      secondValidIdImageUrl = secondValidIdResult.secure_url;
+    }
+
     const newEmployer = new Employer({
       userId: user._id,
       email: user.email,
@@ -45,6 +55,7 @@ export const registerEmployer = async (req, res) => {
       nationality,
       companyName,
       validIdImage: validIdResult.secure_url,
+      secondValidIdImage: secondValidIdImageUrl,
       dtiCertificateImage: dtiResult?.secure_url || null,
       birCertificateImage: birResult?.secure_url || null,
       agreedToPolicy,
@@ -147,7 +158,14 @@ export const addEmployerAddressByUser = async (req, res) => {
     if (employer.status !== "verified") return res.status(403).json({ message: "Employer is not verified" });
 
     if (employer.employerAddress) {
-      return res.status(400).json({ message: "Employer address already exists. Use PUT to update." });
+      const existingAddress = await EmployerAddress.findById(employer.employerAddress);
+      if (!existingAddress) {
+        // Clean up the broken reference
+        employer.employerAddress = null;
+        await employer.save();
+      } else {
+        return res.status(400).json({ message: "Employer address already exists. Use PUT to update." });
+      }
     }
 
     const newAddress = await EmployerAddress.create({

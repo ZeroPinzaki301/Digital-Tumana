@@ -17,6 +17,7 @@ const router = express.Router();
 
 const workerUploads = upload.fields([
   { name: "validId", maxCount: 1 },
+  { name: "secondValidId", maxCount: 1 },
   { name: "resumeFile", maxCount: 1 },
   { name: "profilePicture", maxCount: 1 }
 ]);

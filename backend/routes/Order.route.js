@@ -12,7 +12,8 @@ import {
   getSingleOrderSummary,
   acceptOrderRequest,
   cancelOrderRequest,
-  getOrderHistory
+  getOrderHistory,
+  getSalesAnalytics
 } from "../controllers/SellerOrder.controller.js";
 
 const router = express.Router();
@@ -28,6 +29,7 @@ router.post("/checkout", protect, checkoutCart);
 // 🛒 Seller-side order review
 router.get("/seller/pending", protect, getPendingOrdersForSeller);
 router.get("/seller/history", protect, getOrderHistory);
+router.get("/seller/analytics", protect, getSalesAnalytics);
 router.get("/seller/summary/:orderId", protect, getSingleOrderSummary);
 router.patch("/seller/accept/:orderId", protect, acceptOrderRequest);
 router.delete("/seller/cancel/:orderId", protect, cancelOrderRequest);

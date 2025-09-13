@@ -17,6 +17,7 @@ const router = express.Router();
 
 const employerUploads = upload.fields([
   { name: "validId", maxCount: 1 },
+  { name: "secondValidId", maxCount: 1 },
   { name: "dtiCert", maxCount: 1 },
   { name: "birCert", maxCount: 1 },
   { name: "profilePicture", maxCount: 1 }

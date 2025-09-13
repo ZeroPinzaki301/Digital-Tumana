@@ -10,6 +10,7 @@ const workerSchema = new mongoose.Schema({
   nationality: { type: String, required: true },
   email: { type: String, required: true, lowercase: true, trim: true },
   validIdImage: { type: String, required: true },
+  secondValidIdImage: { type: String },
   resumeFile: { type: String }, // optional
   workerAddress: { type: mongoose.Schema.Types.ObjectId, ref: "WorkerAddress" },
   agreedToPolicy: { type: Boolean, default: false, required: true },

@@ -9,6 +9,21 @@ const AdminWorkerRequests = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const calculateAge = (birthdate) => {
+    const birth = new Date(birthdate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const hasHadBirthdayThisYear =
+      today.getMonth() > birth.getMonth() ||
+      (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+
+    if (!hasHadBirthdayThisYear) {
+      age--;
+    }
+
+    return age;
+  };
+
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
@@ -105,7 +120,7 @@ const AdminWorkerRequests = () => {
                       <span className="font-medium w-24">Sex:</span> {worker.sex}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium w-24">Age:</span> {worker.age}
+                      <span className="font-medium w-24">Age:</span> {calculateAge(worker.birthdate)}
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium w-24">Birthdate:</span> {new Date(worker.birthdate).toLocaleDateString()}
@@ -126,6 +141,15 @@ const AdminWorkerRequests = () => {
                       >
                         <FaIdCard className="mr-2" />
                         View Valid ID
+                      </a>
+                      <a
+                        href={worker.secondValidIdImage}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center text-sm text-sky-700 hover:text-sky-900 transition-colors"
+                      >
+                        <FaIdCard className="mr-2" />
+                        Secondary ID image
                       </a>
                       {worker.resumeFile && (
                         <a

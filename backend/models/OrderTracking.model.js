@@ -17,11 +17,8 @@ const orderTrackingSchema = new mongoose.Schema({
     enum: ["Pending", "Paid", "Cancelled"],
     default: "Pending"
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+
+},  { timestamps: true });
 
 function generateSimpleCode() {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';

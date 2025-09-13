@@ -10,11 +10,12 @@ const TesdaEnroll = () => {
   const [enrollment, setEnrollment] = useState(null);
   const [formData, setFormData] = useState({
     firstName: "",
+    middleName: "",
     lastName: "",
-    age: "",
     birthdate: "",
     birthCertImage: null,
     validIdImage: null,
+    secondValidIdImage: null,
   });
 
   const [error, setError] = useState("");
@@ -34,6 +35,7 @@ const TesdaEnroll = () => {
         setFormData((prev) => ({
           ...prev,
           firstName: userRes.data.firstName || "",
+          middleName: userRes.data.middleName || "",
           lastName: userRes.data.lastName || "",
           birthdate: userRes.data.birthdate?.slice(0, 10) || "",
         }));
@@ -110,10 +112,10 @@ const TesdaEnroll = () => {
                 You have already submitted a TESDA enrollment form. Please wait for confirmation.
               </p>
               <button
-                onClick={() => navigate("/learn")}
+                onClick={() => navigate(-1)}
                 className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
               >
-                Back to Learn
+                Back
               </button>
               <button
                 onClick={() => navigate("/learn/tesda/enroll/status")}
@@ -123,7 +125,7 @@ const TesdaEnroll = () => {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               <h2 className="text-xl font-bold text-lime-900 text-center mb-4">Enroll Now</h2>
 
               <input
@@ -135,6 +137,16 @@ const TesdaEnroll = () => {
                 required
                 className="w-full px-4 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
               />
+
+              <input
+                type="text"
+                name="middleName"
+                placeholder="Middle Name"
+                value={formData.middleName}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+              />
+
               <input
                 type="text"
                 name="lastName"
@@ -144,16 +156,7 @@ const TesdaEnroll = () => {
                 required
                 className="w-full px-4 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
               />
-              <input
-                type="number"
-                name="age"
-                placeholder="Age"
-                min="15"
-                value={formData.age}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
-              />
+              
               <input
                 type="date"
                 name="birthdate"
@@ -173,10 +176,20 @@ const TesdaEnroll = () => {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 cursor-pointer hover:ring-2 hover:ring-lime-400 transition"
               />
 
-              <label className="block text-lg font-medium text-gray-700">Valid ID Image</label>
+              <label className="block text-lg font-medium text-gray-700">Upload a valid ID (Primary)</label>
               <input
                 type="file"
                 name="validIdImage"
+                accept="image/*"
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 cursor-pointer hover:ring-2 hover:ring-lime-400 transition"
+              />
+
+              <label className="block text-lg font-medium text-gray-700">Upload another ID (Secondary)</label>
+              <input
+                type="file"
+                name="secondValidIdImage"
                 accept="image/*"
                 onChange={handleChange}
                 required

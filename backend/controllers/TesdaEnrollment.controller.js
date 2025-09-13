@@ -13,13 +13,13 @@ export const enrollTesdaCourse = async (req, res) => {
 
     const {
       firstName,
+      middleName,
       lastName,
-      age,
       birthdate
     } = req.body;
 
     // Validate image uploads
-    if (!req.files?.birthCertImage || !req.files?.validIdImage) {
+    if (!req.files?.birthCertImage || !req.files?.validIdImage || !req.files?.secondValidIdImage) {
       return res.status(400).json({ message: "Birth certificate and valid ID images are required." });
     }
 
@@ -34,15 +34,21 @@ export const enrollTesdaCourse = async (req, res) => {
       "tesda_documents"
     );
 
+    const secondValidIdRes = await uploadToCloudinary(
+      req.files.secondValidIdImage[0].path,
+      "tesda_documents"
+    );
+
     // Create enrollment
     const newEnrollment = await TesdaEnrollment.create({
       userId,
       firstName,
+      middleName,
       lastName,
-      age,
       birthdate,
       birthCertImage: birthCertRes.secure_url,
       validIdImage: validIdRes.secure_url,
+      secondValidIdImage: secondValidIdRes.secure_url,
       status: "pending"
     });
 

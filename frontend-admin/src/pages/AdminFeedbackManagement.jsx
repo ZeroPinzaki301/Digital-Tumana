@@ -1,12 +1,23 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { FaEye, FaTrash, FaEnvelope, FaUser, FaClock, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import Modal from 'react-modal';
+
+// Set app element for accessibility
+Modal.setAppElement('#root');
 
 const AdminFeedbackManagement = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [viewMode, setViewMode] = useState("unseen"); // 'unseen' or 'seen'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Modal states
+  const [errorModalIsOpen, setErrorModalIsOpen] = useState(false);
+  const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [actionErrorModalIsOpen, setActionErrorModalIsOpen] = useState(false);
+  const [actionErrorMessage, setActionErrorMessage] = useState("");
 
   useEffect(() => {
     fetchFeedbacks();
@@ -30,6 +41,7 @@ const AdminFeedbackManagement = () => {
     } catch (err) {
       setError("Failed to fetch feedbacks");
       setLoading(false);
+      setErrorModalIsOpen(true);
       console.error(err);
     }
   };
@@ -59,15 +71,12 @@ const AdminFeedbackManagement = () => {
       }
     } catch (err) {
       console.error("Failed to mark feedback as seen:", err);
-      alert("Failed to update feedback status");
+      setActionErrorMessage("Failed to update feedback status");
+      setActionErrorModalIsOpen(true);
     }
   };
 
   const handleDeleteFeedback = async (feedbackId) => {
-    if (!window.confirm("Are you sure you want to delete this feedback?")) {
-      return;
-    }
-    
     try {
       const token = localStorage.getItem("adminToken");
       await axiosInstance.delete(
@@ -81,9 +90,38 @@ const AdminFeedbackManagement = () => {
       
       // Remove from local state
       setFeedbacks(feedbacks.filter(feedback => feedback._id !== feedbackId));
+      setDeleteModalIsOpen(false);
     } catch (err) {
       console.error("Failed to delete feedback:", err);
-      alert("Failed to delete feedback");
+      setActionErrorMessage("Failed to delete feedback");
+      setActionErrorModalIsOpen(true);
+    }
+  };
+
+  const openDeleteModal = (feedback) => {
+    setSelectedFeedback(feedback);
+    setDeleteModalIsOpen(true);
+  };
+
+  // Modal styles that match your color scheme
+  const customModalStyles = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      backgroundColor: 'white',
+      borderRadius: '1rem',
+      padding: '1.5rem',
+      border: 'none',
+      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+      maxWidth: '32rem',
+      width: '90%'
+    },
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.5)'
     }
   };
 
@@ -170,13 +208,84 @@ const AdminFeedbackManagement = () => {
                 key={feedback._id} 
                 feedback={feedback} 
                 onMarkAsSeen={handleMarkAsSeen}
-                onDelete={handleDeleteFeedback}
+                onDelete={openDeleteModal}
                 viewMode={viewMode}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Error Modal */}
+      <Modal
+        isOpen={errorModalIsOpen}
+        onRequestClose={() => setErrorModalIsOpen(false)}
+        style={customModalStyles}
+        contentLabel="Error Modal"
+      >
+        <div className="p-4">
+          <h2 className="text-xl font-bold text-red-600 mb-3">Error</h2>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <div className="flex justify-end">
+            <button
+              onClick={() => setErrorModalIsOpen(false)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-300"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalIsOpen}
+        onRequestClose={() => setDeleteModalIsOpen(false)}
+        style={customModalStyles}
+        contentLabel="Delete Confirmation Modal"
+      >
+        <div className="p-4">
+          <h2 className="text-xl font-bold text-red-600 mb-3">Confirm Deletion</h2>
+          <p className="text-gray-700 mb-4">
+            Are you sure you want to delete this feedback from {selectedFeedback?.senderName}?
+          </p>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setDeleteModalIsOpen(false)}
+              className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors duration-300"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleDeleteFeedback(selectedFeedback?._id)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-300"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Action Error Modal */}
+      <Modal
+        isOpen={actionErrorModalIsOpen}
+        onRequestClose={() => setActionErrorModalIsOpen(false)}
+        style={customModalStyles}
+        contentLabel="Action Error Modal"
+      >
+        <div className="p-4">
+          <h2 className="text-xl font-bold text-red-600 mb-3">Error</h2>
+          <p className="text-gray-700 mb-4">{actionErrorMessage}</p>
+          <div className="flex justify-end">
+            <button
+              onClick={() => setActionErrorModalIsOpen(false)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-300"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
@@ -222,7 +331,7 @@ const FeedbackCard = ({ feedback, onMarkAsSeen, onDelete, viewMode }) => {
               </button>
             )}
             <button
-              onClick={() => onDelete(feedback._id)}
+              onClick={() => onDelete(feedback)}
               className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
               title="Delete feedback"
             >

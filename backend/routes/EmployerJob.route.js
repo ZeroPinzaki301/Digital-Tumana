@@ -12,11 +12,13 @@ import {
   getWorkerApplicationDetails,
   updateJobApplicationStatus,
   getEmployerOngoingJobs,
-  getWorkerJobHistoryById
+  getWorkerJobHistoryById,
+  getEmployerWorkerConfirmationJobs
  } from "../controllers/EmployerApplicationRequests.controller.js";
 
 import protect from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
+
 
 const router = express.Router();
 
@@ -35,11 +37,22 @@ router.get("/", protect, getEmployerJobs);
 
 router.get("/:jobId", protect, getSingleJob);
 
-router.put("/:jobId", protect, updateJob);
+router.put(
+  "/:jobId",
+  protect,
+  upload.fields([
+    { name: "jobImage", maxCount: 1 },
+    { name: "extraImages", maxCount: 5 }, // optional, if you plan to support more images
+  ]),
+  updateJob
+);
+
 
 router.delete("/:jobId", protect, deleteJob);
 
 router.get("/applications/requests", protect, getEmployerJobApplications);
+
+router.get("/applications/confirmation", protect, getEmployerWorkerConfirmationJobs);
 
 router.get("/applications/ongoing", protect, getEmployerOngoingJobs);
 

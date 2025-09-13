@@ -41,14 +41,14 @@ const OngoingJobDetails = () => {
       {/* Back Button */}
       <div className="flex justify-start mb-4">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/jobs/job-application/waiting-to-confirm")}
           className="px-4 py-2 bg-white border border-sky-700 rounded-md shadow hover:bg-sky-100 cursor-pointer text-sky-800 font-medium transition"
         >
           ← Back
         </button>
       </div>
 
-      <h2 className="text-2xl font-semibold text-sky-800 mb-6 text-center">Ongoing Job Details</h2>
+      <h2 className="text-2xl font-semibold text-sky-800 mb-6 text-center">Job Address and Navigation Details</h2>
 
       {/* Job Info */}
       <section className="mb-8 bg-white p-4 rounded shadow">
