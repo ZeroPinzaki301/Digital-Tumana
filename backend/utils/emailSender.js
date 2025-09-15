@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-
 import {
   verificationEmailTemplate,
   passwordResetEmailTemplate,
@@ -25,60 +24,14 @@ import {
 
 dotenv.config();
 
-// Production-ready transporter configuration
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  requireTLS: true,
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  tls: {
-    rejectUnauthorized: false,
-  },
-  logger: true,   // enable debug logs
-  debug: true,    // print SMTP conversation
 });
 
-
-// Verify connection on startup
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('SMTP connection failed:', error);
-  } else {
-    console.log('SMTP server is ready to take messages');
-  }
-});
-
-export const safeSendMail = async (mailOptions, retries = 3) => {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      console.log(`Email send attempt ${attempt}/${retries} to ${mailOptions.to}`);
-      
-      const result = await transporter.sendMail(mailOptions);
-      console.log(`Email sent successfully on attempt ${attempt}:`, result.messageId);
-      return result;
-      
-    } catch (error) {
-      console.error(`Email send attempt ${attempt} failed:`, error.message);
-      
-      // If this is the last attempt, throw the error
-      if (attempt === retries) {
-        console.error(`All ${retries} email send attempts failed for ${mailOptions.to}`);
-        throw error;
-      }
-      
-      // Wait before retrying (exponential backoff)
-      const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-      console.log(`Waiting ${waitTime}ms before retry...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-    }
-  }
-};
-
-// Verification & Reset Emails
 export const sendVerificationEmail = async (to, name, code) => {
   const mailOptions = {
     from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
@@ -86,7 +39,8 @@ export const sendVerificationEmail = async (to, name, code) => {
     subject: "Verify Your Digital Tumana Account",
     html: verificationEmailTemplate(name, code),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendPasswordResetEmail = async (to, code) => {
@@ -96,7 +50,8 @@ export const sendPasswordResetEmail = async (to, code) => {
     subject: "Reset Your Password",
     html: passwordResetEmailTemplate(code),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendAdminVerificationEmail = async (to, name, code) => {
@@ -106,9 +61,11 @@ export const sendAdminVerificationEmail = async (to, name, code) => {
     subject: "Admin Login Verification Code",
     html: adminVerificationEmailTemplate(name, code),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
+// Send Admin Password Reset Email
 export const sendAdminResetEmail = async (to, code) => {
   const mailOptions = {
     from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
@@ -116,10 +73,10 @@ export const sendAdminResetEmail = async (to, code) => {
     subject: "Reset Your Admin Password",
     html: adminPasswordResetEmailTemplate(code),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
-// TESDA Notifications
 export const sendTesdaEligibilityEmail = async (to, name) => {
   const mailOptions = {
     from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
@@ -127,7 +84,8 @@ export const sendTesdaEligibilityEmail = async (to, name) => {
     subject: "TESDA NC1 Eligibility Confirmed",
     html: tesdaEligibilityEmailTemplate(name),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendTesdaReservationEmail = async (to, name) => {
@@ -137,7 +95,8 @@ export const sendTesdaReservationEmail = async (to, name) => {
     subject: "TESDA NC1 Slot Reserved",
     html: tesdaReservationEmailTemplate(name),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendTesdaEnrollmentEmail = async (to, name) => {
@@ -147,7 +106,8 @@ export const sendTesdaEnrollmentEmail = async (to, name) => {
     subject: "Enrollment Confirmed - TESDA NC1",
     html: tesdaEnrollmentEmailTemplate(name),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendTesdaGraduationEmail = async (to, name) => {
@@ -157,10 +117,10 @@ export const sendTesdaGraduationEmail = async (to, name) => {
     subject: "🎓 Congratulations on Your TESDA NC1 Graduation!",
     html: tesdaGraduationEmailTemplate(name),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
-// Kariton Rider Emails
 export const sendKaritonRiderRegistrationEmail = async (to, name, code) => {
   const mailOptions = {
     from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
@@ -168,9 +128,11 @@ export const sendKaritonRiderRegistrationEmail = async (to, name, code) => {
     subject: "Kariton Rider Registration & Login Code",
     html: karitonRiderRegistrationEmailTemplate(name, code),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
+// Kariton Login Reset Emails - NEW FUNCTIONS
 export const sendKaritonLoginResetEmail = async (to, name, code) => {
   const mailOptions = {
     from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
@@ -178,7 +140,8 @@ export const sendKaritonLoginResetEmail = async (to, name, code) => {
     subject: "Kariton Rider Login Reset Code",
     html: karitonLoginResetEmailTemplate(name, code),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendKaritonNewLoginCodeEmail = async (to, name, newLoginCode) => {
@@ -188,10 +151,11 @@ export const sendKaritonNewLoginCodeEmail = async (to, name, newLoginCode) => {
     subject: "Your New Kariton Rider Login Code",
     html: karitonNewLoginCodeEmailTemplate(name, newLoginCode),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
-// Seller Registration Emails
+// Seller Registration Approval/Rejection Emails
 export const sendSellerApprovalEmail = async (to, name, storeName) => {
   const mailOptions = {
     from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
@@ -199,7 +163,8 @@ export const sendSellerApprovalEmail = async (to, name, storeName) => {
     subject: `Seller Account Approved - ${storeName}`,
     html: sellerRegistrationApprovedEmailTemplate(name, storeName),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendSellerRejectionEmail = async (to, name, storeName, reason = "") => {
@@ -209,10 +174,11 @@ export const sendSellerRejectionEmail = async (to, name, storeName, reason = "")
     subject: `Seller Account Application Update - ${storeName}`,
     html: sellerRegistrationRejectedEmailTemplate(name, storeName, reason),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
-// Employer Registration Emails
+// Employer Registration Approval/Rejection Emails
 export const sendEmployerApprovalEmail = async (to, name, companyName) => {
   const mailOptions = {
     from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
@@ -220,7 +186,8 @@ export const sendEmployerApprovalEmail = async (to, name, companyName) => {
     subject: `Employer Account Approved - ${companyName}`,
     html: employerRegistrationApprovedEmailTemplate(name, companyName),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendEmployerRejectionEmail = async (to, name, companyName, reason = "") => {
@@ -230,10 +197,11 @@ export const sendEmployerRejectionEmail = async (to, name, companyName, reason =
     subject: `Employer Account Application Update - ${companyName}`,
     html: employerRegistrationRejectedEmailTemplate(name, companyName, reason),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
-// Worker Registration Emails
+// Worker Registration Approval/Rejection Emails
 export const sendWorkerApprovalEmail = async (to, name) => {
   const mailOptions = {
     from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
@@ -241,7 +209,8 @@ export const sendWorkerApprovalEmail = async (to, name) => {
     subject: "Worker Account Approved",
     html: workerRegistrationApprovedEmailTemplate(name),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendWorkerRejectionEmail = async (to, name, reason = "") => {
@@ -251,10 +220,11 @@ export const sendWorkerRejectionEmail = async (to, name, reason = "") => {
     subject: "Worker Account Application Update",
     html: workerRegistrationRejectedEmailTemplate(name, reason),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
-// Customer Registration Emails
+// Customer Registration Approval/Rejection Emails
 export const sendCustomerApprovalEmail = async (to, name) => {
   const mailOptions = {
     from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
@@ -262,7 +232,8 @@ export const sendCustomerApprovalEmail = async (to, name) => {
     subject: "Customer Account Verified",
     html: customerRegistrationApprovedEmailTemplate(name),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
 
 export const sendCustomerRejectionEmail = async (to, name, reason = "") => {
@@ -272,5 +243,6 @@ export const sendCustomerRejectionEmail = async (to, name, reason = "") => {
     subject: "Customer Account Verification Update",
     html: customerRegistrationRejectedEmailTemplate(name, reason),
   };
-  await safeSendMail(mailOptions);
+
+  await transporter.sendMail(mailOptions);
 };
