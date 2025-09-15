@@ -29,20 +29,19 @@ dotenv.config();
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  secure: false, // Use TLS
+  secure: false,
   requireTLS: true,
-  connectionTimeout: 60000, // 60 seconds
-  greetingTimeout: 30000,   // 30 seconds  
-  socketTimeout: 60000,     // 60 seconds
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  // Additional options for better reliability
-  pool: true,
-  maxConnections: 5,
-  maxMessages: 100,
+  tls: {
+    rejectUnauthorized: false,
+  },
+  logger: true,   // enable debug logs
+  debug: true,    // print SMTP conversation
 });
+
 
 // Verify connection on startup
 transporter.verify((error, success) => {
