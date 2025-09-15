@@ -35,6 +35,8 @@ import riderVehicleDetailsRoutes from "./routes/RiderVehicleDetails.route.js";
 import riderRatingRoutes from "./routes/RiderRating.route.js";
 import notificationRoutes from "./routes/Notification.route.js"
 
+import { createIndexes } from "./models/dbIndexes.js";
+
 // ES module equivalents of __filename and __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -69,7 +71,9 @@ app.use(cors({
 }));
 
 // Connect to database
-connectDB();
+connectDB().then(() => {
+  createIndexes();
+});
 
 // API Routes
 app.use("/api/users", userRoutes);

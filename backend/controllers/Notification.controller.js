@@ -5,9 +5,15 @@ import JobApplication from '../models/JobApplication.model.js';
 import Employer from '../models/Employer.model.js';
 import Worker from '../models/Worker.model.js';
 import Customer from '../models/Customer.model.js';
+import { LRUCache } from 'lru-cache';
 
-// In-memory cache for notification counts to reduce database queries
-const notificationCache = new Map();
+// FIXED: Use LRU cache instead of Map to prevent memory leaks
+const notificationCache = new LRUCache({
+  max: 1000, // Maximum number of items
+  maxAge: 2 * 60 * 1000, // 2 minutes
+  updateAgeOnGet: true // Refresh age when accessed
+});
+
 const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
 // Helper function to get cache key
@@ -32,7 +38,7 @@ export const getTesdaNotifications = async (req, res) => {
 
     // Check cache first
     const cacheKey = getCacheKey(userId, 'tesda');
-    const cachedData = notificationCache.get(cacheKey);
+    const cachedData = notificationCache.get(cacheKey); // FIXED: Use LRU get method
     
     if (isCacheValid(cachedData)) {
       return res.status(200).json({
@@ -53,7 +59,7 @@ export const getTesdaNotifications = async (req, res) => {
     .limit(10) // Limit to recent notifications
     .lean(); // Use lean() for better performance
 
-    // Cache the results
+    // Cache the results - FIXED: Use LRU set method
     notificationCache.set(cacheKey, {
       data: enrollments,
       timestamp: Date.now()
@@ -96,7 +102,7 @@ export const getOrderNotifications = async (req, res) => {
 
     // Check cache first
     const cacheKey = getCacheKey(userId, 'orders');
-    const cachedData = notificationCache.get(cacheKey);
+    const cachedData = notificationCache.get(cacheKey); // FIXED: Use LRU get method
     
     if (isCacheValid(cachedData)) {
       return res.status(200).json({
@@ -109,13 +115,14 @@ export const getOrderNotifications = async (req, res) => {
 
     // Check if user is a seller with caching
     const sellerCacheKey = getCacheKey(userId, 'seller');
-    const cachedSeller = notificationCache.get(sellerCacheKey);
+    const cachedSeller = notificationCache.get(sellerCacheKey); // FIXED: Use LRU get method
     
     let seller;
     if (isCacheValid(cachedSeller)) {
       seller = cachedSeller.data;
     } else {
       seller = await Seller.findOne({ userId }).lean();
+      // FIXED: Use LRU set method
       notificationCache.set(sellerCacheKey, {
         data: seller,
         timestamp: Date.now()
@@ -130,7 +137,7 @@ export const getOrderNotifications = async (req, res) => {
         message: 'User is not a seller'
       };
       
-      // Cache empty result too
+      // Cache empty result too - FIXED: Use LRU set method
       notificationCache.set(cacheKey, {
         data: [],
         timestamp: Date.now()
@@ -151,7 +158,7 @@ export const getOrderNotifications = async (req, res) => {
     .limit(10) // Limit to recent notifications
     .lean();
 
-    // Cache the results
+    // Cache the results - FIXED: Use LRU set method
     notificationCache.set(cacheKey, {
       data: orders,
       timestamp: Date.now()
@@ -194,7 +201,7 @@ export const getJobApplicationNotifications = async (req, res) => {
 
     // Check cache first
     const cacheKey = getCacheKey(userId, 'jobApplications');
-    const cachedData = notificationCache.get(cacheKey);
+    const cachedData = notificationCache.get(cacheKey); // FIXED: Use LRU get method
     
     if (isCacheValid(cachedData)) {
       return res.status(200).json({
@@ -207,13 +214,14 @@ export const getJobApplicationNotifications = async (req, res) => {
 
     // Check if user is an employer with caching
     const employerCacheKey = getCacheKey(userId, 'employer');
-    const cachedEmployer = notificationCache.get(employerCacheKey);
+    const cachedEmployer = notificationCache.get(employerCacheKey); // FIXED: Use LRU get method
     
     let employer;
     if (isCacheValid(cachedEmployer)) {
       employer = cachedEmployer.data;
     } else {
       employer = await Employer.findOne({ userId }).lean();
+      // FIXED: Use LRU set method
       notificationCache.set(employerCacheKey, {
         data: employer,
         timestamp: Date.now()
@@ -228,7 +236,7 @@ export const getJobApplicationNotifications = async (req, res) => {
         message: 'User is not an employer'
       };
       
-      // Cache empty result too
+      // Cache empty result too - FIXED: Use LRU set method
       notificationCache.set(cacheKey, {
         data: [],
         timestamp: Date.now()
@@ -262,7 +270,7 @@ export const getJobApplicationNotifications = async (req, res) => {
       return application;
     });
 
-    // Cache the results
+    // Cache the results - FIXED: Use LRU set method
     notificationCache.set(cacheKey, {
       data: processedApplications,
       timestamp: Date.now()
@@ -305,7 +313,7 @@ export const getWorkerJobApplicationNotifications = async (req, res) => {
 
     // Check cache first
     const cacheKey = getCacheKey(userId, 'workerJobApplications');
-    const cachedData = notificationCache.get(cacheKey);
+    const cachedData = notificationCache.get(cacheKey); // FIXED: Use LRU get method
     
     if (isCacheValid(cachedData)) {
       return res.status(200).json({
@@ -318,13 +326,14 @@ export const getWorkerJobApplicationNotifications = async (req, res) => {
 
     // Check if user is a worker with caching
     const workerCacheKey = getCacheKey(userId, 'worker');
-    const cachedWorker = notificationCache.get(workerCacheKey);
+    const cachedWorker = notificationCache.get(workerCacheKey); // FIXED: Use LRU get method
     
     let worker;
     if (isCacheValid(cachedWorker)) {
       worker = cachedWorker.data;
     } else {
       worker = await Worker.findOne({ userId }).lean();
+      // FIXED: Use LRU set method
       notificationCache.set(workerCacheKey, {
         data: worker,
         timestamp: Date.now()
@@ -339,7 +348,7 @@ export const getWorkerJobApplicationNotifications = async (req, res) => {
         message: 'User is not a worker'
       };
       
-      // Cache empty result too
+      // Cache empty result too - FIXED: Use LRU set method
       notificationCache.set(cacheKey, {
         data: [],
         timestamp: Date.now()
@@ -360,7 +369,7 @@ export const getWorkerJobApplicationNotifications = async (req, res) => {
     .limit(10) // Limit to recent notifications
     .lean();
 
-    // Cache the results
+    // Cache the results - FIXED: Use LRU set method
     notificationCache.set(cacheKey, {
       data: jobApplications,
       timestamp: Date.now()
@@ -413,7 +422,7 @@ export const getOutForDeliveryOrders = async (req, res) => {
 
     // Check cache first
     const cacheKey = getCacheKey(userId, 'outForDeliveryOrders');
-    const cachedData = notificationCache.get(cacheKey);
+    const cachedData = notificationCache.get(cacheKey); // FIXED: Use LRU get method
     
     if (isCacheValid(cachedData)) {
       return res.status(200).json({
@@ -435,7 +444,7 @@ export const getOutForDeliveryOrders = async (req, res) => {
     .sort({ updatedAt: -1 })
     .lean();
 
-    // Cache the results
+    // Cache the results - FIXED: Use LRU set method
     notificationCache.set(cacheKey, {
       data: orders,
       timestamp: Date.now()
@@ -478,7 +487,7 @@ export const getNotificationCount = async (req, res) => {
 
     // Check cache first
     const countCacheKey = getCacheKey(userId, 'count');
-    const cachedCount = notificationCache.get(countCacheKey);
+    const cachedCount = notificationCache.get(countCacheKey); // FIXED: Use LRU get method
     
     if (isCacheValid(cachedCount)) {
       return res.status(200).json({
@@ -535,7 +544,7 @@ export const getNotificationCount = async (req, res) => {
 
     const totalCount = tesdaCount + orderCount + jobApplicationCount + workerJobApplicationCount + outForDeliveryCount;
 
-    // Cache the count
+    // Cache the count - FIXED: Use LRU set method
     notificationCache.set(countCacheKey, {
       data: totalCount,
       timestamp: Date.now()
@@ -570,7 +579,7 @@ export const getJobApplicationNotificationCount = async (req, res) => {
 
     // Check cache first
     const countCacheKey = getCacheKey(userId, 'jobApplicationCount');
-    const cachedCount = notificationCache.get(countCacheKey);
+    const cachedCount = notificationCache.get(countCacheKey); // FIXED: Use LRU get method
     
     if (isCacheValid(cachedCount)) {
       return res.status(200).json({
@@ -592,7 +601,7 @@ export const getJobApplicationNotificationCount = async (req, res) => {
         message: 'User is not an employer'
       };
       
-      // Cache empty result too
+      // Cache empty result too - FIXED: Use LRU set method
       notificationCache.set(countCacheKey, {
         data: 0,
         timestamp: Date.now()
@@ -607,7 +616,7 @@ export const getJobApplicationNotificationCount = async (req, res) => {
       status: { $in: ['pending', 'workerConfirmation'] }
     });
 
-    // Cache the count
+    // Cache the count - FIXED: Use LRU set method
     notificationCache.set(countCacheKey, {
       data: jobApplicationCount,
       timestamp: Date.now()
@@ -642,7 +651,7 @@ export const getWorkerJobApplicationNotificationCount = async (req, res) => {
 
     // Check cache first
     const countCacheKey = getCacheKey(userId, 'workerJobApplicationCount');
-    const cachedCount = notificationCache.get(countCacheKey);
+    const cachedCount = notificationCache.get(countCacheKey); // FIXED: Use LRU get method
     
     if (isCacheValid(cachedCount)) {
       return res.status(200).json({
@@ -664,7 +673,7 @@ export const getWorkerJobApplicationNotificationCount = async (req, res) => {
         message: 'User is not a worker'
       };
       
-      // Cache empty result too
+      // Cache empty result too - FIXED: Use LRU set method
       notificationCache.set(countCacheKey, {
         data: 0,
         timestamp: Date.now()
@@ -679,7 +688,7 @@ export const getWorkerJobApplicationNotificationCount = async (req, res) => {
       status: 'workerConfirmation'
     });
 
-    // Cache the count
+    // Cache the count - FIXED: Use LRU set method
     notificationCache.set(countCacheKey, {
       data: jobApplicationCount,
       timestamp: Date.now()
@@ -714,7 +723,7 @@ export const getOutForDeliveryOrderCount = async (req, res) => {
 
     // Check cache first
     const countCacheKey = getCacheKey(userId, 'outForDeliveryCount');
-    const cachedCount = notificationCache.get(countCacheKey);
+    const cachedCount = notificationCache.get(countCacheKey); // FIXED: Use LRU get method
     
     if (isCacheValid(cachedCount)) {
       return res.status(200).json({
@@ -736,7 +745,7 @@ export const getOutForDeliveryOrderCount = async (req, res) => {
         message: 'Customer profile not found'
       };
       
-      // Cache empty result too
+      // Cache empty result too - FIXED: Use LRU set method
       notificationCache.set(countCacheKey, {
         data: 0,
         timestamp: Date.now()
@@ -751,7 +760,7 @@ export const getOutForDeliveryOrderCount = async (req, res) => {
       status: 'out for delivery'
     });
 
-    // Cache the count
+    // Cache the count - FIXED: Use LRU set method
     notificationCache.set(countCacheKey, {
       data: orderCount,
       timestamp: Date.now()
@@ -789,18 +798,11 @@ export const clearNotificationCache = (userId) => {
     getCacheKey(userId, 'outForDeliveryCount')
   ];
   
-  keysToDelete.forEach(key => notificationCache.delete(key));
+  keysToDelete.forEach(key => notificationCache.del(key)); // FIXED: Use LRU del method
 };
 
-// Clean up expired cache entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of notificationCache.entries()) {
-    if (now - value.timestamp > CACHE_DURATION) {
-      notificationCache.delete(key);
-    }
-  }
-}, CACHE_DURATION); // Clean up every cache duration
+// REMOVED: The setInterval cleanup is no longer needed with LRU cache
+// LRU cache automatically handles eviction based on size and age
 
 export default {
   getTesdaNotifications,
