@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import { setTimeout } from "timers/promises";
 
 import {
   verificationEmailTemplate,
@@ -26,26 +25,57 @@ import {
 
 dotenv.config();
 
+// Production-ready transporter configuration
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // Use TLS
+  requireTLS: true,
+  connectionTimeout: 60000, // 60 seconds
+  greetingTimeout: 30000,   // 30 seconds  
+  socketTimeout: 60000,     // 60 seconds
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  // Additional options for better reliability
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
 });
 
-export const safeSendMail = async (mailOptions) => {
-  try {
-    const sendPromise = transporter.sendMail(mailOptions);
-    const result = await Promise.race([
-      sendPromise,
-      setTimeout(10000).then(() => {
-        throw new Error("SMTP timeout");
-      }),
-    ]);
-    return result;
-  } catch (err) {
-    console.error("Email send failed:", err.message);
+// Verify connection on startup
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('SMTP connection failed:', error);
+  } else {
+    console.log('SMTP server is ready to take messages');
+  }
+});
+
+export const safeSendMail = async (mailOptions, retries = 3) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`Email send attempt ${attempt}/${retries} to ${mailOptions.to}`);
+      
+      const result = await transporter.sendMail(mailOptions);
+      console.log(`Email sent successfully on attempt ${attempt}:`, result.messageId);
+      return result;
+      
+    } catch (error) {
+      console.error(`Email send attempt ${attempt} failed:`, error.message);
+      
+      // If this is the last attempt, throw the error
+      if (attempt === retries) {
+        console.error(`All ${retries} email send attempts failed for ${mailOptions.to}`);
+        throw error;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+      console.log(`Waiting ${waitTime}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
   }
 };
 
