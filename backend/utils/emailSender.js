@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import sgMail from '@sendgrid/mail';
 import dotenv from "dotenv";
 import {
   verificationEmailTemplate,
@@ -24,228 +24,104 @@ import {
 
 dotenv.config();
 
-// SendGrid SMTP Configuration
-const transporter = nodemailer.createTransport({
-  host: 'smtp.sendgrid.net',
-  port: 587,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: 'apikey', // This is always 'apikey' for SendGrid
-    pass: process.env.SENDGRID_API_KEY // Your actual API key
-  }
-});
+// Set SendGrid API key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// If using verified domain, use this sender:
-// const SENDER_EMAIL = '"Digital Tumana" <noreply@digital.tumana.com>';
+const SENDER_EMAIL = process.env.VERIFIED_SENDER_EMAIL || 'digitaltumana@gmail.com';
 
-// If using single sender verification, use your verified email:
-const SENDER_EMAIL = `"Digital Tumana" <${process.env.VERIFIED_SENDER_EMAIL}>`;
-
-export const sendVerificationEmail = async (to, name, code) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
+// Helper function to send email via SendGrid Web API
+const sendEmail = async (to, subject, html) => {
+  const msg = {
     to,
-    subject: "Verify Your Digital Tumana Account",
-    html: verificationEmailTemplate(name, code),
+    from: {
+      email: SENDER_EMAIL,
+      name: 'Digital Tumana'
+    },
+    subject,
+    html,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    await sgMail.send(msg);
+    console.log(`Email sent successfully to ${to}`);
+  } catch (error) {
+    console.error('SendGrid error:', error);
+    throw error;
+  }
+};
+
+export const sendVerificationEmail = async (to, name, code) => {
+  await sendEmail(to, "Verify Your Digital Tumana Account", verificationEmailTemplate(name, code));
 };
 
 export const sendPasswordResetEmail = async (to, code) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Reset Your Password",
-    html: passwordResetEmailTemplate(code),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Reset Your Password", passwordResetEmailTemplate(code));
 };
 
 export const sendAdminVerificationEmail = async (to, name, code) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Admin Login Verification Code",
-    html: adminVerificationEmailTemplate(name, code),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Admin Login Verification Code", adminVerificationEmailTemplate(name, code));
 };
 
 export const sendAdminResetEmail = async (to, code) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Reset Your Admin Password",
-    html: adminPasswordResetEmailTemplate(code),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Reset Your Admin Password", adminPasswordResetEmailTemplate(code));
 };
 
 export const sendTesdaEligibilityEmail = async (to, name) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "TESDA NC1 Eligibility Confirmed",
-    html: tesdaEligibilityEmailTemplate(name),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "TESDA NC1 Eligibility Confirmed", tesdaEligibilityEmailTemplate(name));
 };
 
 export const sendTesdaReservationEmail = async (to, name) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "TESDA NC1 Slot Reserved",
-    html: tesdaReservationEmailTemplate(name),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "TESDA NC1 Slot Reserved", tesdaReservationEmailTemplate(name));
 };
 
 export const sendTesdaEnrollmentEmail = async (to, name) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Enrollment Confirmed - TESDA NC1",
-    html: tesdaEnrollmentEmailTemplate(name),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Enrollment Confirmed - TESDA NC1", tesdaEnrollmentEmailTemplate(name));
 };
 
 export const sendTesdaGraduationEmail = async (to, name) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "🎓 Congratulations on Your TESDA NC1 Graduation!",
-    html: tesdaGraduationEmailTemplate(name),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "🎓 Congratulations on Your TESDA NC1 Graduation!", tesdaGraduationEmailTemplate(name));
 };
 
 export const sendKaritonRiderRegistrationEmail = async (to, name, code) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Kariton Rider Registration & Login Code",
-    html: karitonRiderRegistrationEmailTemplate(name, code),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Kariton Rider Registration & Login Code", karitonRiderRegistrationEmailTemplate(name, code));
 };
 
 export const sendKaritonLoginResetEmail = async (to, name, code) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Kariton Rider Login Reset Code",
-    html: karitonLoginResetEmailTemplate(name, code),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Kariton Rider Login Reset Code", karitonLoginResetEmailTemplate(name, code));
 };
 
 export const sendKaritonNewLoginCodeEmail = async (to, name, newLoginCode) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Your New Kariton Rider Login Code",
-    html: karitonNewLoginCodeEmailTemplate(name, newLoginCode),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Your New Kariton Rider Login Code", karitonNewLoginCodeEmailTemplate(name, newLoginCode));
 };
 
 export const sendSellerApprovalEmail = async (to, name, storeName) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: `Seller Account Approved - ${storeName}`,
-    html: sellerRegistrationApprovedEmailTemplate(name, storeName),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, `Seller Account Approved - ${storeName}`, sellerRegistrationApprovedEmailTemplate(name, storeName));
 };
 
 export const sendSellerRejectionEmail = async (to, name, storeName, reason = "") => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: `Seller Account Application Update - ${storeName}`,
-    html: sellerRegistrationRejectedEmailTemplate(name, storeName, reason),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, `Seller Account Application Update - ${storeName}`, sellerRegistrationRejectedEmailTemplate(name, storeName, reason));
 };
 
 export const sendEmployerApprovalEmail = async (to, name, companyName) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: `Employer Account Approved - ${companyName}`,
-    html: employerRegistrationApprovedEmailTemplate(name, companyName),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, `Employer Account Approved - ${companyName}`, employerRegistrationApprovedEmailTemplate(name, companyName));
 };
 
 export const sendEmployerRejectionEmail = async (to, name, companyName, reason = "") => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: `Employer Account Application Update - ${companyName}`,
-    html: employerRegistrationRejectedEmailTemplate(name, companyName, reason),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, `Employer Account Application Update - ${companyName}`, employerRegistrationRejectedEmailTemplate(name, companyName, reason));
 };
 
 export const sendWorkerApprovalEmail = async (to, name) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Worker Account Approved",
-    html: workerRegistrationApprovedEmailTemplate(name),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Worker Account Approved", workerRegistrationApprovedEmailTemplate(name));
 };
 
 export const sendWorkerRejectionEmail = async (to, name, reason = "") => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Worker Account Application Update",
-    html: workerRegistrationRejectedEmailTemplate(name, reason),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Worker Account Application Update", workerRegistrationRejectedEmailTemplate(name, reason));
 };
 
 export const sendCustomerApprovalEmail = async (to, name) => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Customer Account Verified",
-    html: customerRegistrationApprovedEmailTemplate(name),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Customer Account Verified", customerRegistrationApprovedEmailTemplate(name));
 };
 
 export const sendCustomerRejectionEmail = async (to, name, reason = "") => {
-  const mailOptions = {
-    from: SENDER_EMAIL,
-    to,
-    subject: "Customer Account Verification Update",
-    html: customerRegistrationRejectedEmailTemplate(name, reason),
-  };
-
-  await transporter.sendMail(mailOptions);
+  await sendEmail(to, "Customer Account Verification Update", customerRegistrationRejectedEmailTemplate(name, reason));
 };
