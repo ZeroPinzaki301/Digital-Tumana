@@ -1,251 +1,251 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import {
+  verificationEmailTemplate,
+  passwordResetEmailTemplate,
+  adminPasswordResetEmailTemplate,
+  adminVerificationEmailTemplate,
+  tesdaEligibilityEmailTemplate,
+  tesdaReservationEmailTemplate,
+  tesdaEnrollmentEmailTemplate,
+  tesdaGraduationEmailTemplate,
+  karitonRiderRegistrationEmailTemplate,
+  sellerRegistrationApprovedEmailTemplate,
+  sellerRegistrationRejectedEmailTemplate,
+  employerRegistrationApprovedEmailTemplate,
+  employerRegistrationRejectedEmailTemplate,
+  workerRegistrationApprovedEmailTemplate,
+  workerRegistrationRejectedEmailTemplate,
+  customerRegistrationApprovedEmailTemplate,
+  customerRegistrationRejectedEmailTemplate,
+  karitonLoginResetEmailTemplate,
+  karitonNewLoginCodeEmailTemplate
+} from "./emailTemplates.js";
 
 dotenv.config();
 
-// Create transporter with Railway-optimized settings
+// SendGrid SMTP Configuration
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: 'smtp.sendgrid.net',
+  port: 587,
+  secure: false, // true for 465, false for other ports
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  pool: true, // Use connection pooling for better performance
-  maxConnections: 5,
-  maxMessages: 100,
-  rateDelta: 20000, // Rate limiting
-  rateLimit: 5
+    user: 'apikey', // This is always 'apikey' for SendGrid
+    pass: process.env.SENDGRID_API_KEY // Your actual API key
+  }
 });
 
-// Cache for email templates - load on demand
-const templateCache = new Map();
+// If using verified domain, use this sender:
+// const SENDER_EMAIL = '"Digital Tumana" <noreply@digital.tumana.com>';
 
-const getTemplate = async (templateName) => {
-  if (templateCache.has(templateName)) {
-    return templateCache.get(templateName);
-  }
-  
-  try {
-    const templates = await import("./emailTemplates.js");
-    const template = templates[templateName];
-    templateCache.set(templateName, template);
-    return template;
-  } catch (error) {
-    console.error(`Failed to load template ${templateName}:`, error);
-    throw error;
-  }
-};
-
-// Core email functions - preload these templates for better performance
-import { 
-  verificationEmailTemplate, 
-  passwordResetEmailTemplate,
-  adminPasswordResetEmailTemplate,
-  adminVerificationEmailTemplate 
-} from "./emailTemplates.js";
+// If using single sender verification, use your verified email:
+const SENDER_EMAIL = `"Digital Tumana" <${process.env.VERIFIED_SENDER_EMAIL}>`;
 
 export const sendVerificationEmail = async (to, name, code) => {
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Verify Your Digital Tumana Account",
     html: verificationEmailTemplate(name, code),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendPasswordResetEmail = async (to, code) => {
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Reset Your Password",
     html: passwordResetEmailTemplate(code),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendAdminVerificationEmail = async (to, name, code) => {
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Admin Login Verification Code",
     html: adminVerificationEmailTemplate(name, code),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendAdminResetEmail = async (to, code) => {
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Reset Your Admin Password",
     html: adminPasswordResetEmailTemplate(code),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
-// Dynamic template loading for less frequently used emails
 export const sendTesdaEligibilityEmail = async (to, name) => {
-  const template = await getTemplate('tesdaEligibilityEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "TESDA NC1 Eligibility Confirmed",
-    html: template(name),
+    html: tesdaEligibilityEmailTemplate(name),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendTesdaReservationEmail = async (to, name) => {
-  const template = await getTemplate('tesdaReservationEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "TESDA NC1 Slot Reserved",
-    html: template(name),
+    html: tesdaReservationEmailTemplate(name),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendTesdaEnrollmentEmail = async (to, name) => {
-  const template = await getTemplate('tesdaEnrollmentEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Enrollment Confirmed - TESDA NC1",
-    html: template(name),
+    html: tesdaEnrollmentEmailTemplate(name),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendTesdaGraduationEmail = async (to, name) => {
-  const template = await getTemplate('tesdaGraduationEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "🎓 Congratulations on Your TESDA NC1 Graduation!",
-    html: template(name),
+    html: tesdaGraduationEmailTemplate(name),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendKaritonRiderRegistrationEmail = async (to, name, code) => {
-  const template = await getTemplate('karitonRiderRegistrationEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Kariton Rider Registration & Login Code",
-    html: template(name, code),
+    html: karitonRiderRegistrationEmailTemplate(name, code),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendKaritonLoginResetEmail = async (to, name, code) => {
-  const template = await getTemplate('karitonLoginResetEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Kariton Rider Login Reset Code",
-    html: template(name, code),
+    html: karitonLoginResetEmailTemplate(name, code),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendKaritonNewLoginCodeEmail = async (to, name, newLoginCode) => {
-  const template = await getTemplate('karitonNewLoginCodeEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Your New Kariton Rider Login Code",
-    html: template(name, newLoginCode),
+    html: karitonNewLoginCodeEmailTemplate(name, newLoginCode),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendSellerApprovalEmail = async (to, name, storeName) => {
-  const template = await getTemplate('sellerRegistrationApprovedEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: `Seller Account Approved - ${storeName}`,
-    html: template(name, storeName),
+    html: sellerRegistrationApprovedEmailTemplate(name, storeName),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendSellerRejectionEmail = async (to, name, storeName, reason = "") => {
-  const template = await getTemplate('sellerRegistrationRejectedEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: `Seller Account Application Update - ${storeName}`,
-    html: template(name, storeName, reason),
+    html: sellerRegistrationRejectedEmailTemplate(name, storeName, reason),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendEmployerApprovalEmail = async (to, name, companyName) => {
-  const template = await getTemplate('employerRegistrationApprovedEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: `Employer Account Approved - ${companyName}`,
-    html: template(name, companyName),
+    html: employerRegistrationApprovedEmailTemplate(name, companyName),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendEmployerRejectionEmail = async (to, name, companyName, reason = "") => {
-  const template = await getTemplate('employerRegistrationRejectedEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: `Employer Account Application Update - ${companyName}`,
-    html: template(name, companyName, reason),
+    html: employerRegistrationRejectedEmailTemplate(name, companyName, reason),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendWorkerApprovalEmail = async (to, name) => {
-  const template = await getTemplate('workerRegistrationApprovedEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Worker Account Approved",
-    html: template(name),
+    html: workerRegistrationApprovedEmailTemplate(name),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendWorkerRejectionEmail = async (to, name, reason = "") => {
-  const template = await getTemplate('workerRegistrationRejectedEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Worker Account Application Update",
-    html: template(name, reason),
+    html: workerRegistrationRejectedEmailTemplate(name, reason),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendCustomerApprovalEmail = async (to, name) => {
-  const template = await getTemplate('customerRegistrationApprovedEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Customer Account Verified",
-    html: template(name),
+    html: customerRegistrationApprovedEmailTemplate(name),
   };
+
   await transporter.sendMail(mailOptions);
 };
 
 export const sendCustomerRejectionEmail = async (to, name, reason = "") => {
-  const template = await getTemplate('customerRegistrationRejectedEmailTemplate');
   const mailOptions = {
-    from: `"Digital Tumana" <${process.env.EMAIL_USER}>`,
+    from: SENDER_EMAIL,
     to,
     subject: "Customer Account Verification Update",
-    html: template(name, reason),
+    html: customerRegistrationRejectedEmailTemplate(name, reason),
   };
+
   await transporter.sendMail(mailOptions);
 };
