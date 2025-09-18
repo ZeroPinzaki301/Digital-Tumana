@@ -15,7 +15,8 @@ export const createCustomer = async (req, res) => {
       longitude,
       email,
       telephone,
-      idType
+      idType,
+      secondIdType // Added secondIdType
     } = req.body;
 
     if (!req.files?.idImage) {
@@ -33,7 +34,8 @@ export const createCustomer = async (req, res) => {
     );
 
     let secondIdImageUrl = null;
-    if (req.files?.secondIdImage) {
+    // Added check for secondIdType before processing secondIdImage
+    if (req.files?.secondIdImage && secondIdType) {
       const secondIdImageUpload = await uploadToCloudinary(
         req.files.secondIdImage[0].path,
         "customer_ids"
@@ -56,6 +58,7 @@ export const createCustomer = async (req, res) => {
       telephone,
       idType,
       idImage: idImageUpload.secure_url,
+      secondIdType, // Added secondIdType
       secondIdImage: secondIdImageUrl,
       isVerified: false
     });
@@ -79,6 +82,15 @@ export const updateCustomer = async (req, res) => {
         "customer_ids"
       );
       updates.idImage = upload.secure_url;
+    }
+
+    // Added handling for secondIdImage and secondIdType
+    if (req.files?.secondIdImage) {
+      const upload = await uploadToCloudinary(
+        req.files.secondIdImage[0].path,
+        "customer_ids"
+      );
+      updates.secondIdImage = upload.secure_url;
     }
 
     Object.assign(customer, updates);
