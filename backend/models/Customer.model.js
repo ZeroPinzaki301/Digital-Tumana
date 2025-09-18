@@ -27,6 +27,25 @@ const customerSchema = new mongoose.Schema({
   },
   idImage: { type: String, required: true },
   
+  secondIdType: {
+    type: String,
+    enum: [
+      "National ID", 
+      "Passport", 
+      "Driver's License", 
+      "PhilHealth ID", 
+      "UMID", 
+      "SSS ID", 
+      "Barangay ID", 
+      "Postal ID", 
+      "Voter's ID", 
+      "Senior Citizen ID", 
+      "PRC ID", 
+      "Company ID", 
+      "School ID", 
+      "TIN ID"
+    ]
+  },
   secondIdImage: { type: String },
   
   isVerified: { type: Boolean, default: false }
