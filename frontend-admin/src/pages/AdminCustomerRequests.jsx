@@ -132,24 +132,32 @@ const AdminCustomerRequests = () => {
                   <div className="border-t border-gray-100 pt-4 mb-4">
                     <h4 className="text-sm font-semibold text-sky-800 mb-2">Identification</h4>
                     <div className="space-y-2">
-                      <a
-                        href={customer.idImage}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center text-sm text-sky-700 hover:text-sky-900 transition-colors"
-                      >
-                        <FaIdCard className="mr-2" />
-                        View Valid ID
-                      </a>
-                      <a
-                        href={customer.secondIdImage}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center text-sm text-sky-700 hover:text-sky-900 transition-colors"
-                      >
-                        <FaIdCard className="mr-2" />
-                        View Secondary ID
-                      </a>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 font-medium">{customer.idType}</span>
+                        <a
+                          href={customer.idImage}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center text-sm text-sky-700 hover:text-sky-900 transition-colors"
+                        >
+                          <FaIdCard className="mr-1" />
+                          View
+                        </a>
+                      </div>
+                      {customer.secondIdType && customer.secondIdImage && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600 font-medium">{customer.secondIdType}</span>
+                          <a
+                            href={customer.secondIdImage}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center text-sm text-sky-700 hover:text-sky-900 transition-colors"
+                          >
+                            <FaIdCard className="mr-1" />
+                            View
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
 
