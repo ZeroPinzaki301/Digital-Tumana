@@ -6,7 +6,6 @@ export const registerSeller = async (req, res) => {
   try {
     const user = req.user;
 
-    // ✅ Check if a seller already exists for this user
     const existing = await Seller.findOne({ userId: user._id });
     if (existing) {
       return res.status(409).json({ message: "You already have an existing seller application." });
@@ -20,21 +19,33 @@ export const registerSeller = async (req, res) => {
       birthdate,
       nationality,
       agreedToPolicy,
+      usingDefaultValidId,
+      validIdImage // string if using default
     } = req.body;
 
-    if (!req.files?.validId || !req.files?.dtiCert || !req.files?.birCert) {
-      return res.status(400).json({ message: "All three required documents must be uploaded." });
+    let validIdImageUrl = null;
+
+    if (usingDefaultValidId === "true" && typeof validIdImage === "string") {
+      validIdImageUrl = validIdImage;
+    } else if (req.files?.validId) {
+      const validIdResult = await uploadToCloudinary(req.files.validId[0].path, "valid_id_images");
+      validIdImageUrl = validIdResult.secure_url;
+    } else {
+      return res.status(400).json({ message: "Valid ID image is required." });
     }
 
-    const validIdResult = await uploadToCloudinary(req.files.validId[0].path, "valid_id_images");
+    // DTI and BIR certificates are always required
+    if (!req.files?.dtiCert || !req.files?.birCert) {
+      return res.status(400).json({ message: "DTI and BIR certificates are required." });
+    }
+
     const dtiResult = await uploadToCloudinary(req.files.dtiCert[0].path, "dti_cert_images");
     const birResult = await uploadToCloudinary(req.files.birCert[0].path, "bir_cert_images");
 
-    // Upload second valid ID if provided
     let secondValidIdImageUrl = null;
     if (req.files?.secondValidId && req.files.secondValidId[0]) {
       const secondValidIdResult = await uploadToCloudinary(
-        req.files.secondValidId[0].path, 
+        req.files.secondValidId[0].path,
         "valid_id_images"
       );
       secondValidIdImageUrl = secondValidIdResult.secure_url;
@@ -49,7 +60,7 @@ export const registerSeller = async (req, res) => {
       sex,
       birthdate,
       nationality,
-      validIdImage: validIdResult.secure_url,
+      validIdImage: validIdImageUrl,
       secondValidIdImage: secondValidIdImageUrl,
       dtiCertificateImage: dtiResult.secure_url,
       birCertificateImage: birResult.secure_url,
@@ -65,6 +76,7 @@ export const registerSeller = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 export const getVerifiedSellerByUser = async (req, res) => {
   try {
