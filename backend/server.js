@@ -36,6 +36,7 @@ import feedbackRoutes from "./routes/Feedback.route.js";
 import riderVehicleDetailsRoutes from "./routes/RiderVehicleDetails.route.js";
 import riderRatingRoutes from "./routes/RiderRating.route.js";
 import notificationRoutes from "./routes/Notification.route.js";
+import defaultIdCardRoutes from "./routes/DefaultIdCard.route.js";
 
 import { createIndexes } from "./models/dbIndexes.js";
 
@@ -110,6 +111,7 @@ app.use("/api/job-applications", jobApplicationRoutes);
 app.use("/api/feedbacks", feedbackRoutes);
 app.use("/api/rider/rating", riderRatingRoutes);
 app.use("/api/notification", notificationRoutes);
+app.use("/api/default-id", defaultIdCardRoutes);
 
 // Health check endpoint for Render
 app.get('/health', (req, res) => {
