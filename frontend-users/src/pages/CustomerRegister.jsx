@@ -89,13 +89,14 @@ const CustomerRegister = () => {
           
           if (idRes.data.defaultIdCard) {
             setDefaultIdCard(idRes.data.defaultIdCard);
-            setUsingDefaultId(true);
             
-            // Pre-fill ID fields
+            // Pre-fill ID fields with URLs
             setFormData(prev => ({
               ...prev,
               idType: idRes.data.defaultIdCard.idType,
-              secondIdType: idRes.data.defaultIdCard.secondIdType || ""
+              idImage: idRes.data.defaultIdCard.idImage,
+              secondIdType: idRes.data.defaultIdCard.secondIdType || "",
+              secondIdImage: idRes.data.defaultIdCard.secondIdImage || null
             }));
             
             // Set image previews
@@ -103,6 +104,8 @@ const CustomerRegister = () => {
             if (idRes.data.defaultIdCard.secondIdImage) {
               setSecondIdPreview(idRes.data.defaultIdCard.secondIdImage);
             }
+            
+            setUsingDefaultId(true);
           }
         } catch (idErr) {
           // Default ID card doesn't exist, which is fine
@@ -217,7 +220,9 @@ const CustomerRegister = () => {
       setFormData(prev => ({
         ...prev,
         idType: defaultIdCard.idType,
-        secondIdType: defaultIdCard.secondIdType || ""
+        idImage: defaultIdCard.idImage,
+        secondIdType: defaultIdCard.secondIdType || "",
+        secondIdImage: defaultIdCard.secondIdImage || null
       }));
       
       setIdPreview(defaultIdCard.idImage);
@@ -241,22 +246,28 @@ const CustomerRegister = () => {
     try {
       const payload = new FormData();
       
-      // Add all form data except images if using default ID
+      // Add all form data
       Object.entries(formData).forEach(([key, value]) => {
+        // For file inputs, handle differently
         if (key === "idImage" || key === "secondIdImage") {
-          // Only append image files if they're not using default ID or if new files were uploaded
-          if (!usingDefaultId && value !== null) {
+          // If using default ID, we have URLs, not files
+          if (usingDefaultId && typeof value === "string") {
+            // Append the URL as a regular field
+            payload.append(key, value);
+          } 
+          // If not using default ID and we have a file, append it
+          else if (!usingDefaultId && value instanceof File) {
             payload.append(key, value);
           }
-        } else if (value !== "" && value !== null) {
+        } 
+        // For all other fields
+        else if (value !== "" && value !== null) {
           payload.append(key, value);
         }
       });
       
-      // Add flags to indicate if using default ID images
-      if (usingDefaultId) {
-        payload.append("usingDefaultId", "true");
-      }
+      // Add flag to indicate if using default ID
+      payload.append("usingDefaultId", usingDefaultId.toString());
 
       const res = await axiosInstance.post("/api/customers/register", payload, {
         headers: {
@@ -490,16 +501,18 @@ const CustomerRegister = () => {
                 </button>
               </div>
             ) : (
-              <label className="cursor-pointer border p-3 rounded-md">
-                <input 
-                  type="file" 
-                  name="idImage" 
-                  onChange={handleChange} 
-                  required={!usingDefaultId}
-                  className="cursor-pointer" 
-                  accept="image/*"
-                />
-              </label>
+              !usingDefaultId && (
+                <label className="cursor-pointer border p-3 rounded-md">
+                  <input 
+                    type="file" 
+                    name="idImage" 
+                    onChange={handleChange} 
+                    required={!usingDefaultId}
+                    className="cursor-pointer" 
+                    accept="image/*"
+                  />
+                </label>
+              )
             )}
           </div>
 
@@ -540,15 +553,17 @@ const CustomerRegister = () => {
                 </button>
               </div>
             ) : (
-              <label className="cursor-pointer border p-3 rounded-md">
-                <input 
-                  type="file" 
-                  name="secondIdImage" 
-                  onChange={handleChange} 
-                  className="cursor-pointer" 
-                  accept="image/*"
-                />
-              </label>
+              !usingDefaultId && (
+                <label className="cursor-pointer border p-3 rounded-md">
+                  <input 
+                    type="file" 
+                    name="secondIdImage" 
+                    onChange={handleChange} 
+                    className="cursor-pointer" 
+                    accept="image/*"
+                  />
+                </label>
+              )
             )}
             <p className="text-xs text-gray-500 mt-1">Additional identification document (optional)</p>
           </div>
