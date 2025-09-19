@@ -16,31 +16,36 @@ export const createCustomer = async (req, res) => {
       email,
       telephone,
       idType,
-      secondIdType // Added secondIdType
+      secondIdType,
+      idImage, // from body if using default
+      secondIdImage, // from body if using default
+      usingDefaultId
     } = req.body;
-
-    if (!req.files?.idImage) {
-      return res.status(400).json({ message: "Primary ID image is required" });
-    }
 
     const existing = await Customer.findOne({ userId: req.user._id });
     if (existing) {
       return res.status(409).json({ message: "Verification already submitted" });
     }
 
-    const idImageUpload = await uploadToCloudinary(
-      req.files.idImage[0].path,
-      "customer_ids"
-    );
-
+    let idImageUrl = null;
     let secondIdImageUrl = null;
-    // Added check for secondIdType before processing secondIdImage
-    if (req.files?.secondIdImage && secondIdType) {
-      const secondIdImageUpload = await uploadToCloudinary(
-        req.files.secondIdImage[0].path,
-        "customer_ids"
-      );
-      secondIdImageUrl = secondIdImageUpload.secure_url;
+
+    // Handle primary ID
+    if (usingDefaultId === "true" && typeof idImage === "string") {
+      idImageUrl = idImage;
+    } else if (req.files?.idImage) {
+      const upload = await uploadToCloudinary(req.files.idImage[0].path, "customer_ids");
+      idImageUrl = upload.secure_url;
+    } else {
+      return res.status(400).json({ message: "Primary ID image is required" });
+    }
+
+    // Handle secondary ID
+    if (usingDefaultId === "true" && typeof secondIdImage === "string") {
+      secondIdImageUrl = secondIdImage;
+    } else if (req.files?.secondIdImage && secondIdType) {
+      const upload = await uploadToCloudinary(req.files.secondIdImage[0].path, "customer_ids");
+      secondIdImageUrl = upload.secure_url;
     }
 
     const newCustomer = await Customer.create({
@@ -57,8 +62,8 @@ export const createCustomer = async (req, res) => {
       email,
       telephone,
       idType,
-      idImage: idImageUpload.secure_url,
-      secondIdType, // Added secondIdType
+      idImage: idImageUrl,
+      secondIdType,
       secondIdImage: secondIdImageUrl,
       isVerified: false
     });
@@ -68,6 +73,7 @@ export const createCustomer = async (req, res) => {
     res.status(500).json({ message: "Failed to create customer", error: err.message });
   }
 };
+
 
 export const updateCustomer = async (req, res) => {
   try {
