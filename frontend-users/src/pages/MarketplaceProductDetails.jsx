@@ -98,7 +98,7 @@ const MarketplaceProductDetail = () => {
               </p>
               <div className="flex flex-col gap-3">
                 <button
-                  onClick={() => navigate("/cart")}
+                  onClick={() => navigate("/my-cart")}
                   className="py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition cursor-pointer"
                 >
                   View Cart
