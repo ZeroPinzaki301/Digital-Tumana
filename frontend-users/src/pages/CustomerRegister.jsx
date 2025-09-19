@@ -83,7 +83,7 @@ const CustomerRegister = () => {
 
         // Fetch default ID card if exists
         try {
-          const idRes = await axiosInstance.get("/api/default-id-cards", {
+          const idRes = await axiosInstance.get("/api/default-id", {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
           });
           
