@@ -14,6 +14,8 @@ export const registerUser = async (req, res) => {
       password,
       phoneNumber,
       agreedToPolicy,
+      sex,
+      birthdate
     } = req.body;
 
     const existingUser = await User.findOne({ email });
@@ -29,6 +31,8 @@ export const registerUser = async (req, res) => {
       password,
       phoneNumber,
       agreedToPolicy,
+      sex,
+      birthdate,
       verificationCode,
     });
 
@@ -109,6 +113,9 @@ export const loginUser = async (req, res) => {
         isWorker: user.isWorker,
         isEmployer: user.isEmployer,
         profilePicture: user.profilePicture,
+        sex: user.sex,
+        birthdate: user.birthdate,
+        isVerified: user.isVerified
       },
     });
   } catch (err) {
@@ -188,7 +195,7 @@ export const resetPassword = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { firstName, middleName, lastName } = req.body;
+    const { firstName, middleName, lastName, sex, birthdate } = req.body;
     const user = await User.findById(req.user.id);
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -196,9 +203,22 @@ export const updateProfile = async (req, res) => {
     user.firstName = firstName || user.firstName;
     user.middleName = middleName || user.middleName;
     user.lastName = lastName || user.lastName;
+    user.sex = sex || user.sex;
+    user.birthdate = birthdate || user.birthdate;
 
     await user.save();
-    res.status(200).json({ message: "Profile updated successfully", user });
+    res.status(200).json({ 
+      message: "Profile updated successfully", 
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        middleName: user.middleName,
+        lastName: user.lastName,
+        email: user.email,
+        sex: user.sex,
+        birthdate: user.birthdate
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
