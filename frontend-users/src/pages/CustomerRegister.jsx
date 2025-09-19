@@ -4,6 +4,23 @@ import axiosInstance from "../utils/axiosInstance";
 import geoData from "../data/ph-geodata.json";
 
 const idTypes = ["National ID", "Passport", "Driver's License"];
+// Added secondIdTypes with the expanded options
+const secondIdTypes = [
+  "National ID", 
+  "Passport", 
+  "Driver's License", 
+  "PhilHealth ID", 
+  "UMID", 
+  "SSS ID", 
+  "Barangay ID", 
+  "Postal ID", 
+  "Voter's ID", 
+  "Senior Citizen ID", 
+  "PRC ID", 
+  "Company ID", 
+  "School ID", 
+  "TIN ID"
+];
 
 const CustomerRegister = () => {
   const [user, setUser] = useState(null);
@@ -21,7 +38,8 @@ const CustomerRegister = () => {
     telephone: "",
     idType: "",
     idImage: null,
-    secondIdImage: null, // Added second ID image field
+    secondIdType: "", // Added secondIdType field
+    secondIdImage: null,
     agreedToPolicy: false
   });
 
@@ -347,6 +365,22 @@ const CustomerRegister = () => {
               className="cursor-pointer" 
             />
           </label>
+        </div>
+
+        {/* Added second ID type field */}
+        <div className="flex flex-col mb-4">
+          <label className="text-sm font-semibold text-lime-900 mb-1">Secondary ID Type</label>
+          <select 
+            name="secondIdType" 
+            value={formData.secondIdType} 
+            onChange={handleChange} 
+            className={inputClass + " border p-2.5 rounded-sm"}
+          >
+            <option value="">Select Secondary ID Type (Optional)</option>
+            {secondIdTypes.map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
         </div>
 
         {/* Added second ID image field */}
