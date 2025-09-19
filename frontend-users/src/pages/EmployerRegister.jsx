@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const EmployerRegister = () => {
   const [user, setUser] = useState(null);
+  const [defaultIdCard, setDefaultIdCard] = useState(null);
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -15,23 +16,10 @@ const EmployerRegister = () => {
     agreedToPolicy: false,
     agreedToTerms: false,
     validId: null,
+    secondValidId: null,
     dtiCert: null,
     birCert: null,
   });
-
-  // Check if all required fields are filled
-  const isFormValid = () => {
-    return (
-      formData.firstName &&
-      formData.lastName &&
-      formData.sex &&
-      formData.birthdate &&
-      formData.nationality &&
-      formData.agreedToPolicy &&
-      formData.agreedToTerms &&
-      formData.validId
-    );
-  };
 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -39,51 +27,89 @@ const EmployerRegister = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [validIdPreview, setValidIdPreview] = useState(null);
+  const [secondValidIdPreview, setSecondValidIdPreview] = useState(null);
+  const [dtiCertPreview, setDtiCertPreview] = useState(null);
+  const [birCertPreview, setBirCertPreview] = useState(null);
+  const [usingDefaultId, setUsingDefaultId] = useState(false);
+
   const navigate = useNavigate();
 
-  // Format date to YYYY-MM-DD for input[type="date"]
+  const isFormValid = () => {
+    return (
+      formData.firstName &&
+      formData.lastName &&
+      formData.sex &&
+      formData.birthdate &&
+      formData.nationality &&
+      formData.companyName &&
+      formData.agreedToPolicy &&
+      formData.agreedToTerms &&
+      (formData.validId || usingDefaultId)
+    );
+  };
+
   const formatDateForInput = (dateString) => {
     if (!dateString) return "";
-    
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString; // Return original if invalid
-    
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
-    return `${year}-${month}-${day}`;
+    if (isNaN(date.getTime())) return dateString;
+    return date.toISOString().split("T")[0];
   };
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndDefaultId = async () => {
       try {
         const res = await axiosInstance.get("/api/users/account", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setUser(res.data);
-        
-        // Pre-fill form with user data
         setFormData(prev => ({
           ...prev,
           firstName: res.data.firstName || "",
-          lastName: res.data.lastName || "",
           middleName: res.data.middleName || "",
-          birthdate: formatDateForInput(res.data.birthdate) || "", // Format the date
+          lastName: res.data.lastName || "",
+          birthdate: formatDateForInput(res.data.birthdate) || "",
           sex: res.data.sex || "",
           nationality: "Filipino",
         }));
+
+        const idRes = await axiosInstance.get("/api/default-id", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+
+        if (idRes.data.defaultIdCard) {
+          setDefaultIdCard(idRes.data.defaultIdCard);
+          setFormData(prev => ({
+            ...prev,
+            validId: idRes.data.defaultIdCard.idImage,
+            secondValidId: idRes.data.defaultIdCard.secondIdImage || null
+          }));
+          setValidIdPreview(idRes.data.defaultIdCard.idImage);
+          if (idRes.data.defaultIdCard.secondIdImage) {
+            setSecondValidIdPreview(idRes.data.defaultIdCard.secondIdImage);
+          }
+          setUsingDefaultId(true);
+        }
       } catch (err) {
         navigate("/login");
       }
     };
-    fetchUser();
+    fetchUserAndDefaultId();
   }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === "file") {
       setFormData({ ...formData, [name]: files[0] });
+      setUsingDefaultId(false);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (name === "validId") setValidIdPreview(e.target.result);
+        else if (name === "secondValidId") setSecondValidIdPreview(e.target.result);
+        else if (name === "dtiCert") setDtiCertPreview(e.target.result);
+        else if (name === "birCert") setBirCertPreview(e.target.result);
+      };
+      reader.readAsDataURL(files[0]);
     } else if (type === "checkbox") {
       setFormData({ ...formData, [name]: checked });
     } else {
@@ -91,21 +117,55 @@ const EmployerRegister = () => {
     }
   };
 
+  const handleUseDefaultId = () => {
+    if (defaultIdCard) {
+      setFormData(prev => ({
+        ...prev,
+        validId: defaultIdCard.idImage,
+        secondValidId: defaultIdCard.secondIdImage || null
+      }));
+      setValidIdPreview(defaultIdCard.idImage);
+      if (defaultIdCard.secondIdImage) {
+        setSecondValidIdPreview(defaultIdCard.secondIdImage);
+      }
+      setUsingDefaultId(true);
+    }
+  };
+
+  const handleRemoveFile = (type) => {
+    setFormData(prev => ({ ...prev, [type]: null }));
+    if (type === "validId") {
+      setValidIdPreview(null);
+      setUsingDefaultId(false);
+    } else if (type === "secondValidId") {
+      setSecondValidIdPreview(null);
+      setUsingDefaultId(false);
+    } else if (type === "dtiCert") setDtiCertPreview(null);
+    else if (type === "birCert") setBirCertPreview(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.agreedToPolicy || !formData.agreedToTerms) {
       return setError("You must agree to the Employer Policy and Terms and Conditions before submitting.");
     }
+    if (!formData.validId && !usingDefaultId) {
+      return setError("Please upload a valid ID or use your default ID.");
+    }
 
     setIsSubmitting(true);
-
     try {
       const payload = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
+        if ((key === "validId" || key === "secondValidId") && typeof value === "string") {
+          payload.append(key, value);
+        } else if (value instanceof File) {
+          payload.append(key, value);
+        } else if (value !== "" && value !== null && value !== undefined) {
           payload.append(key, value);
         }
       });
+      payload.append("usingDefaultValidId", usingDefaultId.toString());
 
       const res = await axiosInstance.post("/api/employers/register", payload, {
         headers: {
@@ -125,31 +185,53 @@ const EmployerRegister = () => {
     }
   };
 
-  const getFileName = (file) => (file ? file.name : "No file selected");
-
-  // Get today's date in YYYY-MM-DD format for the max date attribute
-  const getTodayDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  const getFileName = (file) => {
+    if (!file) return "No file selected";
+    if (typeof file === "string") return "Using default ID";
+    return file.name;
   };
 
-  // Function to calculate age from birthdate
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
   const calculateAge = (birthdate) => {
     if (!birthdate) return "";
-    
     const today = new Date();
     const birthDate = new Date(birthdate);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
     return age;
+  };
+
+  const FileUploadWithPreview = ({ name, label, preview, onRemove }) => {
+    return (
+      <div className="mb-4">
+        <label htmlFor={name} className="block w-full text-center py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-500/75 cursor-pointer transition mb-2">
+          {label}
+        </label>
+        <input
+          type="file"
+          name={name}
+          id={name}
+          onChange={handleChange}
+          className="hidden"
+        />
+        {preview ? (
+          <div className="mt-2 relative">
+            <img src={preview} alt={`${name} preview`} className="w-full max-w-xs h-auto border rounded-md mx-auto" />
+            <button type="button" onClick={() => onRemove(name)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs">×</button>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-600 mt-1 text-center italic">Click above to upload file</p>
+        )}
+        <p className="text-sm text-gray-600 mt-1 text-center italic">{getFileName(formData[name])}</p>
+      </div>
+    );
   };
 
   return (
@@ -157,7 +239,7 @@ const EmployerRegister = () => {
       <div className="w-full max-w-lg mb-4">
         <button
           onClick={() => navigate("/account")}
-          className="py-2 px-4 bg-sky-700 text-white rounded-lg hover:bg-lime-600/75 cursor-pointer hover:text-sky-900 transition w-full sm:w-auto"
+          className="py-2 px-4 bg-sky-700 text-white rounded-lg hover:bg-sky-600/75 cursor-pointer hover:text-sky-900 transition w-full sm:w-auto"
         >
           ⬅ Back to Account
         </button>
@@ -165,9 +247,24 @@ const EmployerRegister = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white max-w-lg w-full rounded-lg p-6 shadow-md border border-lime-700"
+        className="bg-white max-w-lg w-full rounded-lg p-6 shadow-md border border-sky-700"
       >
         <h2 className="text-2xl font-bold text-sky-900 mb-4 text-center">Employer Registration</h2>
+
+        {defaultIdCard && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700 mb-2">
+              You have a default ID card saved. You can use it or upload new documents.
+            </p>
+            <button
+              type="button"
+              onClick={handleUseDefaultId}
+              className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"
+            >
+              Use My Default ID
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -274,27 +371,35 @@ const EmployerRegister = () => {
         <hr className="my-4" />
 
         <div className="space-y-4">
-          {[
-            { name: "validId", label: "Upload Valid ID (Primary)", required: true },
-            { name: "secondValidId", label: "Upload another ID (Secondary))", required: true },
-            { name: "dtiCert", label: "Upload DTI Certificate", required: false },
-            { name: "birCert", label: "Upload BIR Certificate", required: false },
-          ].map(({ name, label, required }) => (
-            <div key={name}>
-              <label htmlFor={name} className="block w-full text-center py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-500/75 cursor-pointer transition">
-                {label}
-              </label>
-              <input
-                type="file"
-                name={name}
-                id={name}
-                onChange={handleChange}
-                className="hidden"
-                required={required}
-              />
-              <p className="text-sm text-gray-600 mt-1 text-center italic">{getFileName(formData[name])}</p>
-            </div>
-          ))}
+          <FileUploadWithPreview
+            name="validId"
+            label="Upload Valid ID (Primary)"
+            preview={validIdPreview}
+            onRemove={handleRemoveFile}
+            required={true}
+          />
+          
+          <FileUploadWithPreview
+            name="secondValidId"
+            label="Upload Another ID (Secondary)"
+            preview={secondValidIdPreview}
+            onRemove={handleRemoveFile}
+            required={true}
+          />
+          
+          <FileUploadWithPreview
+            name="dtiCert"
+            label="Upload DTI Certificate (Optional)"
+            preview={dtiCertPreview}
+            onRemove={handleRemoveFile}
+          />
+          
+          <FileUploadWithPreview
+            name="birCert"
+            label="Upload BIR Certificate (Optional)"
+            preview={birCertPreview}
+            onRemove={handleRemoveFile}
+          />
 
           <label className="flex items-center mt-2 cursor-pointer">
             <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
@@ -324,19 +429,19 @@ const EmployerRegister = () => {
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white w-full max-w-sm mx-auto rounded-lg p-6 shadow-lg relative text-center border border-lime-700">
-            <h3 className="text-xl font-bold text-lime-700 mb-2">Employer Application Complete</h3>
+          <div className="bg-white w-full max-w-sm mx-auto rounded-lg p-6 shadow-lg relative text-center border border-sky-700">
+            <h3 className="text-xl font-bold text-sky-700 mb-2">Employer Application Complete</h3>
             <p className="text-gray-700 mb-4">
               Thank you for submitting your application. Please wait a few days while we verify your documents.
             </p>
-            <button onClick={() => navigate("/account")} className="w-full py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition cursor-pointer">
+            <button onClick={() => navigate("/account")} className="w-full py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-500/75 hover:text-sky-900 transition cursor-pointer">
               Back to Profile
             </button>
           </div>
         </div>
       )}
 
-      {/* Privacy Policy Modal */}
+      {/* Employer Privacy Policy Modal */}
       {showPolicyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
