@@ -4,7 +4,6 @@ import axiosInstance from "../utils/axiosInstance";
 import geoData from "../data/ph-geodata.json";
 
 const idTypes = ["National ID", "Passport", "Driver's License"];
-// Added secondIdTypes with the expanded options
 const secondIdTypes = [
   "National ID", 
   "Passport", 
@@ -24,6 +23,7 @@ const secondIdTypes = [
 
 const CustomerRegister = () => {
   const [user, setUser] = useState(null);
+  const [defaultIdCard, setDefaultIdCard] = useState(null);
   const [formData, setFormData] = useState({
     fullName: "",
     region: "",
@@ -38,7 +38,7 @@ const CustomerRegister = () => {
     telephone: "",
     idType: "",
     idImage: null,
-    secondIdType: "", // Added secondIdType field
+    secondIdType: "",
     secondIdImage: null,
     agreedToPolicy: false
   });
@@ -53,19 +53,23 @@ const CustomerRegister = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [idPreview, setIdPreview] = useState(null);
+  const [secondIdPreview, setSecondIdPreview] = useState(null);
+  const [usingDefaultId, setUsingDefaultId] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndDefaultId = async () => {
       try {
-        const res = await axiosInstance.get("/api/users/account", {
+        // Fetch user data
+        const userRes = await axiosInstance.get("/api/users/account", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
-        setUser(res.data);
+        setUser(userRes.data);
         
         // Pre-fill form with user data
-        const { firstName, middleName, lastName, email, phoneNumber } = res.data;
+        const { firstName, middleName, lastName, email, phoneNumber } = userRes.data;
         const fullName = middleName 
           ? `${firstName} ${middleName} ${lastName}` 
           : `${firstName} ${lastName}`;
@@ -76,11 +80,40 @@ const CustomerRegister = () => {
           email,
           telephone: phoneNumber
         }));
+
+        // Fetch default ID card if exists
+        try {
+          const idRes = await axiosInstance.get("/api/default-id-cards", {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+          });
+          
+          if (idRes.data.defaultIdCard) {
+            setDefaultIdCard(idRes.data.defaultIdCard);
+            setUsingDefaultId(true);
+            
+            // Pre-fill ID fields
+            setFormData(prev => ({
+              ...prev,
+              idType: idRes.data.defaultIdCard.idType,
+              secondIdType: idRes.data.defaultIdCard.secondIdType || ""
+            }));
+            
+            // Set image previews
+            setIdPreview(idRes.data.defaultIdCard.idImage);
+            if (idRes.data.defaultIdCard.secondIdImage) {
+              setSecondIdPreview(idRes.data.defaultIdCard.secondIdImage);
+            }
+          }
+        } catch (idErr) {
+          // Default ID card doesn't exist, which is fine
+          console.log("No default ID card found");
+        }
       } catch {
         navigate("/login");
       }
     };
-    fetchUser();
+    
+    fetchUserAndDefaultId();
 
     const regions = Object.entries(geoData).map(([code, region]) => ({
       code,
@@ -122,10 +155,29 @@ const CustomerRegister = () => {
     const { name, value, type, checked, files } = e.target;
     if (type === "file") {
       setFormData({ ...formData, [name]: files[0] });
+      setUsingDefaultId(false);
+      
+      // Create preview for newly uploaded file
+      if (files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (name === "idImage") {
+            setIdPreview(e.target.result);
+          } else if (name === "secondIdImage") {
+            setSecondIdPreview(e.target.result);
+          }
+        };
+        reader.readAsDataURL(files[0]);
+      }
     } else if (type === "checkbox") {
       setFormData({ ...formData, [name]: checked });
     } else {
       setFormData({ ...formData, [name]: value });
+      
+      // If changing ID type, mark as not using default ID
+      if (name === "idType" || name === "secondIdType") {
+        setUsingDefaultId(false);
+      }
     }
   };
 
@@ -148,6 +200,35 @@ const CustomerRegister = () => {
     );
   };
 
+  const handleRemoveId = (type) => {
+    if (type === "primary") {
+      setFormData({ ...formData, idType: "", idImage: null });
+      setIdPreview(null);
+      setUsingDefaultId(false);
+    } else if (type === "secondary") {
+      setFormData({ ...formData, secondIdType: "", secondIdImage: null });
+      setSecondIdPreview(null);
+      setUsingDefaultId(false);
+    }
+  };
+
+  const handleUseDefaultId = () => {
+    if (defaultIdCard) {
+      setFormData(prev => ({
+        ...prev,
+        idType: defaultIdCard.idType,
+        secondIdType: defaultIdCard.secondIdType || ""
+      }));
+      
+      setIdPreview(defaultIdCard.idImage);
+      if (defaultIdCard.secondIdImage) {
+        setSecondIdPreview(defaultIdCard.secondIdImage);
+      }
+      
+      setUsingDefaultId(true);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -159,9 +240,23 @@ const CustomerRegister = () => {
 
     try {
       const payload = new FormData();
+      
+      // Add all form data except images if using default ID
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== "" && value !== null) payload.append(key, value);
+        if (key === "idImage" || key === "secondIdImage") {
+          // Only append image files if they're not using default ID or if new files were uploaded
+          if (!usingDefaultId && value !== null) {
+            payload.append(key, value);
+          }
+        } else if (value !== "" && value !== null) {
+          payload.append(key, value);
+        }
       });
+      
+      // Add flags to indicate if using default ID images
+      if (usingDefaultId) {
+        payload.append("usingDefaultId", "true");
+      }
 
       const res = await axiosInstance.post("/api/customers/register", payload, {
         headers: {
@@ -181,7 +276,7 @@ const CustomerRegister = () => {
     }
   };
 
-  const inputClass = "input cursor-pointer";
+  const inputClass = "input cursor-pointer border p-2.5 rounded-sm";
   const buttonClass = "py-2 px-4 bg-lime-600 text-white rounded hover:bg-lime-500/75 hover:text-sky-900 transition cursor-pointer";
 
   // Function to format text with proper capitalization
@@ -338,63 +433,125 @@ const CustomerRegister = () => {
           </button>
         </div>
 
-        <div className="flex flex-col mb-4">
-          <label className="text-sm font-semibold text-lime-900 mb-1">Primary ID Type</label>
-          <select 
-            name="idType" 
-            required 
-            value={formData.idType} 
-            onChange={handleChange} 
-            className={inputClass + " border p-2.5 rounded-sm"}
-          >
-            <option value="">Select ID Type</option>
-            {idTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-        </div>
+        {/* ID Section */}
+        <div className="mb-6 p-4 border border-lime-300 rounded-lg bg-lime-50">
+          <h3 className="text-lg font-semibold text-lime-900 mb-4">Identification Documents</h3>
+          
+          {defaultIdCard && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-700 mb-2">
+                You have a default ID card saved. You can use it or upload new documents.
+              </p>
+              <button
+                type="button"
+                onClick={handleUseDefaultId}
+                className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"
+              >
+                Use My Default ID
+              </button>
+            </div>
+          )}
 
-        <div className="flex flex-col mb-4">
-          <label className="text-sm font-semibold text-lime-900 mb-1">Upload Valid ID (Primary)</label>
-          <label className="cursor-pointer border p-3 rounded-md">
-            <input 
-              type="file" 
-              name="idImage" 
-              onChange={handleChange} 
+          <div className="flex flex-col mb-4">
+            <label className="text-sm font-semibold text-lime-900 mb-1">Primary ID Type</label>
+            <select 
+              name="idType" 
               required 
-              className="cursor-pointer" 
-            />
-          </label>
-        </div>
-
-        {/* Added second ID type field */}
-        <div className="flex flex-col mb-4">
-          <label className="text-sm font-semibold text-lime-900 mb-1">Secondary ID Type</label>
-          <select 
-            name="secondIdType" 
-            value={formData.secondIdType} 
-            onChange={handleChange} 
-            className={inputClass + " border p-2.5 rounded-sm"}
-          >
-            <option value="">Select Secondary ID Type (Optional)</option>
-            {secondIdTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Added second ID image field */}
-        <div className="flex flex-col mb-4">
-          <label className="text-sm font-semibold text-lime-900 mb-1">Upload Second ID (Secondary)</label>
-          <label className="cursor-pointer border p-3 rounded-md">
-            <input 
-              type="file" 
-              name="secondIdImage" 
+              value={formData.idType} 
               onChange={handleChange} 
-              className="cursor-pointer" 
-            />
-          </label>
-          <p className="text-xs text-gray-500 mt-1">Additional identification document</p>
+              className={inputClass}
+            >
+              <option value="">Select ID Type</option>
+              {idTypes.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col mb-4">
+            <label className="text-sm font-semibold text-lime-900 mb-1">
+              Upload Valid ID (Primary)
+              {usingDefaultId && <span className="text-xs text-gray-500 ml-2">(Using default ID)</span>}
+            </label>
+            
+            {idPreview ? (
+              <div className="mb-3 relative">
+                <img 
+                  src={idPreview} 
+                  alt="ID preview" 
+                  className="w-full max-w-xs h-auto border rounded-md"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveId("primary")}
+                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <label className="cursor-pointer border p-3 rounded-md">
+                <input 
+                  type="file" 
+                  name="idImage" 
+                  onChange={handleChange} 
+                  required={!usingDefaultId}
+                  className="cursor-pointer" 
+                  accept="image/*"
+                />
+              </label>
+            )}
+          </div>
+
+          <div className="flex flex-col mb-4">
+            <label className="text-sm font-semibold text-lime-900 mb-1">Secondary ID Type (Optional)</label>
+            <select 
+              name="secondIdType" 
+              value={formData.secondIdType} 
+              onChange={handleChange} 
+              className={inputClass}
+            >
+              <option value="">Select Secondary ID Type</option>
+              {secondIdTypes.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col mb-4">
+            <label className="text-sm font-semibold text-lime-900 mb-1">
+              Upload Second ID (Secondary)
+              {usingDefaultId && defaultIdCard?.secondIdImage && <span className="text-xs text-gray-500 ml-2">(Using default ID)</span>}
+            </label>
+            
+            {secondIdPreview ? (
+              <div className="mb-3 relative">
+                <img 
+                  src={secondIdPreview} 
+                  alt="Second ID preview" 
+                  className="w-full max-w-xs h-auto border rounded-md"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveId("secondary")}
+                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <label className="cursor-pointer border p-3 rounded-md">
+                <input 
+                  type="file" 
+                  name="secondIdImage" 
+                  onChange={handleChange} 
+                  className="cursor-pointer" 
+                  accept="image/*"
+                />
+              </label>
+            )}
+            <p className="text-xs text-gray-500 mt-1">Additional identification document (optional)</p>
+          </div>
         </div>
 
         <label className="flex items-center mt-2 mb-6 cursor-pointer">
