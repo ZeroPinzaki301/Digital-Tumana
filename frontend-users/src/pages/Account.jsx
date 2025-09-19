@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaEdit, FaUser, FaStore, FaTools, FaBriefcase, FaGraduationCap, FaPhone, FaEnvelope, FaAward } from "react-icons/fa";
+import { FaEdit, FaUser, FaStore, FaTools, FaBriefcase, FaGraduationCap, FaPhone, FaEnvelope, FaAward, FaIdCard } from "react-icons/fa";
 import axiosInstance from "../utils/axiosInstance";
 
 const Account = () => {
@@ -13,6 +13,12 @@ const Account = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [badgeLoading, setBadgeLoading] = useState(true);
+  
+  // New state for default ID cards
+  const [defaultIdCard, setDefaultIdCard] = useState(null);
+  const [idCardLoading, setIdCardLoading] = useState(true);
+  const [idCardError, setIdCardError] = useState(null);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,6 +43,8 @@ const Account = () => {
         
         // Fetch badge data after user data is loaded
         await fetchBadgeData(token);
+        // Fetch default ID card data
+        await fetchDefaultIdCard(token);
       } catch (error) {
         setIsLoggedIn(false);
         console.error("Failed to fetch user data", error);
@@ -58,6 +66,23 @@ const Account = () => {
         }
       } finally {
         setBadgeLoading(false);
+      }
+    };
+
+    const fetchDefaultIdCard = async (token) => {
+      try {
+        const response = await axiosInstance.get("/api/default-id", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setDefaultIdCard(response.data.defaultIdCard);
+      } catch (error) {
+        // If no ID card is found, it's not an error - just set to null
+        if (error.response?.status !== 404) {
+          console.error("Failed to fetch default ID card", error);
+          setIdCardError("Failed to load ID card information");
+        }
+      } finally {
+        setIdCardLoading(false);
       }
     };
     
@@ -132,6 +157,29 @@ const Account = () => {
       setIsEditing(false);
     } catch (error) {
       console.error("Update error:", error.response?.data || error.message);
+    }
+  };
+
+  // Handle ID card operations
+  const handleAddIdCard = () => {
+    navigate("/upload-id");
+  };
+
+  const handleEditIdCard = () => {
+    navigate("/edit-id");
+  };
+
+  const handleDeleteIdCard = async () => {
+    if (window.confirm('Are you sure you want to delete your default ID card?')) {
+      try {
+        await axiosInstance.delete("/api/default-id", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        setDefaultIdCard(null);
+      } catch (error) {
+        console.error("Failed to delete ID card:", error);
+        setIdCardError("Failed to delete ID card");
+      }
     }
   };
 
@@ -340,6 +388,102 @@ const Account = () => {
             </div>
           </div>
         )}
+
+        {/* Default ID Card Section - NEW SECTION */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-indigo-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <FaIdCard className="text-2xl text-indigo-600 mr-2" />
+              <h3 className="text-xl font-bold text-indigo-800">Default Identification Cards</h3>
+            </div>
+            {!defaultIdCard && (
+              <button
+                onClick={handleAddIdCard}
+                className="py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform hover:-translate-y-0.5 duration-300 text-sm"
+              >
+                Add New ID
+              </button>
+            )}
+          </div>
+
+          {idCardLoading ? (
+            <div className="text-center py-4">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+              <p className="text-gray-600 mt-2">Loading ID information...</p>
+            </div>
+          ) : idCardError ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-700">{idCardError}</p>
+            </div>
+          ) : !defaultIdCard ? (
+            <div className="text-center py-6 bg-white rounded-lg border-2 border-dashed border-indigo-200">
+              <FaIdCard className="text-4xl text-indigo-300 mx-auto mb-3" />
+              <p className="text-gray-600 mb-4">You have no uploaded ID yet</p>
+              <button
+                onClick={handleAddIdCard}
+                className="py-2 px-6 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform hover:-translate-y-0.5 duration-300"
+              >
+                Upload Your ID
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg border border-indigo-100 p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-semibold text-indigo-700">
+                  Primary ID: {defaultIdCard.idType}
+                </h4>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleEditIdCard}
+                    className="py-1 px-3 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 transition text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handleDeleteIdCard}
+                    className="py-1 px-3 bg-red-100 text-red-700 rounded hover:bg-red-200 transition text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="text-center">
+                  <img
+                    src={defaultIdCard.idImage}
+                    alt={`Primary ${defaultIdCard.idType}`}
+                    className="w-full max-w-xs h-48 object-contain mx-auto border rounded-lg"
+                  />
+                  <p className="text-sm text-gray-600 mt-2">Primary ID</p>
+                </div>
+
+                {defaultIdCard.secondIdImage && (
+                  <div className="text-center">
+                    <img
+                      src={defaultIdCard.secondIdImage}
+                      alt={`Secondary ${defaultIdCard.secondIdType}`}
+                      className="w-full max-w-xs h-48 object-contain mx-auto border rounded-lg"
+                    />
+                    <p className="text-sm text-gray-600 mt-2">
+                      Secondary ID ({defaultIdCard.secondIdType})
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {defaultIdCard.secondIdType && !defaultIdCard.secondIdImage && (
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                  <p className="text-sm text-blue-700">
+                    Secondary ID Type: {defaultIdCard.secondIdType}
+                    <br />
+                    <span className="text-blue-600">(No image uploaded for secondary ID)</span>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
