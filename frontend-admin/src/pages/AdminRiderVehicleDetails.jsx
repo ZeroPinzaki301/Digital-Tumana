@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
-import { FaArrowLeft, FaCloudUploadAlt, FaPlus, FaTrash, FaEdit, FaCar } from 'react-icons/fa';
+import { FaArrowLeft, FaCloudUploadAlt, FaPlus, FaTrash, FaEdit, FaCar, FaExclamationTriangle } from 'react-icons/fa';
 
 const AdminRiderVehicleDetails = () => {
   const { riderId } = useParams();
@@ -21,6 +21,8 @@ const AdminRiderVehicleDetails = () => {
     vehicleImages: []
   });
   const [uploading, setUploading] = useState(false);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicatePlateNumber, setDuplicatePlateNumber] = useState('');
 
   useEffect(() => {
     fetchRiderAndVehicles();
@@ -122,8 +124,7 @@ const AdminRiderVehicleDetails = () => {
 
       let response;
       if (editingVehicle) {
-        // Update existing vehicle - NOTE: This might need adjustment based on your backend
-        // Since vehicles are now nested, you might need to use a different endpoint
+        // Update existing vehicle
         response = await axiosInstance.put(
           `/api/kariton/vehicle/${editingVehicle._id}`,
           formPayload,
@@ -163,7 +164,20 @@ const AdminRiderVehicleDetails = () => {
       fetchRiderAndVehicles();
     } catch (err) {
       console.error('Error saving vehicle:', err);
-      setErrorMsg(err.response?.data?.message || 'Failed to save vehicle details');
+      
+      // Check if it's a duplicate plate number error
+      if (err.response?.data?.error?.includes('duplicate key error') && 
+          err.response?.data?.error?.includes('plateNumber')) {
+        // Extract the duplicate plate number from the error message
+        const match = err.response.data.error.match(/plateNumber: "([^"]+)"/);
+        const plateNum = match ? match[1] : formData.plateNumber;
+        
+        setDuplicatePlateNumber(plateNum);
+        setShowDuplicateModal(true);
+        setErrorMsg(`Plate number "${plateNum}" already exists in the system.`);
+      } else {
+        setErrorMsg(err.response?.data?.message || 'Failed to save vehicle details');
+      }
     } finally {
       setUploading(false);
     }
@@ -210,6 +224,11 @@ const AdminRiderVehicleDetails = () => {
     });
   };
 
+  const closeDuplicateModal = () => {
+    setShowDuplicateModal(false);
+    setDuplicatePlateNumber('');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen p-6 bg-gray-50 flex items-center justify-center">
@@ -245,8 +264,9 @@ const AdminRiderVehicleDetails = () => {
 
         {/* Messages */}
         {errorMsg && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">
-            {errorMsg}
+          <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded flex items-start">
+            <FaExclamationTriangle className="mt-1 mr-2 flex-shrink-0" />
+            <span>{errorMsg}</span>
           </div>
         )}
         {successMsg && (
@@ -454,6 +474,34 @@ const AdminRiderVehicleDetails = () => {
           )}
         </div>
       </div>
+
+      {/* Duplicate Plate Number Modal */}
+      {showDuplicateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <div className="flex items-center mb-4">
+              <div className="bg-red-100 p-3 rounded-full mr-4">
+                <FaExclamationTriangle className="text-red-600 text-xl" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800">Duplicate Plate Number</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              The plate number <span className="font-semibold">"{duplicatePlateNumber}"</span> is already registered in the system. 
+              Please use a different plate number.
+            </p>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={closeDuplicateModal}
+                className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
