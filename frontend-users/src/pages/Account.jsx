@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaEdit, FaUser, FaStore, FaTools, FaBriefcase, FaGraduationCap, FaPhone, FaEnvelope, FaAward, FaIdCard } from "react-icons/fa";
+import { FaEdit, FaUser, FaStore, FaTools, FaBriefcase, FaGraduationCap, FaPhone, FaEnvelope, FaAward, FaIdCard, FaPlus, FaTimes } from "react-icons/fa";
 import axiosInstance from "../utils/axiosInstance";
 
 const Account = () => {
@@ -14,10 +14,21 @@ const Account = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [badgeLoading, setBadgeLoading] = useState(true);
   
-  // New state for default ID cards
+  // ID Card states
   const [defaultIdCard, setDefaultIdCard] = useState(null);
   const [idCardLoading, setIdCardLoading] = useState(true);
   const [idCardError, setIdCardError] = useState(null);
+  const [showIdForm, setShowIdForm] = useState(false);
+  const [isEditingId, setIsEditingId] = useState(false);
+  const [idFormData, setIdFormData] = useState({
+    idType: "",
+    idImage: null,
+    secondIdType: "",
+    secondIdImage: null
+  });
+  const [idImagePreview, setIdImagePreview] = useState(null);
+  const [secondIdImagePreview, setSecondIdImagePreview] = useState(null);
+  const [idUploading, setIdUploading] = useState(false);
   
   const navigate = useNavigate();
 
@@ -160,15 +171,99 @@ const Account = () => {
     }
   };
 
-  // Handle ID card operations
-  const handleAddIdCard = () => {
-    navigate("/upload-id");
+  // Handle ID card image upload and preview
+  const handleIdImageChange = (e, isSecondary = false) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (isSecondary) {
+      setIdFormData(prev => ({ ...prev, secondIdImage: file }));
+      const reader = new FileReader();
+      reader.onload = () => setSecondIdImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setIdFormData(prev => ({ ...prev, idImage: file }));
+      const reader = new FileReader();
+      reader.onload = () => setIdImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    }
   };
 
+  // Handle ID card form changes
+  const handleIdFormChange = (e) => {
+    const { name, value } = e.target;
+    setIdFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle ID card submission
+  const handleIdSubmit = async (e) => {
+    e.preventDefault();
+    setIdUploading(true);
+    
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("idType", idFormData.idType);
+      if (idFormData.idImage) {
+        formDataToSend.append("idImage", idFormData.idImage);
+      }
+      if (idFormData.secondIdType) {
+        formDataToSend.append("secondIdType", idFormData.secondIdType);
+      }
+      if (idFormData.secondIdImage) {
+        formDataToSend.append("secondIdImage", idFormData.secondIdImage);
+      }
+
+      const endpoint = isEditingId ? "/api/default-id" : "/api/default-id";
+      const method = isEditingId ? "put" : "post";
+
+      const response = await axiosInstance[method](endpoint, formDataToSend, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setDefaultIdCard(response.data.defaultIdCard);
+      setShowIdForm(false);
+      setIsEditingId(false);
+      resetIdForm();
+    } catch (error) {
+      console.error("ID card operation failed:", error);
+      setIdCardError("Failed to process ID card. Please try again.");
+    } finally {
+      setIdUploading(false);
+    }
+  };
+
+  // Reset ID form
+  const resetIdForm = () => {
+    setIdFormData({
+      idType: "",
+      idImage: null,
+      secondIdType: "",
+      secondIdImage: null
+    });
+    setIdImagePreview(null);
+    setSecondIdImagePreview(null);
+  };
+
+  // Handle ID card edit
   const handleEditIdCard = () => {
-    navigate("/edit-id");
+    setIsEditingId(true);
+    setShowIdForm(true);
+    setIdFormData({
+      idType: defaultIdCard.idType,
+      idImage: null,
+      secondIdType: defaultIdCard.secondIdType || "",
+      secondIdImage: null
+    });
+    setIdImagePreview(defaultIdCard.idImage);
+    if (defaultIdCard.secondIdImage) {
+      setSecondIdImagePreview(defaultIdCard.secondIdImage);
+    }
   };
 
+  // Handle ID card deletion
   const handleDeleteIdCard = async () => {
     if (window.confirm('Are you sure you want to delete your default ID card?')) {
       try {
@@ -181,6 +276,13 @@ const Account = () => {
         setIdCardError("Failed to delete ID card");
       }
     }
+  };
+
+  // Cancel ID form
+  const handleCancelIdForm = () => {
+    setShowIdForm(false);
+    setIsEditingId(false);
+    resetIdForm();
   };
 
   if (isLoading) {
@@ -389,19 +491,20 @@ const Account = () => {
           </div>
         )}
 
-        {/* Default ID Card Section - NEW SECTION */}
+        {/* Default ID Card Section */}
         <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-indigo-200 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <FaIdCard className="text-2xl text-indigo-600 mr-2" />
               <h3 className="text-xl font-bold text-indigo-800">Default Identification Cards</h3>
             </div>
-            {!defaultIdCard && (
+            {!showIdForm && !defaultIdCard && (
               <button
-                onClick={handleAddIdCard}
-                className="py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform hover:-translate-y-0.5 duration-300 text-sm"
+                onClick={() => setShowIdForm(true)}
+                className="py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform hover:-translate-y-0.5 duration-300 text-sm flex items-center"
               >
-                Add New ID
+                <FaPlus className="mr-1" />
+                <span>Add New ID</span>
               </button>
             )}
           </div>
@@ -415,15 +518,132 @@ const Account = () => {
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-700">{idCardError}</p>
             </div>
+          ) : showIdForm ? (
+            <div className="bg-white rounded-lg border border-indigo-100 p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-semibold text-indigo-700">
+                  {isEditingId ? "Edit ID Card" : "Add New ID Card"}
+                </h4>
+                <button
+                  onClick={handleCancelIdForm}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <form onSubmit={handleIdSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Primary ID Type</label>
+                  <select
+                    name="idType"
+                    value={idFormData.idType}
+                    onChange={handleIdFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  >
+                    <option value="">Select ID Type</option>
+                    <option value="National ID">National ID</option>
+                    <option value="Passport">Passport</option>
+                    <option value="Driver's License">Driver's License</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Primary ID Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleIdImageChange(e, false)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required={!isEditingId}
+                  />
+                  {idImagePreview && (
+                    <div className="mt-2">
+                      <img
+                        src={idImagePreview}
+                        alt="ID preview"
+                        className="h-32 object-contain border rounded"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Secondary ID Type (Optional)</label>
+                  <select
+                    name="secondIdType"
+                    value={idFormData.secondIdType}
+                    onChange={handleIdFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Select Secondary ID Type</option>
+                    <option value="National ID">National ID</option>
+                    <option value="Passport">Passport</option>
+                    <option value="Driver's License">Driver's License</option>
+                    <option value="PhilHealth ID">PhilHealth ID</option>
+                    <option value="UMID">UMID</option>
+                    <option value="SSS ID">SSS ID</option>
+                    <option value="Barangay ID">Barangay ID</option>
+                    <option value="Postal ID">Postal ID</option>
+                    <option value="Voter's ID">Voter's ID</option>
+                    <option value="Senior Citizen ID">Senior Citizen ID</option>
+                    <option value="PRC ID">PRC ID</option>
+                    <option value="Company ID">Company ID</option>
+                    <option value="School ID">School ID</option>
+                    <option value="TIN ID">TIN ID</option>
+                  </select>
+                </div>
+
+                {idFormData.secondIdType && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Secondary ID Image (Optional)</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleIdImageChange(e, true)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    {secondIdImagePreview && (
+                      <div className="mt-2">
+                        <img
+                          src={secondIdImagePreview}
+                          alt="Secondary ID preview"
+                          className="h-32 object-contain border rounded"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex space-x-2 pt-2">
+                  <button
+                    type="submit"
+                    disabled={idUploading}
+                    className="py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 flex-1"
+                  >
+                    {idUploading ? "Processing..." : (isEditingId ? "Update ID" : "Save ID")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelIdForm}
+                    className="py-2 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition flex-1"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           ) : !defaultIdCard ? (
             <div className="text-center py-6 bg-white rounded-lg border-2 border-dashed border-indigo-200">
               <FaIdCard className="text-4xl text-indigo-300 mx-auto mb-3" />
               <p className="text-gray-600 mb-4">You have no uploaded ID yet</p>
               <button
-                onClick={handleAddIdCard}
-                className="py-2 px-6 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform hover:-translate-y-0.5 duration-300"
+                onClick={() => setShowIdForm(true)}
+                className="py-2 px-6 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition transform hover:-translate-y-0.5 duration-300 flex items-center justify-center mx-auto"
               >
-                Upload Your ID
+                <FaPlus className="mr-2" />
+                <span>Upload Your ID</span>
               </button>
             </div>
           ) : (
