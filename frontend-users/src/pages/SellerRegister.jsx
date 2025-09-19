@@ -14,7 +14,7 @@ const SellerRegister = () => {
     agreedToPolicy: false,
     agreedToTerms: false,
     validId: null,
-    secondValidId: null, // Added second valid ID field
+    secondValidId: null,
     dtiCert: null,
     birCert: null,
   });
@@ -43,6 +43,20 @@ const SellerRegister = () => {
     );
   };
 
+  // Format date to YYYY-MM-DD for input[type="date"]
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString; // Return original if invalid
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -57,7 +71,7 @@ const SellerRegister = () => {
           firstName: res.data.firstName || "",
           middleName: res.data.middleName || "",
           lastName: res.data.lastName || "",
-          birthdate: res.data.birthdate || "",
+          birthdate: formatDateForInput(res.data.birthdate) || "", // Format the date
           sex: res.data.sex || "",
           nationality: "Filipino",
         }));
@@ -253,7 +267,7 @@ const SellerRegister = () => {
         <div className="space-y-4">
           {[
             { name: "validId", label: "Upload Valid ID (Primary)", required: true },
-            { name: "secondValidId", label: "Upload Second Valid ID (Optional)", required: false }, // Added second valid ID
+            { name: "secondValidId", label: "Upload Second Valid ID (Optional)", required: false },
             { name: "dtiCert", label: "Upload DTI Certificate", required: true },
             { name: "birCert", label: "Upload BIR Certificate", required: true },
           ].map(({ name, label, required }) => (
