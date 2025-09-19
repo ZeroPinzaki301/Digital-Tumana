@@ -198,26 +198,26 @@ const Register = () => {
         </div>
       </div>
 
-      {/* Modal for Privacy Policy */}
+      {/* Modal for Privacy Policy - Updated to match CustomerRegister */}
       {showPolicyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
-            <h2 className="text-2xl font-bold text-lime-700 mb-4">Digital Tumana Privacy Policy</h2>
+            <h2 className="text-2xl font-bold text-orange-700 mb-4">Customer Privacy & Compliance Policy</h2>
             <div className="text-gray-700 space-y-4">
               <p>
-                Digital Tumana is committed to protecting your privacy. We collect and use your personal information solely for the purpose of providing our services, including account management, transaction processing, and customer support.
+                This policy outlines the responsibilities and requirements for customers registering on our platform, especially in relation to the handling of fresh produce and agricultural goods.
               </p>
               <p>
-                <strong>Information Collection:</strong> We collect information such as your name, email, phone number, and transaction history to facilitate platform operations.
+                <strong>Identity Verification:</strong> All customers must provide valid personal information and a government-issued ID to verify identity. This helps prevent fraud and ensures accountability.
               </p>
               <p>
-                <strong>Usage:</strong> Your data is used to verify identity, process payments, and improve user experience. We do not sell or share your information with third parties without your consent.
+                <strong>Order Compliance:</strong> Customers must honor all placed orders, be available for delivery or pickup, and understand that non-compliance may result in cancellation or account suspension.
               </p>
               <p>
-                <strong>Security:</strong> We implement industry-standard security measures to protect your data from unauthorized access.
+                <strong>Data Protection:</strong> Customer data is securely stored and never shared with third parties except as required by law or to fulfill orders.
               </p>
               <p>
-                <strong>Updates:</strong> This policy may be updated periodically. Users will be notified of significant changes through platform notifications.
+                <strong>Policy Updates:</strong> This policy may be updated periodically. Customers will be notified via email or platform notifications.
               </p>
             </div>
             <button
