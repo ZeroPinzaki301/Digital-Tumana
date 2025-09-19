@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const SellerRegister = () => {
   const [user, setUser] = useState(null);
+  const [defaultIdCard, setDefaultIdCard] = useState(null);
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -25,6 +26,12 @@ const SellerRegister = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [validIdPreview, setValidIdPreview] = useState(null);
+  const [secondValidIdPreview, setSecondValidIdPreview] = useState(null);
+  const [dtiCertPreview, setDtiCertPreview] = useState(null);
+  const [birCertPreview, setBirCertPreview] = useState(null);
+  const [usingDefaultId, setUsingDefaultId] = useState(false);
+  
   const navigate = useNavigate();
 
   // Check if all required fields are filled
@@ -37,7 +44,7 @@ const SellerRegister = () => {
       formData.nationality &&
       formData.agreedToPolicy &&
       formData.agreedToTerms &&
-      formData.validId &&
+      (formData.validId || usingDefaultId) &&
       formData.dtiCert &&
       formData.birCert
     );
@@ -58,7 +65,7 @@ const SellerRegister = () => {
   };
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndDefaultId = async () => {
       try {
         const res = await axiosInstance.get("/api/users/account", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -75,21 +82,103 @@ const SellerRegister = () => {
           sex: res.data.sex || "",
           nationality: "Filipino",
         }));
+
+        // Fetch default ID card if exists
+        try {
+          const idRes = await axiosInstance.get("/api/default-id", {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+          });
+          
+          if (idRes.data.defaultIdCard) {
+            setDefaultIdCard(idRes.data.defaultIdCard);
+            
+            // Pre-fill ID fields with URLs
+            setFormData(prev => ({
+              ...prev,
+              validId: idRes.data.defaultIdCard.idImage,
+              secondValidId: idRes.data.defaultIdCard.secondIdImage || null
+            }));
+            
+            // Set image previews
+            setValidIdPreview(idRes.data.defaultIdCard.idImage);
+            if (idRes.data.defaultIdCard.secondIdImage) {
+              setSecondValidIdPreview(idRes.data.defaultIdCard.secondIdImage);
+            }
+            
+            setUsingDefaultId(true);
+          }
+        } catch (idErr) {
+          // Default ID card doesn't exist, which is fine
+          console.log("No default ID card found");
+        }
       } catch (err) {
         navigate("/login");
       }
     };
-    fetchUser();
+    fetchUserAndDefaultId();
   }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === "file") {
       setFormData({ ...formData, [name]: files[0] });
+      setUsingDefaultId(false);
+      
+      // Create preview for newly uploaded file
+      if (files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (name === "validId") {
+            setValidIdPreview(e.target.result);
+          } else if (name === "secondValidId") {
+            setSecondValidIdPreview(e.target.result);
+          } else if (name === "dtiCert") {
+            setDtiCertPreview(e.target.result);
+          } else if (name === "birCert") {
+            setBirCertPreview(e.target.result);
+          }
+        };
+        reader.readAsDataURL(files[0]);
+      }
     } else if (type === "checkbox") {
       setFormData({ ...formData, [name]: checked });
     } else {
       setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const handleUseDefaultId = () => {
+    if (defaultIdCard) {
+      setFormData(prev => ({
+        ...prev,
+        validId: defaultIdCard.idImage,
+        secondValidId: defaultIdCard.secondIdImage || null
+      }));
+      
+      setValidIdPreview(defaultIdCard.idImage);
+      if (defaultIdCard.secondIdImage) {
+        setSecondValidIdPreview(defaultIdCard.secondIdImage);
+      }
+      
+      setUsingDefaultId(true);
+    }
+  };
+
+  const handleRemoveFile = (type) => {
+    if (type === "validId") {
+      setFormData({ ...formData, validId: null });
+      setValidIdPreview(null);
+      setUsingDefaultId(false);
+    } else if (type === "secondValidId") {
+      setFormData({ ...formData, secondValidId: null });
+      setSecondValidIdPreview(null);
+      setUsingDefaultId(false);
+    } else if (type === "dtiCert") {
+      setFormData({ ...formData, dtiCert: null });
+      setDtiCertPreview(null);
+    } else if (type === "birCert") {
+      setFormData({ ...formData, birCert: null });
+      setBirCertPreview(null);
     }
   };
 
@@ -104,11 +193,33 @@ const SellerRegister = () => {
 
     try {
       const payload = new FormData();
+      
+      // Add all form data
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
+        // For file inputs, handle differently
+        if (key === "validId" || key === "secondValidId") {
+          // If using default ID, we have URLs, not files
+          if (usingDefaultId && typeof value === "string") {
+            // Append the URL as a regular field
+            payload.append(key, value);
+          } 
+          // If not using default ID and we have a file, append it
+          else if (!usingDefaultId && value instanceof File) {
+            payload.append(key, value);
+          }
+        } 
+        // For certificate files
+        else if ((key === "dtiCert" || key === "birCert") && value instanceof File) {
+          payload.append(key, value);
+        }
+        // For all other fields
+        else if (value !== "" && value !== null && value !== undefined) {
           payload.append(key, value);
         }
       });
+      
+      // Add flag to indicate if using default ID
+      payload.append("usingDefaultId", usingDefaultId.toString());
 
       const res = await axiosInstance.post("/api/sellers/register", payload, {
         headers: {
@@ -128,7 +239,11 @@ const SellerRegister = () => {
     }
   };
 
-  const getFileName = (file) => (file ? file.name : "No file selected");
+  const getFileName = (file) => {
+    if (!file) return "No file selected";
+    if (typeof file === "string") return "Using default ID";
+    return file.name;
+  };
 
   // Get today's date in YYYY-MM-DD format for the max date attribute
   const getTodayDate = () => {
@@ -155,6 +270,54 @@ const SellerRegister = () => {
     return age;
   };
 
+  // File upload component with preview
+  const FileUploadWithPreview = ({ name, label, required, preview, onRemove }) => {
+    const isIdFile = name === "validId" || name === "secondValidId";
+    
+    return (
+      <div className="mb-4">
+        <label htmlFor={name} className="block w-full text-center py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-500/75 cursor-pointer transition mb-2">
+          {label}
+        </label>
+        <input
+          type="file"
+          name={name}
+          id={name}
+          onChange={handleChange}
+          className="hidden"
+          required={required && !(isIdFile && usingDefaultId)}
+        />
+        
+        {preview ? (
+          <div className="mt-2 relative">
+            <img 
+              src={preview} 
+              alt={`${name} preview`} 
+              className="w-full max-w-xs h-auto border rounded-md mx-auto"
+            />
+            <button
+              type="button"
+              onClick={() => onRemove(name)}
+              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+            >
+              ×
+            </button>
+          </div>
+        ) : (
+          !(isIdFile && usingDefaultId) && (
+            <p className="text-sm text-gray-600 mt-1 text-center italic">
+              Click above to upload file
+            </p>
+          )
+        )}
+        
+        <p className="text-sm text-gray-600 mt-1 text-center italic">
+          {getFileName(formData[name])}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-bg-50 flex flex-col items-center justify-center px-4 py-6">
       <div className="w-full max-w-lg mb-4">
@@ -171,6 +334,21 @@ const SellerRegister = () => {
         className="bg-white max-w-lg w-full rounded-lg p-6 shadow-md border border-lime-700"
       >
         <h2 className="text-2xl font-bold text-lime-900 mb-4 text-center">Seller Registration</h2>
+
+        {defaultIdCard && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700 mb-2">
+              You have a default ID card saved. You can use it or upload new documents.
+            </p>
+            <button
+              type="button"
+              onClick={handleUseDefaultId}
+              className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"
+            >
+              Use My Default ID
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -265,27 +443,37 @@ const SellerRegister = () => {
         <hr className="my-4" />
 
         <div className="space-y-4">
-          {[
-            { name: "validId", label: "Upload Valid ID (Primary)", required: true },
-            { name: "secondValidId", label: "Upload Second Valid ID (Optional)", required: false },
-            { name: "dtiCert", label: "Upload DTI Certificate", required: true },
-            { name: "birCert", label: "Upload BIR Certificate", required: true },
-          ].map(({ name, label, required }) => (
-            <div key={name}>
-              <label htmlFor={name} className="block w-full text-center py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-500/75 cursor-pointer transition">
-                {label}
-              </label>
-              <input
-                type="file"
-                name={name}
-                id={name}
-                onChange={handleChange}
-                className="hidden"
-                required={required}
-              />
-              <p className="text-sm text-gray-600 mt-1 text-center italic">{getFileName(formData[name])}</p>
-            </div>
-          ))}
+          <FileUploadWithPreview
+            name="validId"
+            label="Upload Valid ID (Primary)"
+            required={true}
+            preview={validIdPreview}
+            onRemove={handleRemoveFile}
+          />
+          
+          <FileUploadWithPreview
+            name="secondValidId"
+            label="Upload Second Valid ID (Optional)"
+            required={false}
+            preview={secondValidIdPreview}
+            onRemove={handleRemoveFile}
+          />
+          
+          <FileUploadWithPreview
+            name="dtiCert"
+            label="Upload DTI Certificate"
+            required={true}
+            preview={dtiCertPreview}
+            onRemove={handleRemoveFile}
+          />
+          
+          <FileUploadWithPreview
+            name="birCert"
+            label="Upload BIR Certificate"
+            required={true}
+            preview={birCertPreview}
+            onRemove={handleRemoveFile}
+          />
 
           <label className="flex items-center mt-2 cursor-pointer">
             <input type="checkbox" name="agreedToPolicy" checked={formData.agreedToPolicy} onChange={handleChange} className="mr-2 cursor-pointer" />
