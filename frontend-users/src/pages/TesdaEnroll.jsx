@@ -183,7 +183,7 @@ const TesdaEnroll = () => {
     return file.name;
   };
 
-  const FileUploadWithPreview = ({ name, label, preview, onRemove, required = false }) => {
+  const FileUploadWithPreview = ({ name, label, preview, onRemove }) => {
     return (
       <div className="mb-4">
         <label htmlFor={name} className="block text-lg font-medium text-gray-700 mb-2">{label}</label>
@@ -197,7 +197,6 @@ const TesdaEnroll = () => {
           accept="image/*"
           onChange={handleChange}
           className="hidden"
-          required={required}
         />
         {preview ? (
           <div className="mt-2 relative">
