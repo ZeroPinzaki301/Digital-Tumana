@@ -26,6 +26,7 @@ const TesdaEnroll = () => {
   const [validIdPreview, setValidIdPreview] = useState(null);
   const [secondValidIdPreview, setSecondValidIdPreview] = useState(null);
   const [usingDefaultId, setUsingDefaultId] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
     const fetchUserAndEnrollment = async () => {
@@ -84,6 +85,16 @@ const TesdaEnroll = () => {
     fetchUserAndEnrollment();
   }, [navigate]);
 
+  // Check if all required fields are filled
+  useEffect(() => {
+    const checkFormValidity = () => {
+      const { firstName, lastName, birthdate, birthCertImage, validIdImage, secondValidIdImage } = formData;
+      return firstName && lastName && birthdate && birthCertImage && validIdImage && secondValidIdImage;
+    };
+    
+    setIsFormValid(checkFormValidity());
+  }, [formData]);
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
@@ -132,6 +143,8 @@ const TesdaEnroll = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isFormValid) return;
+    
     setIsSubmitting(true);
 
     try {
@@ -189,7 +202,14 @@ const TesdaEnroll = () => {
         {preview ? (
           <div className="mt-2 relative">
             <img src={preview} alt={`${name} preview`} className="w-full max-w-xs h-auto border rounded-md mx-auto" />
-            <button type="button" onClick={() => onRemove(name)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs">×</button>
+            <button 
+              type="button" 
+              onClick={() => onRemove(name)} 
+              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+              aria-label={`Remove ${label}`}
+            >
+              ×
+            </button>
           </div>
         ) : (
           <p className="text-sm text-gray-600 mt-1 text-center italic">Click above to upload file</p>
@@ -321,9 +341,9 @@ const TesdaEnroll = () => {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isFormValid}
                 className={`w-full py-3 rounded-lg font-semibold shadow-md transition ${
-                  isSubmitting
+                  isSubmitting || !isFormValid
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-lime-700 text-white hover:bg-lime-600/75 hover:text-lime-900 cursor-pointer"
                 }`}
