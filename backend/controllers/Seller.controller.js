@@ -25,8 +25,12 @@ export const registerSeller = async (req, res) => {
 
     let validIdImageUrl = null;
 
-    if (usingDefaultValidId === "true" && typeof validIdImage === "string") {
-      validIdImageUrl = validIdImage;
+    if (usingDefaultValidId === "true") {
+      if (req.body.validId && typeof req.body.validId === "string") {
+        validIdImageUrl = req.body.validId;
+      } else {
+        return res.status(400).json({ message: "Default valid ID image URL is missing." });
+      }
     } else if (req.files?.validId) {
       const validIdResult = await uploadToCloudinary(req.files.validId[0].path, "valid_id_images");
       validIdImageUrl = validIdResult.secure_url;
