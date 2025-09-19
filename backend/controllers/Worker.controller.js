@@ -19,26 +19,46 @@ export const registerWorker = async (req, res) => {
       birthdate,
       nationality,
       agreedToPolicy,
+      usingDefaultValidId,
+      validId, // string if using default
+      secondValidId // string if using default
     } = req.body;
 
-    if (!req.files?.validId) {
-      return res.status(400).json({ message: "Valid ID must be uploaded." });
+    let validIdImageUrl = null;
+    let secondValidIdImageUrl = null;
+
+    // Handle valid ID
+    if (usingDefaultValidId === "true") {
+      if (validId && typeof validId === "string") {
+        validIdImageUrl = validId;
+      } else {
+        return res.status(400).json({ message: "Default valid ID image URL is missing." });
+      }
+
+      if (secondValidId && typeof secondValidId === "string") {
+        secondValidIdImageUrl = secondValidId;
+      }
+    } else {
+      if (!req.files?.validId || !req.files.validId[0]) {
+        return res.status(400).json({ message: "Valid ID must be uploaded." });
+      }
+
+      const validIdResult = await uploadToCloudinary(req.files.validId[0].path, "valid_id_images");
+      validIdImageUrl = validIdResult.secure_url;
+
+      if (req.files?.secondValidId && req.files.secondValidId[0]) {
+        const secondValidIdResult = await uploadToCloudinary(
+          req.files.secondValidId[0].path,
+          "valid_id_images"
+        );
+        secondValidIdImageUrl = secondValidIdResult.secure_url;
+      }
     }
 
-    const validIdResult = await uploadToCloudinary(req.files.validId[0].path, "valid_id_images");
+    // Upload resume if provided
     const resumeResult = req.files?.resumeFile
       ? await uploadToCloudinary(req.files.resumeFile[0].path, "resume_files")
       : null;
-
-    // Upload second valid ID if provided
-    let secondValidIdImageUrl = null;
-    if (req.files?.secondValidId && req.files.secondValidId[0]) {
-      const secondValidIdResult = await uploadToCloudinary(
-        req.files.secondValidId[0].path, 
-        "valid_id_images"
-      );
-      secondValidIdImageUrl = secondValidIdResult.secure_url;
-    }
 
     const newWorker = new Worker({
       userId: user._id,
@@ -49,7 +69,7 @@ export const registerWorker = async (req, res) => {
       sex,
       birthdate,
       nationality,
-      validIdImage: validIdResult.secure_url,
+      validIdImage: validIdImageUrl,
       secondValidIdImage: secondValidIdImageUrl,
       resumeFile: resumeResult?.secure_url || null,
       agreedToPolicy,
