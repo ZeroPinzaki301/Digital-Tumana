@@ -34,6 +34,7 @@ export const enrollTesdaCourse = async (req, res) => {
     let validIdImageUrl = null;
     let secondValidIdImageUrl = null;
 
+    // Handle default ID usage
     if (usingDefaultValidId === "true") {
       if (!validIdImage || typeof validIdImage !== "string") {
         return res.status(400).json({ message: "Default valid ID image URL is missing." });
@@ -44,6 +45,7 @@ export const enrollTesdaCourse = async (req, res) => {
         secondValidIdImageUrl = secondValidIdImage;
       }
     } else {
+      // Handle uploaded valid ID
       if (!req.files?.validIdImage || !req.files.validIdImage[0]) {
         return res.status(400).json({ message: "Valid ID image is required." });
       }
@@ -54,6 +56,7 @@ export const enrollTesdaCourse = async (req, res) => {
       );
       validIdImageUrl = validIdRes.secure_url;
 
+      // Handle uploaded second valid ID
       if (req.files?.secondValidIdImage && req.files.secondValidIdImage[0]) {
         const secondValidIdRes = await uploadToCloudinary(
           req.files.secondValidIdImage[0].path,
@@ -63,6 +66,7 @@ export const enrollTesdaCourse = async (req, res) => {
       }
     }
 
+    // Create enrollment record
     const newEnrollment = await TesdaEnrollment.create({
       userId,
       firstName,
@@ -78,10 +82,10 @@ export const enrollTesdaCourse = async (req, res) => {
     res.status(201).json({ message: "Enrollment submitted", enrollment: newEnrollment });
 
   } catch (err) {
+    console.error("Error in enrollTesdaCourse:", err);
     res.status(500).json({ message: "Enrollment failed", error: err.message });
   }
 };
-
 
 export const getUserTesdaEnrollment = async (req, res) => {
   try {
