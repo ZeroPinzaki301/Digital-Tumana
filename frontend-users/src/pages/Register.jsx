@@ -18,6 +18,8 @@ const Register = () => {
     email: "",
     password: "",
     phoneNumber: "",
+    sex: "",
+    birthdate: "",
     agreedToPolicy: false,
   });
 
@@ -38,6 +40,18 @@ const Register = () => {
 
     if (formData.phoneNumber.length !== 11) {
       setModalMessage("Phone number must be exactly 11 digits");
+      setShowMessageModal(true);
+      return;
+    }
+
+    if (!formData.sex) {
+      setModalMessage("Please select your gender");
+      setShowMessageModal(true);
+      return;
+    }
+
+    if (!formData.birthdate) {
+      setModalMessage("Please enter your birthdate");
       setShowMessageModal(true);
       return;
     }
@@ -166,6 +180,37 @@ const Register = () => {
               )}
             </div>
 
+            {/* Sex/Gender */}
+            <div>
+              <label htmlFor="sex" className="block text-lg font-medium text-gray-700">Gender</label>
+              <select
+                name="sex"
+                id="sex"
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            {/* Birthdate */}
+            <div>
+              <label htmlFor="birthdate" className="block text-lg font-medium text-gray-700">Birthdate</label>
+              <input
+                type="date"
+                name="birthdate"
+                id="birthdate"
+                onChange={handleChange}
+                required
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-3 py-2 border border-lime-700 rounded-lg focus:outline-none focus:ring focus:ring-lime-700 text-lg"
+              />
+            </div>
+
             {/* Policy Agreement */}
             <label className="flex items-center space-x-2 text-lg">
               <input
@@ -198,7 +243,7 @@ const Register = () => {
         </div>
       </div>
 
-      {/* Modal for Privacy Policy - Updated to match CustomerRegister */}
+      {/* Modal for Privacy Policy */}
       {showPolicyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white max-w-3xl w-full p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
