@@ -15,31 +15,54 @@ export const enrollTesdaCourse = async (req, res) => {
       firstName,
       middleName,
       lastName,
-      birthdate
+      birthdate,
+      usingDefaultValidId,
+      validIdImage,
+      secondValidIdImage
     } = req.body;
 
-    // Validate image uploads
-    if (!req.files?.birthCertImage || !req.files?.validIdImage || !req.files?.secondValidIdImage) {
-      return res.status(400).json({ message: "Birth certificate and valid ID images are required." });
+    // Birth certificate must always be uploaded
+    if (!req.files?.birthCertImage || !req.files.birthCertImage[0]) {
+      return res.status(400).json({ message: "Birth certificate image is required." });
     }
 
-    // Upload to Cloudinary
     const birthCertRes = await uploadToCloudinary(
       req.files.birthCertImage[0].path,
       "tesda_documents"
     );
 
-    const validIdRes = await uploadToCloudinary(
-      req.files.validIdImage[0].path,
-      "tesda_documents"
-    );
+    let validIdImageUrl = null;
+    let secondValidIdImageUrl = null;
 
-    const secondValidIdRes = await uploadToCloudinary(
-      req.files.secondValidIdImage[0].path,
-      "tesda_documents"
-    );
+    if (usingDefaultValidId === "true") {
+      if (!validIdImage || typeof validIdImage !== "string") {
+        return res.status(400).json({ message: "Default valid ID image URL is missing." });
+      }
+      validIdImageUrl = validIdImage;
 
-    // Create enrollment
+      if (secondValidIdImage && typeof secondValidIdImage === "string") {
+        secondValidIdImageUrl = secondValidIdImage;
+      }
+    } else {
+      if (!req.files?.validIdImage || !req.files.validIdImage[0]) {
+        return res.status(400).json({ message: "Valid ID image is required." });
+      }
+
+      const validIdRes = await uploadToCloudinary(
+        req.files.validIdImage[0].path,
+        "tesda_documents"
+      );
+      validIdImageUrl = validIdRes.secure_url;
+
+      if (req.files?.secondValidIdImage && req.files.secondValidIdImage[0]) {
+        const secondValidIdRes = await uploadToCloudinary(
+          req.files.secondValidIdImage[0].path,
+          "tesda_documents"
+        );
+        secondValidIdImageUrl = secondValidIdRes.secure_url;
+      }
+    }
+
     const newEnrollment = await TesdaEnrollment.create({
       userId,
       firstName,
@@ -47,8 +70,8 @@ export const enrollTesdaCourse = async (req, res) => {
       lastName,
       birthdate,
       birthCertImage: birthCertRes.secure_url,
-      validIdImage: validIdRes.secure_url,
-      secondValidIdImage: secondValidIdRes.secure_url,
+      validIdImage: validIdImageUrl,
+      secondValidIdImage: secondValidIdImageUrl,
       status: "pending"
     });
 
@@ -58,6 +81,7 @@ export const enrollTesdaCourse = async (req, res) => {
     res.status(500).json({ message: "Enrollment failed", error: err.message });
   }
 };
+
 
 export const getUserTesdaEnrollment = async (req, res) => {
   try {
