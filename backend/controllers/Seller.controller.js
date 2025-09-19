@@ -2,10 +2,15 @@ import Seller from "../models/Seller.model.js";
 import SellerAddress from "../models/SellerAddress.model.js";
 import { uploadToCloudinary } from "../config/cloudinary.js";
 
+import Seller from "../models/Seller.model.js";
+import SellerAddress from "../models/SellerAddress.model.js";
+import { uploadToCloudinary } from "../config/cloudinary.js";
+
 export const registerSeller = async (req, res) => {
   try {
     const user = req.user;
 
+    // Check if seller already exists
     const existing = await Seller.findOne({ userId: user._id });
     if (existing) {
       return res.status(409).json({ message: "You already have an existing seller application." });
@@ -20,22 +25,39 @@ export const registerSeller = async (req, res) => {
       nationality,
       agreedToPolicy,
       usingDefaultValidId,
-      validIdImage // string if using default
+      validId, // string if using default
+      secondValidId // string if using default
     } = req.body;
 
     let validIdImageUrl = null;
+    let secondValidIdImageUrl = null;
 
+    // Handle valid ID
     if (usingDefaultValidId === "true") {
-      if (req.body.validId && typeof req.body.validId === "string") {
-        validIdImageUrl = req.body.validId;
+      if (validId && typeof validId === "string") {
+        validIdImageUrl = validId;
       } else {
         return res.status(400).json({ message: "Default valid ID image URL is missing." });
       }
-    } else if (req.files?.validId) {
-      const validIdResult = await uploadToCloudinary(req.files.validId[0].path, "valid_id_images");
-      validIdImageUrl = validIdResult.secure_url;
+
+      if (secondValidId && typeof secondValidId === "string") {
+        secondValidIdImageUrl = secondValidId;
+      }
     } else {
-      return res.status(400).json({ message: "Valid ID image is required." });
+      if (req.files?.validId && req.files.validId[0]) {
+        const validIdResult = await uploadToCloudinary(req.files.validId[0].path, "valid_id_images");
+        validIdImageUrl = validIdResult.secure_url;
+      } else {
+        return res.status(400).json({ message: "Valid ID image is required." });
+      }
+
+      if (req.files?.secondValidId && req.files.secondValidId[0]) {
+        const secondValidIdResult = await uploadToCloudinary(
+          req.files.secondValidId[0].path,
+          "valid_id_images"
+        );
+        secondValidIdImageUrl = secondValidIdResult.secure_url;
+      }
     }
 
     // DTI and BIR certificates are always required
@@ -46,15 +68,7 @@ export const registerSeller = async (req, res) => {
     const dtiResult = await uploadToCloudinary(req.files.dtiCert[0].path, "dti_cert_images");
     const birResult = await uploadToCloudinary(req.files.birCert[0].path, "bir_cert_images");
 
-    let secondValidIdImageUrl = null;
-    if (req.files?.secondValidId && req.files.secondValidId[0]) {
-      const secondValidIdResult = await uploadToCloudinary(
-        req.files.secondValidId[0].path,
-        "valid_id_images"
-      );
-      secondValidIdImageUrl = secondValidIdResult.secure_url;
-    }
-
+    // Create new seller document
     const newSeller = new Seller({
       userId: user._id,
       email: user.email,
@@ -80,7 +94,6 @@ export const registerSeller = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 
 export const getVerifiedSellerByUser = async (req, res) => {
   try {
