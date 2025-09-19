@@ -57,6 +57,8 @@ const SellerRegister = () => {
           firstName: res.data.firstName || "",
           middleName: res.data.middleName || "",
           lastName: res.data.lastName || "",
+          birthdate: res.data.birthdate || "",
+          sex: res.data.sex || "",
           nationality: "Filipino",
         }));
       } catch (err) {
