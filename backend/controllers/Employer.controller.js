@@ -20,29 +20,50 @@ export const registerEmployer = async (req, res) => {
       nationality,
       companyName,
       agreedToPolicy,
+      usingDefaultValidId,
+      validId, // string if using default
+      secondValidId // string if using default
     } = req.body;
 
-    if (!req.files?.validId) {
-      return res.status(400).json({ message: "Valid ID must be uploaded." });
+    let validIdImageUrl = null;
+    let secondValidIdImageUrl = null;
+
+    // Handle valid ID
+    if (usingDefaultValidId === "true") {
+      if (validId && typeof validId === "string") {
+        validIdImageUrl = validId;
+      } else {
+        return res.status(400).json({ message: "Default valid ID image URL is missing." });
+      }
+
+      if (secondValidId && typeof secondValidId === "string") {
+        secondValidIdImageUrl = secondValidId;
+      }
+    } else {
+      if (!req.files?.validId || !req.files.validId[0]) {
+        return res.status(400).json({ message: "Valid ID must be uploaded." });
+      }
+
+      const validIdResult = await uploadToCloudinary(req.files.validId[0].path, "valid_id_images");
+      validIdImageUrl = validIdResult.secure_url;
+
+      if (req.files?.secondValidId && req.files.secondValidId[0]) {
+        const secondValidIdResult = await uploadToCloudinary(
+          req.files.secondValidId[0].path,
+          "valid_id_images"
+        );
+        secondValidIdImageUrl = secondValidIdResult.secure_url;
+      }
     }
 
-    const validIdResult = await uploadToCloudinary(req.files.validId[0].path, "valid_id_images");
+    // Upload DTI and BIR certificates if provided
     const dtiResult = req.files?.dtiCert
       ? await uploadToCloudinary(req.files.dtiCert[0].path, "dti_cert_images")
       : null;
+
     const birResult = req.files?.birCert
       ? await uploadToCloudinary(req.files.birCert[0].path, "bir_cert_images")
       : null;
-
-    // Upload second valid ID if provided
-    let secondValidIdImageUrl = null;
-    if (req.files?.secondValidId && req.files.secondValidId[0]) {
-      const secondValidIdResult = await uploadToCloudinary(
-        req.files.secondValidId[0].path, 
-        "valid_id_images"
-      );
-      secondValidIdImageUrl = secondValidIdResult.secure_url;
-    }
 
     const newEmployer = new Employer({
       userId: user._id,
@@ -54,7 +75,7 @@ export const registerEmployer = async (req, res) => {
       birthdate,
       nationality,
       companyName,
-      validIdImage: validIdResult.secure_url,
+      validIdImage: validIdImageUrl,
       secondValidIdImage: secondValidIdImageUrl,
       dtiCertificateImage: dtiResult?.secure_url || null,
       birCertificateImage: birResult?.secure_url || null,
@@ -70,6 +91,7 @@ export const registerEmployer = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 export const getVerifiedEmployerByUser = async (req, res) => {
   try {
