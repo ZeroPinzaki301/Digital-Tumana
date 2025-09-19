@@ -39,6 +39,20 @@ const WorkerRegister = () => {
     );
   };
 
+  // Format date to YYYY-MM-DD for input[type="date"]
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString; // Return original if invalid
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -53,6 +67,8 @@ const WorkerRegister = () => {
           firstName: res.data.firstName || "",
           lastName: res.data.lastName || "",
           middleName: res.data.middleName || "",
+          birthdate: formatDateForInput(res.data.birthdate) || "", // Format the date
+          sex: res.data.sex || "",
           nationality: "Filipino",
         }));
       } catch (err) {
