@@ -202,7 +202,7 @@ const WorkerRegister = () => {
     return age;
   };
 
-  const FileUploadWithPreview = ({ name, label, preview, onRemove, required = false }) => {
+  const FileUploadWithPreview = ({ name, label, preview, onRemove }) => {
     return (
       <div className="mb-4">
         <label htmlFor={name} className="block w-full text-center py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-500/75 cursor-pointer transition mb-2">
@@ -214,7 +214,6 @@ const WorkerRegister = () => {
           id={name}
           onChange={handleChange}
           className="hidden"
-          required={required}
         />
         {preview ? (
           <div className="mt-2 relative">
@@ -371,7 +370,6 @@ const WorkerRegister = () => {
             label="Upload Valid ID (Primary)"
             preview={validIdPreview}
             onRemove={handleRemoveFile}
-            required={true}
           />
           
           <FileUploadWithPreview
@@ -379,7 +377,6 @@ const WorkerRegister = () => {
             label="Upload Another ID (Secondary)"
             preview={secondValidIdPreview}
             onRemove={handleRemoveFile}
-            required={true}
           />
           
           <FileUploadWithPreview
