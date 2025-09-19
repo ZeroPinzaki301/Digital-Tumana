@@ -1,3 +1,4 @@
+// SellerRegister.jsx
 import { useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
@@ -31,10 +32,9 @@ const SellerRegister = () => {
   const [dtiCertPreview, setDtiCertPreview] = useState(null);
   const [birCertPreview, setBirCertPreview] = useState(null);
   const [usingDefaultId, setUsingDefaultId] = useState(false);
-  
+
   const navigate = useNavigate();
 
-  // Check if all required fields are filled
   const isFormValid = () => {
     return (
       formData.firstName &&
@@ -50,18 +50,11 @@ const SellerRegister = () => {
     );
   };
 
-  // Format date to YYYY-MM-DD for input[type="date"]
   const formatDateForInput = (dateString) => {
     if (!dateString) return "";
-    
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString; // Return original if invalid
-    
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
-    return `${year}-${month}-${day}`;
+    if (isNaN(date.getTime())) return dateString;
+    return date.toISOString().split("T")[0];
   };
 
   useEffect(() => {
@@ -71,45 +64,32 @@ const SellerRegister = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setUser(res.data);
-        
-        // Pre-fill form with user data
         setFormData(prev => ({
           ...prev,
           firstName: res.data.firstName || "",
           middleName: res.data.middleName || "",
           lastName: res.data.lastName || "",
-          birthdate: formatDateForInput(res.data.birthdate) || "", // Format the date
+          birthdate: formatDateForInput(res.data.birthdate) || "",
           sex: res.data.sex || "",
           nationality: "Filipino",
         }));
 
-        // Fetch default ID card if exists
-        try {
-          const idRes = await axiosInstance.get("/api/default-id", {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-          });
-          
-          if (idRes.data.defaultIdCard) {
-            setDefaultIdCard(idRes.data.defaultIdCard);
-            
-            // Pre-fill ID fields with URLs
-            setFormData(prev => ({
-              ...prev,
-              validId: idRes.data.defaultIdCard.idImage,
-              secondValidId: idRes.data.defaultIdCard.secondIdImage || null
-            }));
-            
-            // Set image previews
-            setValidIdPreview(idRes.data.defaultIdCard.idImage);
-            if (idRes.data.defaultIdCard.secondIdImage) {
-              setSecondValidIdPreview(idRes.data.defaultIdCard.secondIdImage);
-            }
-            
-            setUsingDefaultId(true);
+        const idRes = await axiosInstance.get("/api/default-id", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+
+        if (idRes.data.defaultIdCard) {
+          setDefaultIdCard(idRes.data.defaultIdCard);
+          setFormData(prev => ({
+            ...prev,
+            validId: idRes.data.defaultIdCard.idImage,
+            secondValidId: idRes.data.defaultIdCard.secondIdImage || null
+          }));
+          setValidIdPreview(idRes.data.defaultIdCard.idImage);
+          if (idRes.data.defaultIdCard.secondIdImage) {
+            setSecondValidIdPreview(idRes.data.defaultIdCard.secondIdImage);
           }
-        } catch (idErr) {
-          // Default ID card doesn't exist, which is fine
-          console.log("No default ID card found");
+          setUsingDefaultId(true);
         }
       } catch (err) {
         navigate("/login");
@@ -123,23 +103,14 @@ const SellerRegister = () => {
     if (type === "file") {
       setFormData({ ...formData, [name]: files[0] });
       setUsingDefaultId(false);
-      
-      // Create preview for newly uploaded file
-      if (files[0]) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (name === "validId") {
-            setValidIdPreview(e.target.result);
-          } else if (name === "secondValidId") {
-            setSecondValidIdPreview(e.target.result);
-          } else if (name === "dtiCert") {
-            setDtiCertPreview(e.target.result);
-          } else if (name === "birCert") {
-            setBirCertPreview(e.target.result);
-          }
-        };
-        reader.readAsDataURL(files[0]);
-      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (name === "validId") setValidIdPreview(e.target.result);
+        else if (name === "secondValidId") setSecondValidIdPreview(e.target.result);
+        else if (name === "dtiCert") setDtiCertPreview(e.target.result);
+        else if (name === "birCert") setBirCertPreview(e.target.result);
+      };
+      reader.readAsDataURL(files[0]);
     } else if (type === "checkbox") {
       setFormData({ ...formData, [name]: checked });
     } else {
@@ -154,72 +125,48 @@ const SellerRegister = () => {
         validId: defaultIdCard.idImage,
         secondValidId: defaultIdCard.secondIdImage || null
       }));
-      
       setValidIdPreview(defaultIdCard.idImage);
       if (defaultIdCard.secondIdImage) {
         setSecondValidIdPreview(defaultIdCard.secondIdImage);
       }
-      
       setUsingDefaultId(true);
     }
   };
 
   const handleRemoveFile = (type) => {
+    setFormData(prev => ({ ...prev, [type]: null }));
     if (type === "validId") {
-      setFormData({ ...formData, validId: null });
       setValidIdPreview(null);
       setUsingDefaultId(false);
     } else if (type === "secondValidId") {
-      setFormData({ ...formData, secondValidId: null });
       setSecondValidIdPreview(null);
       setUsingDefaultId(false);
-    } else if (type === "dtiCert") {
-      setFormData({ ...formData, dtiCert: null });
-      setDtiCertPreview(null);
-    } else if (type === "birCert") {
-      setFormData({ ...formData, birCert: null });
-      setBirCertPreview(null);
-    }
+    } else if (type === "dtiCert") setDtiCertPreview(null);
+    else if (type === "birCert") setBirCertPreview(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.agreedToPolicy || !formData.agreedToTerms) {
       return setError("You must agree to the Seller Policy and Terms and Conditions before submitting.");
     }
+    if (!formData.validId && !usingDefaultId) {
+      return setError("Please upload a valid ID or use your default ID.");
+    }
 
     setIsSubmitting(true);
-
     try {
       const payload = new FormData();
-      
-      // Add all form data
       Object.entries(formData).forEach(([key, value]) => {
-        // For file inputs, handle differently
-        if (key === "validId" || key === "secondValidId") {
-          // If using default ID, we have URLs, not files
-          if (usingDefaultId && typeof value === "string") {
-            // Append the URL as a regular field
-            payload.append(key, value);
-          } 
-          // If not using default ID and we have a file, append it
-          else if (!usingDefaultId && value instanceof File) {
-            payload.append(key, value);
-          }
-        } 
-        // For certificate files
-        else if ((key === "dtiCert" || key === "birCert") && value instanceof File) {
+        if ((key === "validId" || key === "secondValidId") && typeof value === "string") {
           payload.append(key, value);
-        }
-        // For all other fields
-        else if (value !== "" && value !== null && value !== undefined) {
+        } else if (value instanceof File) {
+          payload.append(key, value);
+        } else if (value !== "" && value !== null && value !== undefined) {
           payload.append(key, value);
         }
       });
-      
-      // Add flag to indicate if using default ID
-      payload.append("usingDefaultId", usingDefaultId.toString());
+      payload.append("usingDefaultValidId", usingDefaultId.toString());
 
       const res = await axiosInstance.post("/api/sellers/register", payload, {
         headers: {
@@ -245,35 +192,24 @@ const SellerRegister = () => {
     return file.name;
   };
 
-  // Get today's date in YYYY-MM-DD format for the max date attribute
   const getTodayDate = () => {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return today.toISOString().split("T")[0];
   };
 
-  // Function to calculate age from birthdate
   const calculateAge = (birthdate) => {
     if (!birthdate) return "";
-    
     const today = new Date();
     const birthDate = new Date(birthdate);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
     return age;
   };
 
-  // File upload component with preview
-  const FileUploadWithPreview = ({ name, label, required, preview, onRemove }) => {
-    const isIdFile = name === "validId" || name === "secondValidId";
-    
+  const FileUploadWithPreview = ({ name, label, preview, onRemove }) => {
     return (
       <div className="mb-4">
         <label htmlFor={name} className="block w-full text-center py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-500/75 cursor-pointer transition mb-2">
@@ -285,35 +221,16 @@ const SellerRegister = () => {
           id={name}
           onChange={handleChange}
           className="hidden"
-          required={required && !(isIdFile && usingDefaultId)}
         />
-        
         {preview ? (
           <div className="mt-2 relative">
-            <img 
-              src={preview} 
-              alt={`${name} preview`} 
-              className="w-full max-w-xs h-auto border rounded-md mx-auto"
-            />
-            <button
-              type="button"
-              onClick={() => onRemove(name)}
-              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
-            >
-              ×
-            </button>
+            <img src={preview} alt={`${name} preview`} className="w-full max-w-xs h-auto border rounded-md mx-auto" />
+            <button type="button" onClick={() => onRemove(name)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs">×</button>
           </div>
         ) : (
-          !(isIdFile && usingDefaultId) && (
-            <p className="text-sm text-gray-600 mt-1 text-center italic">
-              Click above to upload file
-            </p>
-          )
+          <p className="text-sm text-gray-600 mt-1 text-center italic">Click above to upload file</p>
         )}
-        
-        <p className="text-sm text-gray-600 mt-1 text-center italic">
-          {getFileName(formData[name])}
-        </p>
+        <p className="text-sm text-gray-600 mt-1 text-center italic">{getFileName(formData[name])}</p>
       </div>
     );
   };
@@ -446,7 +363,6 @@ const SellerRegister = () => {
           <FileUploadWithPreview
             name="validId"
             label="Upload Valid ID (Primary)"
-            required={true}
             preview={validIdPreview}
             onRemove={handleRemoveFile}
           />
@@ -454,7 +370,6 @@ const SellerRegister = () => {
           <FileUploadWithPreview
             name="secondValidId"
             label="Upload Second Valid ID (Optional)"
-            required={false}
             preview={secondValidIdPreview}
             onRemove={handleRemoveFile}
           />
@@ -462,7 +377,6 @@ const SellerRegister = () => {
           <FileUploadWithPreview
             name="dtiCert"
             label="Upload DTI Certificate"
-            required={true}
             preview={dtiCertPreview}
             onRemove={handleRemoveFile}
           />
@@ -470,7 +384,6 @@ const SellerRegister = () => {
           <FileUploadWithPreview
             name="birCert"
             label="Upload BIR Certificate"
-            required={true}
             preview={birCertPreview}
             onRemove={handleRemoveFile}
           />
