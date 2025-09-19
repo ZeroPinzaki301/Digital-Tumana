@@ -1,11 +1,6 @@
 import Seller from "../models/Seller.model.js";
 import SellerAddress from "../models/SellerAddress.model.js";
 import { uploadToCloudinary } from "../config/cloudinary.js";
-
-import Seller from "../models/Seller.model.js";
-import SellerAddress from "../models/SellerAddress.model.js";
-import { uploadToCloudinary } from "../config/cloudinary.js";
-
 export const registerSeller = async (req, res) => {
   try {
     const user = req.user;
