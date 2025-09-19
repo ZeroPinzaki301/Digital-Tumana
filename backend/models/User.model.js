@@ -55,6 +55,15 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    sex: { 
+      type: String, 
+      enum: ["Male", "Female", "Other"], 
+      required: true 
+    },
+    birthdate: { 
+      type: Date, 
+      required: true 
+    },
     isEmployer: {
       type: Boolean,
       default: false,
