@@ -1,12 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import connectDB from "./config/db.js"; 
 
-// Routes
+// Routes (all your route imports remain the same)
 import userRoutes from "./routes/User.route.js";
 import adminRoutes from "./routes/Admin.route.js";
 import sellerRoutes from "./routes/Seller.route.js";
@@ -39,10 +36,6 @@ import notificationRoutes from "./routes/Notification.route.js";
 import defaultIdCardRoutes from "./routes/DefaultIdCard.route.js";
 
 import { createIndexes } from "./models/dbIndexes.js";
-
-// ES module equivalents of __filename and __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 dotenv.config();
 
@@ -81,7 +74,7 @@ connectDB().then(() => {
   createIndexes();
 });
 
-// API Routes
+// API Routes (all your routes remain the same)
 app.use("/api/users", userRoutes);
 app.use("/api/admins", adminRoutes);
 app.use("/api/admin/user-management", adminUserManagementRoutes);
@@ -121,13 +114,14 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+// Root endpoint to confirm API is working
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    message: 'Digital Tumana API Server', 
+    status: 'Online',
+    timestamp: new Date().toISOString()
   });
-}
+});
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -138,12 +132,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
+// 404 handler for API routes
 app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ message: 'API endpoint not found' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
