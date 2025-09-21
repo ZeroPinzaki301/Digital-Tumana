@@ -13,6 +13,7 @@ const Services = () => {
   const [hasPortfolio, setHasPortfolio] = useState(false);
   const [pendingWorker, setPendingWorker] = useState(false);
   const [userSkillTypes, setUserSkillTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -28,11 +29,12 @@ const Services = () => {
   ];
 
   useEffect(() => {
-    // Reset all user-related state when component mounts
+    // Reset all state when component mounts
     setWorkerVerified(false);
     setHasPortfolio(false);
     setPendingWorker(false);
     setUserSkillTypes([]);
+    setLoading(true);
 
     const fetchJobs = async () => {
       try {
@@ -46,17 +48,24 @@ const Services = () => {
     const fetchWorkerStatus = async () => {
       const token = localStorage.getItem("token");
       
-      // If no token, user is not logged in, skip worker status check
+      // If no token, user is not logged in
       if (!token) {
         setWorkerVerified(false);
         setPendingWorker(false);
         setHasPortfolio(false);
+        setLoading(false);
         return;
       }
 
       try {
+        // Add cache-busting parameter to prevent cached responses
         const workerRes = await axiosInstance.get("/api/workers/dashboard", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+          },
+          params: { t: Date.now() } // Cache busting
         });
 
         if (workerRes.status === 200) {
@@ -64,12 +73,15 @@ const Services = () => {
 
           try {
             const portfolioRes = await axiosInstance.get("/api/worker/portfolio", {
-              headers: { Authorization: `Bearer ${token}` },
+              headers: { 
+                Authorization: `Bearer ${token}`,
+                "Cache-Control": "no-cache"
+              },
+              params: { t: Date.now() }
             });
 
             if (portfolioRes.status === 200 && portfolioRes.data?.workerId) {
               setHasPortfolio(true);
-              // Set user's skill types from portfolio
               if (portfolioRes.data.skillTypes && portfolioRes.data.skillTypes.length > 0) {
                 setUserSkillTypes(portfolioRes.data.skillTypes);
               }
@@ -78,43 +90,65 @@ const Services = () => {
             if (portfolioErr.response?.status === 404) {
               setHasPortfolio(false);
             } else {
-              console.error("Failed to fetch portfolio:", portfolioErr);
+              console.error("Portfolio fetch error:", portfolioErr);
             }
           }
         }
       } catch (err) {
-        try {
-          const pendingRes = await axiosInstance.get("/api/workers/user", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (pendingRes.data?.worker?.status === "pending") {
-            setPendingWorker(true);
-          } else {
-            setWorkerVerified(false);
-            setPendingWorker(false);
-          }
-        } catch {
+        // Handle specific error cases
+        if (err.response?.status === 410) {
+          // Worker registration was declined - clear any cached worker data
           setWorkerVerified(false);
           setPendingWorker(false);
+          setHasPortfolio(false);
+          // Optionally clear any cached worker data from localStorage
+          localStorage.removeItem('workerData');
+        } else if (err.response?.status === 403) {
+          // Worker is pending verification
+          setPendingWorker(true);
+          setWorkerVerified(false);
+        } else if (err.response?.status === 404) {
+          // No worker profile found
+          setWorkerVerified(false);
+          setPendingWorker(false);
+        } else {
+          // Other errors
+          setWorkerVerified(false);
+          setPendingWorker(false);
+          
+          // Try to get basic worker info to check if pending
+          try {
+            const pendingRes = await axiosInstance.get("/api/workers/user", {
+              headers: { 
+                Authorization: `Bearer ${token}`,
+                "Cache-Control": "no-cache"
+              },
+              params: { t: Date.now() }
+            });
+
+            if (pendingRes.data?.worker?.status === "pending") {
+              setPendingWorker(true);
+            }
+          } catch (pendingErr) {
+            // Ignore this error, user is not a worker
+            console.log("User is not registered as worker");
+          }
         }
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchJobs();
     fetchWorkerStatus();
 
-    // Listen for storage changes (like token changes)
-    const handleStorageChange = (e) => {
-      if (e.key === "token") {
-        // Re-fetch worker status when token changes
-        fetchWorkerStatus();
-      }
+    // Listen for storage changes (like when user logs in/out in another tab)
+    const handleStorageChange = () => {
+      fetchWorkerStatus();
     };
 
     window.addEventListener('storage', handleStorageChange);
     
-    // Cleanup
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -147,7 +181,6 @@ const Services = () => {
       const salaryMin = minSalary === "" || job.minSalary >= parseFloat(minSalary);
       const salaryMax = maxSalary === "" || job.maxSalary <= parseFloat(maxSalary);
       
-      // Skill type filtering - show all if none selected, otherwise filter by selected skills
       const skillMatches = selectedSkillTypes.length === 0 || 
         (job.skillTypes && job.skillTypes.some(skill => 
           selectedSkillTypes.includes(skill)
@@ -156,6 +189,14 @@ const Services = () => {
       return nameMatches && salaryMin && salaryMax && skillMatches;
     })
     .sort(() => Math.random() - 0.5);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-sky-50 flex items-center justify-center">
+        <div className="animate-pulse text-sky-700 text-lg">Loading services...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-sky-50 pb-16">
