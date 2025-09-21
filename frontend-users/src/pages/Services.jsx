@@ -28,6 +28,12 @@ const Services = () => {
   ];
 
   useEffect(() => {
+    // Reset all user-related state when component mounts
+    setWorkerVerified(false);
+    setHasPortfolio(false);
+    setPendingWorker(false);
+    setUserSkillTypes([]);
+
     const fetchJobs = async () => {
       try {
         const res = await axiosInstance.get("/api/jobs");
@@ -39,6 +45,14 @@ const Services = () => {
 
     const fetchWorkerStatus = async () => {
       const token = localStorage.getItem("token");
+      
+      // If no token, user is not logged in, skip worker status check
+      if (!token) {
+        setWorkerVerified(false);
+        setPendingWorker(false);
+        setHasPortfolio(false);
+        return;
+      }
 
       try {
         const workerRes = await axiosInstance.get("/api/workers/dashboard", {
@@ -63,6 +77,8 @@ const Services = () => {
           } catch (portfolioErr) {
             if (portfolioErr.response?.status === 404) {
               setHasPortfolio(false);
+            } else {
+              console.error("Failed to fetch portfolio:", portfolioErr);
             }
           }
         }
@@ -74,6 +90,9 @@ const Services = () => {
 
           if (pendingRes.data?.worker?.status === "pending") {
             setPendingWorker(true);
+          } else {
+            setWorkerVerified(false);
+            setPendingWorker(false);
           }
         } catch {
           setWorkerVerified(false);
@@ -84,6 +103,21 @@ const Services = () => {
 
     fetchJobs();
     fetchWorkerStatus();
+
+    // Listen for storage changes (like token changes)
+    const handleStorageChange = (e) => {
+      if (e.key === "token") {
+        // Re-fetch worker status when token changes
+        fetchWorkerStatus();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const handleSkillTypeChange = (skillType) => {
