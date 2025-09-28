@@ -16,8 +16,12 @@ const OngoingOrdersPage = () => {
         const res = await axiosInstance.get('/api/customer/order/ongoing', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setOrders(res.data.data);
-        setFilteredOrders(res.data.data);
+        
+        // Filter out orders with null sellerId to prevent rendering errors
+        const validOrders = res.data.data.filter(order => order.sellerId !== null);
+        
+        setOrders(validOrders);
+        setFilteredOrders(validOrders);
       } catch (error) {
         console.error('Error fetching ongoing orders:', error.message);
       } finally {
@@ -117,6 +121,12 @@ const OrderCard = ({ order }) => {
   const { _id, sellerId, items, status, totalPrice } = order;
   const navigate = useNavigate();
 
+  // Return null if sellerId is null to prevent rendering errors
+  if (!sellerId) {
+    console.warn(`Order ${_id} has no seller information`);
+    return null;
+  }
+
   const handleViewDetails = () => {
     navigate(`/customer/ongoing-order/${_id}`);
   };
@@ -139,12 +149,15 @@ const OrderCard = ({ order }) => {
       <div className="flex items-center gap-4 mb-4">
         <img
           src={sellerId.storePicture || '/default-store.png'}
-          alt={sellerId.storeName}
+          alt={sellerId.storeName || 'Store'}
           className="h-16 w-16 rounded-full object-cover border border-lime-200"
+          onError={(e) => {
+            e.target.src = '/default-store.png';
+          }}
         />
         <div>
-          <h3 className="text-lg font-semibold text-lime-800">{sellerId.storeName}</h3>
-          <p className="text-sm text-gray-600">{sellerId.email}</p>
+          <h3 className="text-lg font-semibold text-lime-800">{sellerId.storeName || 'Unknown Store'}</h3>
+          <p className="text-sm text-gray-600">{sellerId.email || 'No email provided'}</p>
         </div>
       </div>
 
@@ -156,11 +169,18 @@ const OrderCard = ({ order }) => {
               src={item.productId?.productImage || '/default-product.png'}
               alt={item.productId?.productName || 'Product'}
               className="h-20 w-20 object-cover rounded border border-lime-200"
+              onError={(e) => {
+                e.target.src = '/default-product.png';
+              }}
             />
             <div>
-              <p className="font-semibold text-lime-800">{item.productId?.productName || 'Unnamed Product'}</p>
+              <p className="font-semibold text-lime-800">
+                {item.productId?.productName || 'Unnamed Product'}
+              </p>
               <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-              <p className="text-sm text-gray-600">₱{item.priceAtOrder.toFixed(2)}</p>
+              <p className="text-sm text-gray-600">
+                ₱{(item.priceAtOrder || 0).toFixed(2)}
+              </p>
             </div>
           </div>
         ))}
@@ -169,9 +189,11 @@ const OrderCard = ({ order }) => {
       {/* Status & Total */}
       <div className="flex justify-between items-center mt-4 pt-4 border-t">
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeColor(status)}`}>
-          {status}
+          {status || 'Unknown'}
         </span>
-        <span className="text-lg font-bold text-lime-900">₱{totalPrice.toFixed(2)}</span>
+        <span className="text-lg font-bold text-lime-900">
+          ₱{(totalPrice || 0).toFixed(2)}
+        </span>
       </div>
     </div>
   );
